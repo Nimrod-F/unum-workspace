@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-dynamo-test-table
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  CreatePostFunction:
+    Value: !GetAtt CreatePostFunction.Arn
+  FindUrlFunction:
+    Value: !GetAtt FindUrlFunction.Arn
+  PublishFunction:
+    Value: !GetAtt PublishFunction.Arn
+  ShortenUrlFunction:
+    Value: !GetAtt ShortenUrlFunction.Arn
+  UserMentionFunction:
+    Value: !GetAtt UserMentionFunction.Arn
+Resources:
+  CreatePostFunction:
+    Properties:
+      CodeUri: create_post/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FindUrlFunction:
+    Properties:
+      CodeUri: find_url/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  PublishFunction:
+    Properties:
+      CodeUri: publish/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  ShortenUrlFunction:
+    Properties:
+      CodeUri: shorten_url/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  UserMentionFunction:
+    Properties:
+      CodeUri: user_mention/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

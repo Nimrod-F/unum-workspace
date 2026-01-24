@@ -1,0 +1,32 @@
+Globals:
+  ApplicationName: unum-text-processing
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-dynamo-test-table
+  GC: false
+  Checkpoint: true
+  Eager: true  # Enable eager fan-in (invoke on first branch, poll for missing)
+  WorkflowDefinition: unum-step-functions.json
+  WorkflowType: step-functions
+
+Functions:
+  CreatePost:
+    Properties:
+      CodeUri: create_post/
+      Runtime: python3.13
+  FindUrl:
+    Properties:
+      CodeUri: find_url/
+      Runtime: python3.13
+  Publish:
+    Properties:
+      CodeUri: publish/
+      Runtime: python3.13
+  ShortenUrl:
+    Properties:
+      CodeUri: shorten_url/
+      Runtime: python3.13
+  UserMention:
+    Properties:
+      CodeUri: user_mention/
+      Runtime: python3.13

@@ -1,0 +1,41 @@
+Globals:
+  ApplicationName: unum-mapreduce-wordcount-dynamo-new
+  WorkflowType: step-functions
+  WorkflowDefinition: unum-step-functions.json
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-dynamo-test-table
+  FaaSPlatform: aws
+  Checkpoint: true
+  GC: false
+  Eager: true # FUTURE_BASED mode - set to false for CLASSIC
+  Debug: true
+Functions:
+  Mapper:
+    Properties:
+      CodeUri: mapper/
+      Runtime: python3.13
+  Reducer:
+    Properties:
+      CodeUri: reducer/
+      Runtime: python3.13
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+  Partition:
+    Properties:
+      CodeUri: partition/
+      Runtime: python3.13
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+  Summary:
+    Properties:
+      CodeUri: summary/
+      Runtime: python3.13
+      Policies:
+        - AmazonSQSFullAccess
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+  UnumMap0:
+    Properties:
+      CodeUri: UnumMap0/
+      Runtime: python3.13
+      Start: true

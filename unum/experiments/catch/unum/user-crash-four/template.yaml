@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        FAAS_PLATFORM: aws
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-dynamo-test-table
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  FirstErrorFunction:
+    Value: !GetAtt FirstErrorFunction.Arn
+  FirstFunction:
+    Value: !GetAtt FirstFunction.Arn
+  SecondFunction:
+    Value: !GetAtt SecondFunction.Arn
+Resources:
+  FirstErrorFunction:
+    Properties:
+      CodeUri: first_error/
+      Handler: wrapper.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FirstFunction:
+    Properties:
+      CodeUri: first/
+      Handler: wrapper.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  SecondFunction:
+    Properties:
+      CodeUri: second/
+      Handler: wrapper.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

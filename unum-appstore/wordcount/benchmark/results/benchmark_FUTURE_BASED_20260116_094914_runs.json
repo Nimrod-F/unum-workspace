@@ -1,0 +1,455 @@
+[
+  {
+    "run_id": 0,
+    "session_id": "bench-FUTURE_BASED-0-1768549500386",
+    "mode": "FUTURE_BASED",
+    "start_time": 1768549540.910307,
+    "end_time": 1768549561.2160437,
+    "e2e_latency_ms": 15279,
+    "run_type": "cold",
+    "num_mappers": 5,
+    "words_per_mapper": 100,
+    "total_words": 500,
+    "lambda_metrics": [
+      {
+        "function_name": "UnumMap0",
+        "request_id": "7814541e-0e7d-43ce-9541-072628b11324",
+        "duration_ms": 683.24,
+        "billed_duration_ms": 1375.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 96,
+        "init_duration_ms": 691.58
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "72785832-cb23-4022-bfb9-489d29715b3d",
+        "duration_ms": 7699.26,
+        "billed_duration_ms": 8365.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 665.44
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "60553d0d-507b-4428-8849-e4ea1dc43075",
+        "duration_ms": 8193.1,
+        "billed_duration_ms": 8909.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 99,
+        "init_duration_ms": 715.28
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "280bd734-c604-4618-a70d-9608fbdcdeee",
+        "duration_ms": 8205.84,
+        "billed_duration_ms": 8977.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 99,
+        "init_duration_ms": 770.5
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "531e3e42-dd9c-4c0f-bb5a-000bf37d0ad3",
+        "duration_ms": 8316.46,
+        "billed_duration_ms": 9078.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 100,
+        "init_duration_ms": 761.47
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "e51a7935-8ca9-453d-90be-f1b44730dacf",
+        "duration_ms": 8720.74,
+        "billed_duration_ms": 9465.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 743.52
+      },
+      {
+        "function_name": "Partition",
+        "request_id": "467e1b65-7286-44aa-9004-30397016281b",
+        "duration_ms": 954.99,
+        "billed_duration_ms": 1707.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 96,
+        "init_duration_ms": 751.25
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "68ca662c-b99e-4170-9867-c4186e3b8556",
+        "duration_ms": 1003.79,
+        "billed_duration_ms": 1728.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 100,
+        "init_duration_ms": 723.25
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "c18cf28f-307a-4f8c-97e9-3b0709d19851",
+        "duration_ms": 1099.9,
+        "billed_duration_ms": 1822.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 100,
+        "init_duration_ms": 721.8
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "e7a59b10-8027-4fa9-8154-a267a70a7ffd",
+        "duration_ms": 1303.5,
+        "billed_duration_ms": 2028.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 99,
+        "init_duration_ms": 724.46
+      },
+      {
+        "function_name": "Summary",
+        "request_id": "c1a2fc19-6b66-407d-b73b-1a1a4bc7ef89",
+        "duration_ms": 403.96,
+        "billed_duration_ms": 1110.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 95,
+        "init_duration_ms": 705.58
+      }
+    ],
+    "fanin_metrics": [
+      {
+        "function_name": "Partition",
+        "session_id": "bench-FUTURE_BASED-0-1768549500386",
+        "mode": "FUTURE_BASED",
+        "fan_in_size": 5,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "UnumFuture_BackgroundPolling"
+      },
+      {
+        "function_name": "Summary",
+        "session_id": "bench-FUTURE_BASED-0-1768549500386",
+        "mode": "FUTURE_BASED",
+        "fan_in_size": 3,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "UnumFuture_BackgroundPolling"
+      }
+    ],
+    "total_duration_ms": 46584.77999999999,
+    "total_billed_duration_ms": 54564.0,
+    "cold_start_count": 11,
+    "total_init_duration_ms": 7974.130000000001,
+    "max_memory_used_mb": 100,
+    "s3_puts": 500,
+    "s3_gets": 500,
+    "dynamo_reads": 0,
+    "dynamo_writes": 0,
+    "error": null
+  },
+  {
+    "run_id": 1,
+    "session_id": "bench-FUTURE_BASED-1-1768549586137",
+    "mode": "FUTURE_BASED",
+    "start_time": 1768549625.7648358,
+    "end_time": 1768549644.9102144,
+    "e2e_latency_ms": 15516,
+    "run_type": "cold",
+    "num_mappers": 5,
+    "words_per_mapper": 100,
+    "total_words": 500,
+    "lambda_metrics": [
+      {
+        "function_name": "UnumMap0",
+        "request_id": "8e29b562-bda0-4d80-8cb9-0fe3a9c82c28",
+        "duration_ms": 707.58,
+        "billed_duration_ms": 1430.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 95,
+        "init_duration_ms": 722.0
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "1dc72f95-a099-4553-a39c-fd3554c4edf7",
+        "duration_ms": 7871.37,
+        "billed_duration_ms": 8584.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 99,
+        "init_duration_ms": 711.73
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "cfc5a558-0f23-470a-849c-f514349649ae",
+        "duration_ms": 7890.74,
+        "billed_duration_ms": 8641.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 749.46
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "b2371021-6298-495e-837b-13ee719d998c",
+        "duration_ms": 8235.46,
+        "billed_duration_ms": 9007.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 100,
+        "init_duration_ms": 771.05
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "16da5d2f-022d-412e-8108-054aad256b67",
+        "duration_ms": 8603.21,
+        "billed_duration_ms": 9357.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 753.25
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "9bec604b-b2eb-4da6-b73f-311b3c0344c0",
+        "duration_ms": 8730.35,
+        "billed_duration_ms": 9492.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 760.76
+      },
+      {
+        "function_name": "Partition",
+        "request_id": "95ab221f-2779-4f6c-bf84-81a796984563",
+        "duration_ms": 929.34,
+        "billed_duration_ms": 1802.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 871.81
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "ded9b0b4-2500-4163-8f37-580ff30a7e35",
+        "duration_ms": 1109.3,
+        "billed_duration_ms": 1893.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 100,
+        "init_duration_ms": 782.72
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "b7b55ccf-872a-45ac-9103-a84a30d858d7",
+        "duration_ms": 1115.1,
+        "billed_duration_ms": 1840.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 97,
+        "init_duration_ms": 724.58
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "7a22bc3c-802c-4e68-9422-9aced85680d8",
+        "duration_ms": 1362.01,
+        "billed_duration_ms": 2166.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 802.99
+      },
+      {
+        "function_name": "Summary",
+        "request_id": "5f8f6473-83b1-4079-be28-987148f0be21",
+        "duration_ms": 381.12,
+        "billed_duration_ms": 932.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 96,
+        "init_duration_ms": 550.64
+      }
+    ],
+    "fanin_metrics": [
+      {
+        "function_name": "Partition",
+        "session_id": "bench-FUTURE_BASED-1-1768549586137",
+        "mode": "FUTURE_BASED",
+        "fan_in_size": 5,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "UnumFuture_BackgroundPolling"
+      },
+      {
+        "function_name": "Summary",
+        "session_id": "bench-FUTURE_BASED-1-1768549586137",
+        "mode": "FUTURE_BASED",
+        "fan_in_size": 3,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "UnumFuture_BackgroundPolling"
+      }
+    ],
+    "total_duration_ms": 46935.58,
+    "total_billed_duration_ms": 55144.0,
+    "cold_start_count": 11,
+    "total_init_duration_ms": 8200.99,
+    "max_memory_used_mb": 100,
+    "s3_puts": 500,
+    "s3_gets": 500,
+    "dynamo_reads": 0,
+    "dynamo_writes": 0,
+    "error": null
+  },
+  {
+    "run_id": 2,
+    "session_id": "bench-FUTURE_BASED-2-1768549670689",
+    "mode": "FUTURE_BASED",
+    "start_time": 1768549706.9814475,
+    "end_time": 1768549729.4806106,
+    "e2e_latency_ms": 15192,
+    "run_type": "cold",
+    "num_mappers": 5,
+    "words_per_mapper": 100,
+    "total_words": 500,
+    "lambda_metrics": [
+      {
+        "function_name": "UnumMap0",
+        "request_id": "95aa005f-3312-4ea3-b03e-b48125fc62ea",
+        "duration_ms": 795.73,
+        "billed_duration_ms": 1519.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 94,
+        "init_duration_ms": 722.31
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "df767f92-907e-4de6-9729-132acb1ad6a8",
+        "duration_ms": 7917.51,
+        "billed_duration_ms": 8620.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 100,
+        "init_duration_ms": 701.59
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "9415bd10-b889-4a73-85b4-e398905e27a7",
+        "duration_ms": 8155.95,
+        "billed_duration_ms": 8924.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 100,
+        "init_duration_ms": 767.39
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "6c46078f-4c07-40a2-8abe-20426824d08a",
+        "duration_ms": 8124.34,
+        "billed_duration_ms": 8870.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 745.0
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "80002cb3-830f-467b-a767-303f6c6f0443",
+        "duration_ms": 8345.03,
+        "billed_duration_ms": 9092.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 98,
+        "init_duration_ms": 746.87
+      },
+      {
+        "function_name": "Mapper",
+        "request_id": "c4f6847d-47e4-4606-a4d3-20fca636d253",
+        "duration_ms": 8587.51,
+        "billed_duration_ms": 9326.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 99,
+        "init_duration_ms": 738.08
+      },
+      {
+        "function_name": "Partition",
+        "request_id": "3462d413-5ead-4212-8320-83789b43d3f5",
+        "duration_ms": 900.63,
+        "billed_duration_ms": 1624.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 96,
+        "init_duration_ms": 723.32
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "4e8ea419-b567-4293-bd5c-ccc6576d9878",
+        "duration_ms": 1029.87,
+        "billed_duration_ms": 1786.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 97,
+        "init_duration_ms": 755.68
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "abf03943-605c-4650-a1b6-65cd908e0b5e",
+        "duration_ms": 1100.24,
+        "billed_duration_ms": 1846.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 99,
+        "init_duration_ms": 745.26
+      },
+      {
+        "function_name": "Reducer",
+        "request_id": "bd1269ed-1840-48e6-82ee-47b1e8987fc4",
+        "duration_ms": 1282.06,
+        "billed_duration_ms": 2004.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 99,
+        "init_duration_ms": 721.39
+      },
+      {
+        "function_name": "Summary",
+        "request_id": "53b4dc79-f676-447e-b714-412a1e4ef741",
+        "duration_ms": 421.2,
+        "billed_duration_ms": 1057.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 93,
+        "init_duration_ms": 635.33
+      }
+    ],
+    "fanin_metrics": [
+      {
+        "function_name": "Partition",
+        "session_id": "bench-FUTURE_BASED-2-1768549670689",
+        "mode": "FUTURE_BASED",
+        "fan_in_size": 5,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "UnumFuture_BackgroundPolling"
+      },
+      {
+        "function_name": "Summary",
+        "session_id": "bench-FUTURE_BASED-2-1768549670689",
+        "mode": "FUTURE_BASED",
+        "fan_in_size": 3,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "UnumFuture_BackgroundPolling"
+      }
+    ],
+    "total_duration_ms": 46660.06999999999,
+    "total_billed_duration_ms": 54668.0,
+    "cold_start_count": 11,
+    "total_init_duration_ms": 8002.22,
+    "max_memory_used_mb": 100,
+    "s3_puts": 500,
+    "s3_gets": 500,
+    "dynamo_reads": 0,
+    "dynamo_writes": 0,
+    "error": null
+  }
+]

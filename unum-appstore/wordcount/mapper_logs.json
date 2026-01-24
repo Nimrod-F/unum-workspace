@@ -1,0 +1,131 @@
+﻿{
+    "events": [
+        {
+            "logStreamName": "2026/01/07/[$LATEST]46fbd2d3ea8f4f31977a86c4d89abdbc",
+            "timestamp": 1767791189362,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-1. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'bar baz foo hello world test test test'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 1, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791195083,
+            "eventId": "39423060878169361100291556687833692008697477376516358152"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]3c3df2af08b34f40b7ce9ad51dbc0c1c",
+            "timestamp": 1767791189394,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-2. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'foo bar baz qux hello world'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 2, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791191160,
+            "eventId": "39423060878882984946644536623619994865492654338360606728"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]9a08afabcf47482f8661d0d22152c20e",
+            "timestamp": 1767791189483,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-3. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'hello hello world world test foo'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 3, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791195236,
+            "eventId": "39423060880867751269313762088144631467163511530783047688"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]e1c312614f3e4fe6abfdd8b63f14888e",
+            "timestamp": 1767791189541,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-5. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'world world world hello foo bar'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 5, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791192471,
+            "eventId": "39423060882161194490828538227010648388407861022980046856"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]91a77c0abb75492ebd9b3fe9149ff73b",
+            "timestamp": 1767791189572,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-0. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'hello world hello test world hello foo bar foo'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 0, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791195083,
+            "eventId": "39423060882852517591982987547555828348992766591858245640"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791190077,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-4. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'bar bar foo world hello test baz'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 4, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791195281,
+            "eventId": "39423060894114393917240952234271114685734589534926798856"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791244808,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-1. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'bar baz foo hello world test test test'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 1, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791253838,
+            "eventId": "39423062114656479378020487464453644077237541253913575425"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791248963,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-5. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'world world world hello foo bar'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 5, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791253838,
+            "eventId": "39423062207316075677915226617534553500091483311262203910"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791251949,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-3. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'hello hello world world test foo'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 3, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791253838,
+            "eventId": "39423062273906100840727667318160208262219490768119726091"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791252554,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-4. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'bar bar foo world hello test baz'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 4, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791253838,
+            "eventId": "39423062287398051685838694318789317817171749479237877776"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791255021,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-0. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'hello world hello test world hello foo bar foo'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 0, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791264041,
+            "eventId": "39423062342413990090613741621292371338162613795264397313"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791256822,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-2. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'foo bar baz qux hello world'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 2, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791264041,
+            "eventId": "39423062382577632193167393899198199947202312867535126534"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791354021,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-1. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'bar baz foo hello world test test test'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 1, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791363030,
+            "eventId": "39423064550187764745145432752998729472003330464191938561"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791362752,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-4. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'bar bar foo world hello test baz'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 4, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791363030,
+            "eventId": "39423064744895571073516303401747085710496174772906950662"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791377221,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-0. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'hello world hello test world hello foo bar foo'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 0, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791386239,
+            "eventId": "39423065067565053351055889664685765320393654792761704449"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791379130,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-5. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'world world world hello foo bar'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 5, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791386239,
+            "eventId": "39423065110137175935050849241877451502879376907678318598"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791380111,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-3. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'hello hello world world test foo'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 3, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791386239,
+            "eventId": "39423065132014206974809390543723991128347419545045106699"
+        },
+        {
+            "logStreamName": "2026/01/07/[$LATEST]4004ab682da341acb35d3fba717dc27d",
+            "timestamp": 1767791384004,
+            "message": "[DEBUG] My instance name: Mapper-unumIndex-2. Invocation payload: {'Data': {'Source': 'http', 'Value': {'text': 'foo bar baz qux hello world'}}, 'Session': 'fe13077b-a124-4b77-a291-bc5f0dec692a', 'Fan-out': {'Type': 'Map', 'Index': 2, 'Size': 6}, 'GC': {'UnumMap': ['Mapper-unumIndex-0', 'Mapper-unumIndex-1', 'Mapper-unumIndex-2', 'Mapper-unumIndex-3', 'Mapper-unumIndex-4', 'Mapper-unumIndex-5']}}\n",
+            "ingestionTime": 1767791386239,
+            "eventId": "39423065218831008032689106433722542363767490887826866192"
+        }
+    ],
+    "searchedLogStreams": []
+}

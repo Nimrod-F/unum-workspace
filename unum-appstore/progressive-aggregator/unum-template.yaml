@@ -1,0 +1,29 @@
+Globals:
+  ApplicationName: progressive-aggregator
+  Region: eu-west-1
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediary-progressive
+  FaaSPlatform: aws
+  Checkpoint: True
+  GC: False
+  Eager: True
+
+Functions:
+  FanOut:
+    Properties:
+      Runtime: python3.8
+      CodeUri: fanout/
+
+  Source:
+    Properties:
+      Runtime: python3.8
+      CodeUri: source/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  Aggregator:
+    Properties:
+      Runtime: python3.8
+      CodeUri: aggregator/
+      Environment:
+        UNUM_FUTURE_BASED: "true"

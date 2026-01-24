@@ -1,0 +1,23 @@
+Globals:
+  ApplicationName: unum-hello-world
+  WorkflowType: step-functions
+  WorkflowDefinition: unum-step-functions.json
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  Checkpoint: true
+  GC: false
+  Debug: false
+Functions:
+  Hello:
+    Properties:
+      CodeUri: hello/
+      Runtime: python3.13
+      Start: true
+  World:
+    Properties:
+      CodeUri: world/
+      Runtime: python3.13
+      Policies:
+        - AmazonSNSFullAccess
+        - AmazonSQSFullAccess

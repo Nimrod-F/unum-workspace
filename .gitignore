@@ -1,0 +1,111 @@
+# ===========================================
+# Combined .gitignore for monorepo
+# ===========================================
+
+# ----- Secrets / Sensitive files -----
+# These contain AWS account IDs, ARNs, or other sensitive data
+function-arn.yaml
+**/function-arn.yaml
+**/unum_config.json
+**/definition*.json
+**/examples-1.json
+**/*destination*.json
+**/*event*.json
+test-*.json
+**/test-*.json
+*-payload*.json
+**/*-payload*.json
+**/response*.json
+**/resp*.json
+**/aggregator-logs.json
+aggregator-logs.json
+**/payload.json
+payload.json
+
+# Exclude entire examples folder at root (contains many secret-laden files)
+examples/
+examples/**
+
+# Exclude specific unum paths with secrets
+unum/docs/error-handling.md
+unum/frontend/step_functions/
+unum/unum-cli/unum-cli.py
+unum/examples/
+unum/examples/**
+unum/tests/
+unum/tests/**
+
+# Exclude unum-appstore paths with secrets
+**/Makefile
+unum-appstore/excamera/
+unum-appstore/progressive-aggregator/aggregator/app.py
+unum-appstore/progressive-aggregator/benchmark.py
+unum-appstore/step-functions/
+
+# ----- From unum -----
+__pycache__/
+**/__pycache__/
+dist/
+*.egg-info/
+.unum/
+**/.unum/
+*.log
+.aws-sam/
+**/.aws-sam/
+*.old
+
+# ----- From unum-appstore -----
+# (duplicates removed, already covered above)
+# *.log - already included
+# .unum - already included
+# **/.aws-sam/ - already included
+
+# ----- Additional common patterns -----
+# Python
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.installed.cfg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node (if any)
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Local config
+.env
+.env.local

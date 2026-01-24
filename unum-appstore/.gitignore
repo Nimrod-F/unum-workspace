@@ -1,0 +1,4 @@
+*.log
+.unum
+
+**/.aws-sam/

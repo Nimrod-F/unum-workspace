@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: true
+        UNUM_FUTURE_BASED: "true"
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-dynamo-test-table
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  MapperFunction:
+    Value: !GetAtt MapperFunction.Arn
+  PartitionFunction:
+    Value: !GetAtt PartitionFunction.Arn
+  ReducerFunction:
+    Value: !GetAtt ReducerFunction.Arn
+  SummaryFunction:
+    Value: !GetAtt SummaryFunction.Arn
+  UnumMap0Function:
+    Value: !GetAtt UnumMap0Function.Arn
+Resources:
+  MapperFunction:
+    Properties:
+      CodeUri: mapper/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  PartitionFunction:
+    Properties:
+      CodeUri: partition/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  ReducerFunction:
+    Properties:
+      CodeUri: reducer/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  SummaryFunction:
+    Properties:
+      CodeUri: summary/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+        - AmazonSQSFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  UnumMap0Function:
+    Properties:
+      CodeUri: UnumMap0/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

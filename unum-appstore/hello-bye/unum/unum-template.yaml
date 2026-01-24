@@ -1,0 +1,28 @@
+Globals:
+  ApplicationName: unum-hello-bye-world-branch
+  WorkflowType: manual
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  Checkpoint: true
+  GC: false
+  Debug: false
+
+Functions:
+  Hello:
+    Properties:
+      CodeUri: hello/
+      Runtime: python3.13
+  World:
+    Properties:
+      CodeUri: world/
+      Runtime: python3.13
+  Bye:
+    Properties:
+      CodeUri: bye/
+      Runtime: python3.13
+  Start:
+    Properties:
+      CodeUri: start/
+      Runtime: python3.13
+      Start: true

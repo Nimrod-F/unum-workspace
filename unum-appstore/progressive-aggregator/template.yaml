@@ -1,0 +1,60 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: true
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediary-progressive
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  AggregatorFunction:
+    Value: !GetAtt AggregatorFunction.Arn
+  FanOutFunction:
+    Value: !GetAtt FanOutFunction.Arn
+  SourceFunction:
+    Value: !GetAtt SourceFunction.Arn
+Resources:
+  AggregatorFunction:
+    Properties:
+      CodeUri: aggregator/
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: 'true'
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Runtime: python3.8
+    Type: AWS::Serverless::Function
+  FanOutFunction:
+    Properties:
+      CodeUri: fanout/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Runtime: python3.8
+    Type: AWS::Serverless::Function
+  SourceFunction:
+    Properties:
+      CodeUri: source/
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: 'true'
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+      Runtime: python3.8
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

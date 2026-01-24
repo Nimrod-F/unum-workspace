@@ -1,0 +1,1 @@
+{"errorMessage": "string indices must be integers, not 'str'", "errorType": "TypeError", "requestId": "a5de8f4d-8c99-46e0-bf18-1bd632b7c64a", "stackTrace": ["  File \"/var/task/main.py\", line 284, in lambda_handler\n    user_function_input = ingress(input_data)\n", "  File \"/var/task/main.py\", line 108, in ingress\n    if event[\"Data\"][\"Source\"] ==\"http\":\n"]}

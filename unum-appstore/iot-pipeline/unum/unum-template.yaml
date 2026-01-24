@@ -1,0 +1,20 @@
+Globals:
+  ApplicationName: unum-iot-chain
+  UnumIntermediaryDataStoreType: s3
+  UnumIntermediaryDataStoreName: unum-return-value-store
+  Checkpoint: true
+  WorkflowDefinition: unum-step-functions.json
+  WorkflowType: step-functions
+
+Functions:
+  Aggregator:
+    Properties:
+      CodeUri: aggregator/
+      Runtime: python3.13
+      Start: true
+  HvacController:
+    Properties:
+      CodeUri: hvac_controller/
+      Runtime: python3.13
+      Policies:
+        - AmazonSQSFullAccess

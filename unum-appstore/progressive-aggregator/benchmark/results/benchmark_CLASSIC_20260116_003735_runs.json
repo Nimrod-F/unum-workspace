@@ -1,0 +1,487 @@
+[
+  {
+    "run_id": 0,
+    "session_id": "bench-CLASSIC-0-1768516525245",
+    "mode": "CLASSIC",
+    "start_time": 1768516532.2120094,
+    "end_time": 1768516543.26112,
+    "e2e_latency_ms": 11049.110651016235,
+    "run_type": "cold",
+    "lambda_metrics": [
+      {
+        "function_name": "Aggregator",
+        "request_id": "4c0d57fb-a69d-4283-b090-88707451a4d2",
+        "duration_ms": 673.24,
+        "billed_duration_ms": 1553.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 79,
+        "init_duration_ms": 878.9
+      },
+      {
+        "function_name": "FanOut",
+        "request_id": "c7897cd6-47d3-4973-8ba4-a0eff52f70bb",
+        "duration_ms": 458.46,
+        "billed_duration_ms": 1388.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 79,
+        "init_duration_ms": 929.21
+      },
+      {
+        "function_name": "Source",
+        "request_id": "81694569-b4f2-4e9d-8f8b-7392036adbc9",
+        "duration_ms": 732.75,
+        "billed_duration_ms": 1629.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 895.29
+      },
+      {
+        "function_name": "Source",
+        "request_id": "ad7a4d05-a843-41a2-99eb-147f70ef30d8",
+        "duration_ms": 967.77,
+        "billed_duration_ms": 1871.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 902.57
+      },
+      {
+        "function_name": "Source",
+        "request_id": "9c35dcd1-3a36-422c-8f33-b31e26ae17d4",
+        "duration_ms": 2478.1,
+        "billed_duration_ms": 3404.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 925.24
+      },
+      {
+        "function_name": "Source",
+        "request_id": "9d308778-6fde-4db3-9d74-391049d0a6ab",
+        "duration_ms": 3477.86,
+        "billed_duration_ms": 4406.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 927.23
+      },
+      {
+        "function_name": "Source",
+        "request_id": "8b70b988-8d2a-4d12-94a7-d39221fa30d5",
+        "duration_ms": 4648.38,
+        "billed_duration_ms": 5540.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 891.36
+      }
+    ],
+    "fanin_metrics": [
+      {
+        "function_name": "Aggregator",
+        "session_id": "bench-CLASSIC-0-1768516525245",
+        "mode": "CLASSIC",
+        "fan_in_size": 5,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "last_invoker"
+      }
+    ],
+    "total_duration_ms": 13436.560000000001,
+    "total_billed_duration_ms": 19791.0,
+    "cold_start_count": 7,
+    "total_init_duration_ms": 6349.8,
+    "max_memory_used_mb": 80,
+    "dynamo_reads": 0,
+    "dynamo_writes": 0,
+    "error": null
+  },
+  {
+    "run_id": 1,
+    "session_id": "bench-CLASSIC-1-1768516547905",
+    "mode": "CLASSIC",
+    "start_time": 1768516554.9456875,
+    "end_time": 1768516568.7500346,
+    "e2e_latency_ms": 13804.347038269043,
+    "run_type": "cold",
+    "lambda_metrics": [
+      {
+        "function_name": "Aggregator",
+        "request_id": "78f13e92-4b8e-4f0e-a346-a6b488264f6a",
+        "duration_ms": 694.71,
+        "billed_duration_ms": 1616.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 79,
+        "init_duration_ms": 921.13
+      },
+      {
+        "function_name": "FanOut",
+        "request_id": "44d2ec38-210d-4ed8-ad0f-e4165a25bdfd",
+        "duration_ms": 445.3,
+        "billed_duration_ms": 1364.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 918.69
+      },
+      {
+        "function_name": "Source",
+        "request_id": "090016ae-3fd5-41ab-bd52-9383ab4e5124",
+        "duration_ms": 728.03,
+        "billed_duration_ms": 1680.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 951.96
+      },
+      {
+        "function_name": "Source",
+        "request_id": "5f1e1e58-957f-47f2-9d87-c3f9e1f84598",
+        "duration_ms": 984.64,
+        "billed_duration_ms": 1858.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 872.86
+      },
+      {
+        "function_name": "Source",
+        "request_id": "9df1907b-5b5b-4f3b-ba1b-9f75205c95f1",
+        "duration_ms": 2483.48,
+        "billed_duration_ms": 3412.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 927.63
+      },
+      {
+        "function_name": "Source",
+        "request_id": "fe24829d-ab82-43a6-a68c-c3c4f990fbbf",
+        "duration_ms": 3472.58,
+        "billed_duration_ms": 4368.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 79,
+        "init_duration_ms": 894.78
+      },
+      {
+        "function_name": "Source",
+        "request_id": "3726e9a5-9ebb-4e4a-917a-d82d35183a36",
+        "duration_ms": 4693.85,
+        "billed_duration_ms": 5604.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 909.35
+      }
+    ],
+    "fanin_metrics": [
+      {
+        "function_name": "Aggregator",
+        "session_id": "bench-CLASSIC-1-1768516547905",
+        "mode": "CLASSIC",
+        "fan_in_size": 5,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "last_invoker"
+      }
+    ],
+    "total_duration_ms": 13502.59,
+    "total_billed_duration_ms": 19902.0,
+    "cold_start_count": 7,
+    "total_init_duration_ms": 6396.400000000001,
+    "max_memory_used_mb": 80,
+    "dynamo_reads": 0,
+    "dynamo_writes": 0,
+    "error": null
+  },
+  {
+    "run_id": 2,
+    "session_id": "bench-CLASSIC-2-1768516573367",
+    "mode": "CLASSIC",
+    "start_time": 1768516580.4083152,
+    "end_time": 1768516596.1830518,
+    "e2e_latency_ms": 15774.736642837524,
+    "run_type": "cold",
+    "lambda_metrics": [
+      {
+        "function_name": "Aggregator",
+        "request_id": "53f7a52d-2f15-4adc-9349-b94464bdf7ee",
+        "duration_ms": 693.73,
+        "billed_duration_ms": 1605.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 78,
+        "init_duration_ms": 911.16
+      },
+      {
+        "function_name": "FanOut",
+        "request_id": "e576bfdc-9249-487a-9f7d-1e25b28e8fe0",
+        "duration_ms": 475.17,
+        "billed_duration_ms": 1401.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 925.37
+      },
+      {
+        "function_name": "Source",
+        "request_id": "31818bab-d6d8-4686-95c7-d3b3d640ab9f",
+        "duration_ms": 733.66,
+        "billed_duration_ms": 1620.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 886.18
+      },
+      {
+        "function_name": "Source",
+        "request_id": "8b4f61d8-b9cc-492a-a2d3-971b0b3050aa",
+        "duration_ms": 1010.07,
+        "billed_duration_ms": 1924.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 913.32
+      },
+      {
+        "function_name": "Source",
+        "request_id": "5304d0e7-e49a-496e-9fa3-8927fd42ff32",
+        "duration_ms": 2485.24,
+        "billed_duration_ms": 3386.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 899.87
+      },
+      {
+        "function_name": "Source",
+        "request_id": "6a4688f6-38c4-49da-ba8f-61e8f4bec3ed",
+        "duration_ms": 3478.68,
+        "billed_duration_ms": 4395.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 79,
+        "init_duration_ms": 916.03
+      },
+      {
+        "function_name": "Source",
+        "request_id": "37d821bf-f024-4de9-95d3-eab0f8e2eb15",
+        "duration_ms": 4673.04,
+        "billed_duration_ms": 5567.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 893.86
+      }
+    ],
+    "fanin_metrics": [
+      {
+        "function_name": "Aggregator",
+        "session_id": "bench-CLASSIC-2-1768516573367",
+        "mode": "CLASSIC",
+        "fan_in_size": 5,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "last_invoker"
+      }
+    ],
+    "total_duration_ms": 13549.59,
+    "total_billed_duration_ms": 19898.0,
+    "cold_start_count": 7,
+    "total_init_duration_ms": 6345.79,
+    "max_memory_used_mb": 80,
+    "dynamo_reads": 0,
+    "dynamo_writes": 0,
+    "error": null
+  },
+  {
+    "run_id": 3,
+    "session_id": "bench-CLASSIC-3-1768516600821",
+    "mode": "CLASSIC",
+    "start_time": 1768516607.87956,
+    "end_time": 1768516624.9656632,
+    "e2e_latency_ms": 17086.103200912476,
+    "run_type": "cold",
+    "lambda_metrics": [
+      {
+        "function_name": "Aggregator",
+        "request_id": "4507f1d7-21f7-4007-9c6b-68fb2b404e43",
+        "duration_ms": 666.98,
+        "billed_duration_ms": 1548.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 79,
+        "init_duration_ms": 880.79
+      },
+      {
+        "function_name": "FanOut",
+        "request_id": "f7f5e758-fc4b-4e05-a035-0dccd9cea7c6",
+        "duration_ms": 429.53,
+        "billed_duration_ms": 1350.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 79,
+        "init_duration_ms": 919.88
+      },
+      {
+        "function_name": "Source",
+        "request_id": "386fb4d5-2d7e-448c-8fd6-0ebca6aa54fa",
+        "duration_ms": 756.45,
+        "billed_duration_ms": 1700.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 943.02
+      },
+      {
+        "function_name": "Source",
+        "request_id": "98604eda-77e7-4ac6-808d-195498e09eb1",
+        "duration_ms": 966.29,
+        "billed_duration_ms": 1844.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 877.32
+      },
+      {
+        "function_name": "Source",
+        "request_id": "7ea7c690-2294-4c04-aa10-4e4193a560a7",
+        "duration_ms": 2463.65,
+        "billed_duration_ms": 3364.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 899.4
+      },
+      {
+        "function_name": "Source",
+        "request_id": "24a9f296-f7ae-4ddb-b3f9-8c98a8dc7d3c",
+        "duration_ms": 3495.97,
+        "billed_duration_ms": 4397.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 900.56
+      },
+      {
+        "function_name": "Source",
+        "request_id": "18cc0254-ada4-4b6a-9e8b-e5c7f6f8ac3f",
+        "duration_ms": 4645.57,
+        "billed_duration_ms": 5540.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 893.81
+      }
+    ],
+    "fanin_metrics": [
+      {
+        "function_name": "Aggregator",
+        "session_id": "bench-CLASSIC-3-1768516600821",
+        "mode": "CLASSIC",
+        "fan_in_size": 5,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "last_invoker"
+      }
+    ],
+    "total_duration_ms": 13424.439999999999,
+    "total_billed_duration_ms": 19743.0,
+    "cold_start_count": 7,
+    "total_init_duration_ms": 6314.779999999999,
+    "max_memory_used_mb": 80,
+    "dynamo_reads": 0,
+    "dynamo_writes": 0,
+    "error": null
+  },
+  {
+    "run_id": 4,
+    "session_id": "bench-CLASSIC-4-1768516629564",
+    "mode": "CLASSIC",
+    "start_time": 1768516636.6118214,
+    "end_time": 1768516650.5281138,
+    "e2e_latency_ms": 13916.292428970337,
+    "run_type": "cold",
+    "lambda_metrics": [
+      {
+        "function_name": "Aggregator",
+        "request_id": "a8bf98ba-2741-4f19-b398-0583d172d037",
+        "duration_ms": 687.57,
+        "billed_duration_ms": 1479.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 79,
+        "init_duration_ms": 790.85
+      },
+      {
+        "function_name": "FanOut",
+        "request_id": "c722ab6c-b94f-4883-a238-74dca268d6c9",
+        "duration_ms": 441.59,
+        "billed_duration_ms": 1396.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 953.52
+      },
+      {
+        "function_name": "Source",
+        "request_id": "babf37e3-a7e0-46df-8b51-ba4e5bbd4b64",
+        "duration_ms": 734.29,
+        "billed_duration_ms": 1633.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 898.63
+      },
+      {
+        "function_name": "Source",
+        "request_id": "72d4a3a7-1008-48d4-a29e-b4373dbfdf73",
+        "duration_ms": 978.72,
+        "billed_duration_ms": 1905.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 925.39
+      },
+      {
+        "function_name": "Source",
+        "request_id": "1f632b15-1acb-4d71-870a-a7b4257df132",
+        "duration_ms": 2496.15,
+        "billed_duration_ms": 3444.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 947.21
+      },
+      {
+        "function_name": "Source",
+        "request_id": "3139e05f-4e90-4a9a-b68e-7fd6297037ae",
+        "duration_ms": 3470.16,
+        "billed_duration_ms": 4364.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 893.0
+      },
+      {
+        "function_name": "Source",
+        "request_id": "a1ea1cb0-ec05-48db-8a0f-da6d9ac3a195",
+        "duration_ms": 4646.94,
+        "billed_duration_ms": 5512.0,
+        "memory_size_mb": 128,
+        "max_memory_used_mb": 80,
+        "init_duration_ms": 864.11
+      }
+    ],
+    "fanin_metrics": [
+      {
+        "function_name": "Aggregator",
+        "session_id": "bench-CLASSIC-4-1768516629564",
+        "mode": "CLASSIC",
+        "fan_in_size": 5,
+        "initially_ready": 0,
+        "wait_duration_ms": 0.0,
+        "poll_count": 0,
+        "dynamo_reads": 0,
+        "dynamo_writes": 0,
+        "pre_resolved_count": 0,
+        "strategy": "last_invoker"
+      }
+    ],
+    "total_duration_ms": 13455.419999999998,
+    "total_billed_duration_ms": 19733.0,
+    "cold_start_count": 7,
+    "total_init_duration_ms": 6272.71,
+    "max_memory_used_mb": 80,
+    "dynamo_reads": 0,
+    "dynamo_writes": 0,
+    "error": null
+  }
+]
