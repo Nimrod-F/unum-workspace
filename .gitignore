@@ -29,7 +29,6 @@ examples/**
 # Exclude specific unum paths with secrets
 unum/docs/error-handling.md
 unum/frontend/step_functions/
-unum/unum-cli/unum-cli.py
 unum/examples/
 unum/examples/**
 unum/tests/
