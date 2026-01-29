@@ -1,0 +1,29 @@
+Globals:
+  ApplicationName: video-analysis
+  Region: eu-west-1
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediary-video-analysis
+  FaaSPlatform: aws
+  Checkpoint: True
+  GC: False
+  Eager: True
+
+Functions:
+  VideoDecoder:
+    Properties:
+      Runtime: python3.8
+      CodeUri: video_decoder/
+
+  FrameDetector:
+    Properties:
+      Runtime: python3.8
+      CodeUri: frame_detector/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  ResultAccumulator:
+    Properties:
+      Runtime: python3.8
+      CodeUri: result_accumulator/
+      Environment:
+        UNUM_FUTURE_BASED: "true"

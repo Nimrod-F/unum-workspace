@@ -1,0 +1,50 @@
+Globals:
+  ApplicationName: ml-training-pipeline
+  Region: eu-west-1
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediary-ml-training
+  FaaSPlatform: aws
+  Checkpoint: True
+  GC: False
+  Eager: True
+
+Functions:
+  DataGenerator:
+    Properties:
+      Runtime: python3.8
+      CodeUri: data_generator/
+
+  TrainLinearRegression:
+    Properties:
+      Runtime: python3.8
+      CodeUri: train_lr/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  TrainSVM:
+    Properties:
+      Runtime: python3.8
+      CodeUri: train_svm/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  TrainRandomForest:
+    Properties:
+      Runtime: python3.8
+      CodeUri: train_rf/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+  
+  TrainGradientBoosting:
+    Properties:
+      Runtime: python3.8
+      CodeUri: train_gb/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  ModelAggregator:
+    Properties:
+      Runtime: python3.8
+      CodeUri: model_aggregator/
+      Environment:
+        UNUM_FUTURE_BASED: "true"

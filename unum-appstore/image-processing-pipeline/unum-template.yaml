@@ -1,0 +1,57 @@
+Globals:
+  ApplicationName: image-processing-pipeline
+  Region: eu-west-1
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediary-image-proc
+  FaaSPlatform: aws
+  Checkpoint: True
+  GC: False
+  Eager: True
+
+Functions:
+  ImageLoader:
+    Properties:
+      Runtime: python3.8
+      CodeUri: image_loader/
+
+  ResizeImage:
+    Properties:
+      Runtime: python3.8
+      CodeUri: resize_image/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  ApplyFilters:
+    Properties:
+      Runtime: python3.8
+      CodeUri: apply_filters/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  DetectFaces:
+    Properties:
+      Runtime: python3.8
+      CodeUri: detect_faces/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  ExtractMetadata:
+    Properties:
+      Runtime: python3.8
+      CodeUri: extract_metadata/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  GenerateThumbnail:
+    Properties:
+      Runtime: python3.8
+      CodeUri: generate_thumbnail/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+
+  ImageAggregator:
+    Properties:
+      Runtime: python3.8
+      CodeUri: image_aggregator/
+      Environment:
+        UNUM_FUTURE_BASED: "true"
