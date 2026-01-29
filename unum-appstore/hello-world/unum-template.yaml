@@ -12,12 +12,12 @@ Functions:
   Hello:
     Properties:
       CodeUri: hello/
-      Runtime: python3.13
+      Runtime: python3.11
       Start: true
   World:
     Properties:
       CodeUri: world/
-      Runtime: python3.13
+      Runtime: python3.11
       Policies:
         - AmazonSNSFullAccess
         - AmazonSQSFullAccess

@@ -4,6 +4,7 @@ Globals:
     Environment:
       Variables:
         CHECKPOINT: true
+        EAGER: false
         FAAS_PLATFORM: aws
         GC: false
         UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore
@@ -21,22 +22,22 @@ Resources:
       Handler: main.lambda_handler
       Policies:
         - AWSLambdaBasicExecutionRole
-        - AmazonS3FullAccess
-        - AmazonDynamoDBFullAccess
         - AWSLambdaRole
-      Runtime: python3.13
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+      Runtime: python3.11
     Type: AWS::Serverless::Function
   WorldFunction:
     Properties:
       CodeUri: world/
       Handler: main.lambda_handler
       Policies:
-        - AmazonSQSFullAccess
-        - AmazonS3FullAccess
-        - AmazonDynamoDBFullAccess
         - AWSLambdaBasicExecutionRole
-        - AmazonSNSFullAccess
         - AWSLambdaRole
-      Runtime: python3.13
+        - AmazonS3FullAccess
+        - AmazonSNSFullAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonSQSFullAccess
+      Runtime: python3.11
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31
