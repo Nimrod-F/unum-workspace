@@ -1,0 +1,440 @@
+{
+  "timestamp": "2026-01-29T23:36:02.228393",
+  "config": {
+    "num_nodes": 200,
+    "edge_probability": 0.4,
+    "iterations": 3
+  },
+  "classic": {
+    "runs": [
+      {
+        "run_id": 1,
+        "mode": "CLASSIC",
+        "e2e_latency_ms": 2018.9473628997803,
+        "invoker_branch": "BFS",
+        "cold_starts": 5,
+        "total_init_ms": 5145.57,
+        "per_function_ms": {
+          "Aggregator": 510.62,
+          "BFS": 728.06,
+          "GraphGenerator": 713.63,
+          "MST": 508.81,
+          "PageRank": 608.35
+        },
+        "function_metrics": {
+          "Aggregator": {
+            "function_name": "graph-analysis-AggregatorFunction-V0BgKteKiF9y",
+            "duration_ms": 510.62,
+            "billed_duration_ms": 1521.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 89,
+            "init_duration_ms": 1010.2
+          },
+          "BFS": {
+            "function_name": "graph-analysis-BFSFunction-IRQPgcElIBJJ",
+            "duration_ms": 728.06,
+            "billed_duration_ms": 1773.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 89,
+            "init_duration_ms": 1044.45
+          },
+          "GraphGenerator": {
+            "function_name": "graph-analysis-GraphGeneratorFunction-U3yNw6oZDXa9",
+            "duration_ms": 713.63,
+            "billed_duration_ms": 1786.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 1072.14
+          },
+          "MST": {
+            "function_name": "graph-analysis-MSTFunction-De0BkvFxwdiv",
+            "duration_ms": 508.81,
+            "billed_duration_ms": 1507.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 997.88
+          },
+          "PageRank": {
+            "function_name": "graph-analysis-PageRankFunction-8oBOh7rqI0FS",
+            "duration_ms": 608.35,
+            "billed_duration_ms": 1630.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 1020.9
+          }
+        },
+        "total_billed_duration_ms": 8217.0,
+        "total_memory_used_mb": 454,
+        "max_memory_used_mb": 92,
+        "aggregator_memory_mb": 89,
+        "avg_memory_efficiency": 0.709375,
+        "estimated_cost_usd": 1.81187842375e-05,
+        "error": null
+      },
+      {
+        "run_id": 2,
+        "mode": "CLASSIC",
+        "e2e_latency_ms": 1938.09175491333,
+        "invoker_branch": "MST",
+        "cold_starts": 5,
+        "total_init_ms": 5067.76,
+        "per_function_ms": {
+          "Aggregator": 378.06,
+          "BFS": 548.43,
+          "GraphGenerator": 683.44,
+          "MST": 731.69,
+          "PageRank": 544.71
+        },
+        "function_metrics": {
+          "Aggregator": {
+            "function_name": "graph-analysis-AggregatorFunction-V0BgKteKiF9y",
+            "duration_ms": 378.06,
+            "billed_duration_ms": 1363.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 90,
+            "init_duration_ms": 984.07
+          },
+          "BFS": {
+            "function_name": "graph-analysis-BFSFunction-IRQPgcElIBJJ",
+            "duration_ms": 548.43,
+            "billed_duration_ms": 1578.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 93,
+            "init_duration_ms": 1029.01
+          },
+          "GraphGenerator": {
+            "function_name": "graph-analysis-GraphGeneratorFunction-U3yNw6oZDXa9",
+            "duration_ms": 683.44,
+            "billed_duration_ms": 1706.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 90,
+            "init_duration_ms": 1021.92
+          },
+          "MST": {
+            "function_name": "graph-analysis-MSTFunction-De0BkvFxwdiv",
+            "duration_ms": 731.69,
+            "billed_duration_ms": 1733.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 1000.85
+          },
+          "PageRank": {
+            "function_name": "graph-analysis-PageRankFunction-8oBOh7rqI0FS",
+            "duration_ms": 544.71,
+            "billed_duration_ms": 1577.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 91,
+            "init_duration_ms": 1031.91
+          }
+        },
+        "total_billed_duration_ms": 7957.0,
+        "total_memory_used_mb": 456,
+        "max_memory_used_mb": 93,
+        "aggregator_memory_mb": 90,
+        "avg_memory_efficiency": 0.7125,
+        "estimated_cost_usd": 1.7577116487500003e-05,
+        "error": null
+      },
+      {
+        "run_id": 3,
+        "mode": "CLASSIC",
+        "e2e_latency_ms": 1969.8235988616943,
+        "invoker_branch": "MST",
+        "cold_starts": 5,
+        "total_init_ms": 4998.69,
+        "per_function_ms": {
+          "Aggregator": 398.98,
+          "BFS": 559.38,
+          "GraphGenerator": 694.03,
+          "MST": 713.15,
+          "PageRank": 571.32
+        },
+        "function_metrics": {
+          "Aggregator": {
+            "function_name": "graph-analysis-AggregatorFunction-V0BgKteKiF9y",
+            "duration_ms": 398.98,
+            "billed_duration_ms": 1371.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 89,
+            "init_duration_ms": 971.52
+          },
+          "BFS": {
+            "function_name": "graph-analysis-BFSFunction-IRQPgcElIBJJ",
+            "duration_ms": 559.38,
+            "billed_duration_ms": 1555.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 995.44
+          },
+          "GraphGenerator": {
+            "function_name": "graph-analysis-GraphGeneratorFunction-U3yNw6oZDXa9",
+            "duration_ms": 694.03,
+            "billed_duration_ms": 1730.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 90,
+            "init_duration_ms": 1035.28
+          },
+          "MST": {
+            "function_name": "graph-analysis-MSTFunction-De0BkvFxwdiv",
+            "duration_ms": 713.15,
+            "billed_duration_ms": 1700.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 986.29
+          },
+          "PageRank": {
+            "function_name": "graph-analysis-PageRankFunction-8oBOh7rqI0FS",
+            "duration_ms": 571.32,
+            "billed_duration_ms": 1582.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 1010.16
+          }
+        },
+        "total_billed_duration_ms": 7938.0,
+        "total_memory_used_mb": 455,
+        "max_memory_used_mb": 92,
+        "aggregator_memory_mb": 89,
+        "avg_memory_efficiency": 0.7109375,
+        "estimated_cost_usd": 1.7537533075e-05,
+        "error": null
+      }
+    ],
+    "stats": {
+      "mean": 1975.6209055582683,
+      "min": 1938.09175491333,
+      "max": 2018.9473628997803,
+      "std": 40.73835918903991,
+      "cold_starts": 15,
+      "init_time": 15212.02,
+      "invokers": [
+        "BFS",
+        "MST",
+        "MST"
+      ],
+      "avg_billed_duration": 8037.333333333333,
+      "avg_max_memory": 92.33333333333333,
+      "avg_total_memory": 455,
+      "avg_aggregator_memory": 89.33333333333333,
+      "avg_memory_efficiency": 0.7109375,
+      "avg_cost": 1.7744477933333336e-05,
+      "total_cost": 5.32334338e-05
+    }
+  },
+  "future_based": {
+    "runs": [
+      {
+        "run_id": 1,
+        "mode": "FUTURE_BASED",
+        "e2e_latency_ms": 1984.668493270874,
+        "invoker_branch": "PageRank",
+        "cold_starts": 5,
+        "total_init_ms": 4943.849999999999,
+        "per_function_ms": {
+          "Aggregator": 433.75,
+          "BFS": 578.17,
+          "GraphGenerator": 713.56,
+          "MST": 580.19,
+          "PageRank": 794.78
+        },
+        "function_metrics": {
+          "Aggregator": {
+            "function_name": "graph-analysis-AggregatorFunction-V0BgKteKiF9y",
+            "duration_ms": 433.75,
+            "billed_duration_ms": 1410.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 84,
+            "init_duration_ms": 976.03
+          },
+          "BFS": {
+            "function_name": "graph-analysis-BFSFunction-IRQPgcElIBJJ",
+            "duration_ms": 578.17,
+            "billed_duration_ms": 1556.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 91,
+            "init_duration_ms": 977.25
+          },
+          "GraphGenerator": {
+            "function_name": "graph-analysis-GraphGeneratorFunction-U3yNw6oZDXa9",
+            "duration_ms": 713.56,
+            "billed_duration_ms": 1730.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 89,
+            "init_duration_ms": 1015.88
+          },
+          "MST": {
+            "function_name": "graph-analysis-MSTFunction-De0BkvFxwdiv",
+            "duration_ms": 580.19,
+            "billed_duration_ms": 1619.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 89,
+            "init_duration_ms": 1038.33
+          },
+          "PageRank": {
+            "function_name": "graph-analysis-PageRankFunction-8oBOh7rqI0FS",
+            "duration_ms": 794.78,
+            "billed_duration_ms": 1732.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 89,
+            "init_duration_ms": 936.36
+          }
+        },
+        "total_billed_duration_ms": 8047.0,
+        "total_memory_used_mb": 442,
+        "max_memory_used_mb": 91,
+        "aggregator_memory_mb": 84,
+        "avg_memory_efficiency": 0.690625,
+        "estimated_cost_usd": 1.7764616862500002e-05,
+        "error": null
+      },
+      {
+        "run_id": 2,
+        "mode": "FUTURE_BASED",
+        "e2e_latency_ms": 1922.1704006195068,
+        "invoker_branch": "PageRank",
+        "cold_starts": 5,
+        "total_init_ms": 4882.0,
+        "per_function_ms": {
+          "Aggregator": 439.5,
+          "BFS": 594.29,
+          "GraphGenerator": 667.75,
+          "MST": 551.55,
+          "PageRank": 859.4
+        },
+        "function_metrics": {
+          "Aggregator": {
+            "function_name": "graph-analysis-AggregatorFunction-V0BgKteKiF9y",
+            "duration_ms": 439.5,
+            "billed_duration_ms": 1404.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 89,
+            "init_duration_ms": 963.95
+          },
+          "BFS": {
+            "function_name": "graph-analysis-BFSFunction-IRQPgcElIBJJ",
+            "duration_ms": 594.29,
+            "billed_duration_ms": 1597.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 1001.87
+          },
+          "GraphGenerator": {
+            "function_name": "graph-analysis-GraphGeneratorFunction-U3yNw6oZDXa9",
+            "duration_ms": 667.75,
+            "billed_duration_ms": 1667.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 90,
+            "init_duration_ms": 999.07
+          },
+          "MST": {
+            "function_name": "graph-analysis-MSTFunction-De0BkvFxwdiv",
+            "duration_ms": 551.55,
+            "billed_duration_ms": 1543.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 89,
+            "init_duration_ms": 991.23
+          },
+          "PageRank": {
+            "function_name": "graph-analysis-PageRankFunction-8oBOh7rqI0FS",
+            "duration_ms": 859.4,
+            "billed_duration_ms": 1786.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 92,
+            "init_duration_ms": 925.88
+          }
+        },
+        "total_billed_duration_ms": 7997.0,
+        "total_memory_used_mb": 452,
+        "max_memory_used_mb": 92,
+        "aggregator_memory_mb": 89,
+        "avg_memory_efficiency": 0.70625,
+        "estimated_cost_usd": 1.76604499875e-05,
+        "error": null
+      },
+      {
+        "run_id": 3,
+        "mode": "FUTURE_BASED",
+        "e2e_latency_ms": 1876.2073516845703,
+        "invoker_branch": "PageRank",
+        "cold_starts": 5,
+        "total_init_ms": 4981.07,
+        "per_function_ms": {
+          "Aggregator": 452.22,
+          "BFS": 576.13,
+          "GraphGenerator": 668.83,
+          "MST": 574.09,
+          "PageRank": 844.34
+        },
+        "function_metrics": {
+          "Aggregator": {
+            "function_name": "graph-analysis-AggregatorFunction-V0BgKteKiF9y",
+            "duration_ms": 452.22,
+            "billed_duration_ms": 1488.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 87,
+            "init_duration_ms": 1035.51
+          },
+          "BFS": {
+            "function_name": "graph-analysis-BFSFunction-IRQPgcElIBJJ",
+            "duration_ms": 576.13,
+            "billed_duration_ms": 1553.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 88,
+            "init_duration_ms": 976.72
+          },
+          "GraphGenerator": {
+            "function_name": "graph-analysis-GraphGeneratorFunction-U3yNw6oZDXa9",
+            "duration_ms": 668.83,
+            "billed_duration_ms": 1657.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 93,
+            "init_duration_ms": 987.26
+          },
+          "MST": {
+            "function_name": "graph-analysis-MSTFunction-De0BkvFxwdiv",
+            "duration_ms": 574.09,
+            "billed_duration_ms": 1562.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 90,
+            "init_duration_ms": 987.46
+          },
+          "PageRank": {
+            "function_name": "graph-analysis-PageRankFunction-8oBOh7rqI0FS",
+            "duration_ms": 844.34,
+            "billed_duration_ms": 1839.0,
+            "memory_size_mb": 128,
+            "max_memory_used_mb": 88,
+            "init_duration_ms": 994.12
+          }
+        },
+        "total_billed_duration_ms": 8099.0,
+        "total_memory_used_mb": 446,
+        "max_memory_used_mb": 93,
+        "aggregator_memory_mb": 87,
+        "avg_memory_efficiency": 0.696875,
+        "estimated_cost_usd": 1.78729504125e-05,
+        "error": null
+      }
+    ],
+    "stats": {
+      "mean": 1927.6820818583171,
+      "min": 1876.2073516845703,
+      "max": 1984.668493270874,
+      "std": 54.44023127347775,
+      "cold_starts": 15,
+      "init_time": 14806.919999999998,
+      "invokers": [
+        "PageRank",
+        "PageRank",
+        "PageRank"
+      ],
+      "avg_billed_duration": 8047.666666666667,
+      "avg_max_memory": 92,
+      "avg_total_memory": 446.6666666666667,
+      "avg_aggregator_memory": 86.66666666666667,
+      "avg_memory_efficiency": 0.6979166666666667,
+      "avg_cost": 1.7766005754166667e-05,
+      "total_cost": 5.32980172625e-05
+    }
+  }
+}

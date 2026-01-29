@@ -1,0 +1,138 @@
+{
+  "timestamp": "2026-01-29T23:24:00.592608",
+  "config": {
+    "num_nodes": 50,
+    "edge_probability": 0.3,
+    "iterations": 3
+  },
+  "classic": {
+    "runs": [
+      {
+        "run_id": 1,
+        "mode": "CLASSIC",
+        "e2e_latency_ms": 2009.92751121521,
+        "invoker_branch": "unknown",
+        "cold_starts": 0,
+        "total_init_ms": 0,
+        "per_function_ms": {
+          "Aggregator": 0,
+          "BFS": 0,
+          "GraphGenerator": 708.79,
+          "MST": 0,
+          "PageRank": 0
+        },
+        "error": null
+      },
+      {
+        "run_id": 2,
+        "mode": "CLASSIC",
+        "e2e_latency_ms": 1875.399112701416,
+        "invoker_branch": "unknown",
+        "cold_starts": 0,
+        "total_init_ms": 0,
+        "per_function_ms": {
+          "Aggregator": 0,
+          "BFS": 0,
+          "GraphGenerator": 0,
+          "MST": 530.48,
+          "PageRank": 0
+        },
+        "error": null
+      },
+      {
+        "run_id": 3,
+        "mode": "CLASSIC",
+        "e2e_latency_ms": 2073.6160278320312,
+        "invoker_branch": "unknown",
+        "cold_starts": 0,
+        "total_init_ms": 0,
+        "per_function_ms": {
+          "Aggregator": 0,
+          "BFS": 512.16,
+          "GraphGenerator": 774.09,
+          "MST": 0,
+          "PageRank": 0
+        },
+        "error": null
+      }
+    ],
+    "stats": {
+      "mean": 1986.3142172495525,
+      "min": 1875.399112701416,
+      "max": 2073.6160278320312,
+      "std": 101.19623066056265,
+      "cold_starts": 0,
+      "init_time": 0,
+      "invokers": [
+        "unknown",
+        "unknown",
+        "unknown"
+      ]
+    }
+  },
+  "future_based": {
+    "runs": [
+      {
+        "run_id": 1,
+        "mode": "FUTURE_BASED",
+        "e2e_latency_ms": 1999.7532367706299,
+        "invoker_branch": "unknown",
+        "cold_starts": 0,
+        "total_init_ms": 0,
+        "per_function_ms": {
+          "Aggregator": 0,
+          "BFS": 0,
+          "GraphGenerator": 713.73,
+          "MST": 0,
+          "PageRank": 0
+        },
+        "error": null
+      },
+      {
+        "run_id": 2,
+        "mode": "FUTURE_BASED",
+        "e2e_latency_ms": 1928.3764362335205,
+        "invoker_branch": "BFS",
+        "cold_starts": 0,
+        "total_init_ms": 0,
+        "per_function_ms": {
+          "Aggregator": 438.51,
+          "BFS": 0,
+          "GraphGenerator": 709.04,
+          "MST": 0,
+          "PageRank": 0
+        },
+        "error": null
+      },
+      {
+        "run_id": 3,
+        "mode": "FUTURE_BASED",
+        "e2e_latency_ms": 2010.324478149414,
+        "invoker_branch": "unknown",
+        "cold_starts": 0,
+        "total_init_ms": 0,
+        "per_function_ms": {
+          "Aggregator": 482.36,
+          "BFS": 0,
+          "GraphGenerator": 0,
+          "MST": 0,
+          "PageRank": 0
+        },
+        "error": null
+      }
+    ],
+    "stats": {
+      "mean": 1979.4847170511882,
+      "min": 1928.3764362335205,
+      "max": 2010.324478149414,
+      "std": 44.5755545358138,
+      "cold_starts": 0,
+      "init_time": 0,
+      "invokers": [
+        "unknown",
+        "BFS",
+        "unknown"
+      ]
+    }
+  }
+}

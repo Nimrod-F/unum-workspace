@@ -1,0 +1,131 @@
+{
+  "latency_comparison": [
+    {
+      "category": "Run 1",
+      "value": 1908.872127532959,
+      "group": "CLASSIC"
+    },
+    {
+      "category": "Run 2",
+      "value": 1937.8297328948975,
+      "group": "CLASSIC"
+    },
+    {
+      "category": "Run 3",
+      "value": 1944.6473121643066,
+      "group": "CLASSIC"
+    },
+    {
+      "category": "Run 1",
+      "value": 1979.5570373535156,
+      "group": "FUTURE_BASED"
+    },
+    {
+      "category": "Run 2",
+      "value": 1876.929521560669,
+      "group": "FUTURE_BASED"
+    },
+    {
+      "category": "Run 3",
+      "value": 2023.3850479125977,
+      "group": "FUTURE_BASED"
+    }
+  ],
+  "mean_comparison": [
+    {
+      "category": "CLASSIC",
+      "value": 1930.4497241973877
+    },
+    {
+      "category": "FUTURE_BASED",
+      "value": 1959.957202275594
+    }
+  ],
+  "memory_comparison": [
+    {
+      "category": "Max Memory",
+      "value": 92.33333333333333,
+      "group": "CLASSIC"
+    },
+    {
+      "category": "Max Memory",
+      "value": 93,
+      "group": "FUTURE_BASED"
+    },
+    {
+      "category": "Aggregator Memory",
+      "value": 88.66666666666667,
+      "group": "CLASSIC"
+    },
+    {
+      "category": "Aggregator Memory",
+      "value": 88,
+      "group": "FUTURE_BASED"
+    }
+  ],
+  "cost_comparison": [
+    {
+      "category": "CLASSIC",
+      "value": 52.14176495
+    },
+    {
+      "category": "FUTURE_BASED",
+      "value": 54.12301891250001
+    }
+  ],
+  "invoker_classic": {
+    "BFS": 1,
+    "MST": 2
+  },
+  "invoker_future": {
+    "PageRank": 1,
+    "BFS": 2
+  },
+  "radar_data": [
+    {
+      "name": "Latency",
+      "value": 50.75275822461702,
+      "group": "CLASSIC"
+    },
+    {
+      "name": "Memory Eff.",
+      "value": 70.41666666666666,
+      "group": "CLASSIC"
+    },
+    {
+      "name": "Cost Eff.",
+      "value": 51.830324695766755,
+      "group": "CLASSIC"
+    },
+    {
+      "name": "Consistency",
+      "value": 99.03084036944921,
+      "group": "CLASSIC"
+    },
+    {
+      "name": "Latency",
+      "value": 50.0,
+      "group": "FUTURE_BASED"
+    },
+    {
+      "name": "Memory Eff.",
+      "value": 70.78125,
+      "group": "FUTURE_BASED"
+    },
+    {
+      "name": "Cost Eff.",
+      "value": 50.0,
+      "group": "FUTURE_BASED"
+    },
+    {
+      "name": "Consistency",
+      "value": 96.16474897760772,
+      "group": "FUTURE_BASED"
+    }
+  ],
+  "config": {
+    "num_nodes": 500,
+    "edge_probability": 0.5,
+    "iterations": 3
+  }
+}
