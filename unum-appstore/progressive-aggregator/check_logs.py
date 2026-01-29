@@ -4,7 +4,7 @@
 import boto3
 import time
 
-logs = boto3.client('logs', region_name='eu-west-1')
+logs = boto3.client('logs', region_name='eu-central-1')
 log_group = '/aws/lambda/progressive-aggregator-AggregatorFunction-z0rG4dhEmMGR'
 
 query = '''

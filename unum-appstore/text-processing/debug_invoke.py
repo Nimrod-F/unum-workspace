@@ -1,7 +1,7 @@
 import boto3
 import json
 
-client = boto3.client('lambda', region_name='eu-west-1')
+client = boto3.client('lambda', region_name='eu-central-1')
 
 payload = {
     "Session": "test-debug-456",

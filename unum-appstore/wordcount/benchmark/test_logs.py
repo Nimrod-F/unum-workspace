@@ -3,7 +3,7 @@
 import boto3
 import time
 
-logs = boto3.client('logs', region_name='eu-west-1')
+logs = boto3.client('logs', region_name='eu-central-1')
 log_group = '/aws/lambda/unum-mapreduce-wordcount-dynamo-ne-SummaryFunction-Jk5iNof4yqC3'
 
 # Test timestamp - 5 minutes ago

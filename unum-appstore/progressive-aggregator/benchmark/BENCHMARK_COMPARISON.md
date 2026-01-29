@@ -8,7 +8,7 @@ Comprehensive comparison of **CLASSIC** and **FUTURE_BASED** execution modes acr
 
 - Source Functions: 5 parallel executions with delays [2.0s, 3.0s, 4.0s, 0.3s, 0.5s]
 - Runs per scenario: 5
-- Region: eu-west-1
+- Region: eu-central-1
 - Date: January 16, 2026
 
 ---
@@ -282,4 +282,4 @@ graph TD
 
 _Generated: January 16, 2026_
 _Benchmark Suite: progressive-aggregator_
-_Region: eu-west-1_
+_Region: eu-central-1_

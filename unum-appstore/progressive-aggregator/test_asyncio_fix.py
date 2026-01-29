@@ -4,7 +4,7 @@
 import boto3
 import time
 
-logs = boto3.client('logs', region_name='eu-west-1')
+logs = boto3.client('logs', region_name='eu-central-1')
 
 print("Checking Aggregator logs for background polling...")
 end_time = int(time.time() * 1000)

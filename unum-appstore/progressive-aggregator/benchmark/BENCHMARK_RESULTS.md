@@ -9,7 +9,7 @@ Comparison between **CLASSIC** and **FUTURE_BASED** execution modes for fan-in o
 - Source Functions: 5 parallel executions
 - Source Delays: [2.0s, 3.0s, 4.0s, 0.3s, 0.5s]
 - Iterations per mode: 5
-- Region: eu-west-1
+- Region: eu-central-1
 
 ---
 
@@ -210,4 +210,4 @@ The background polling mechanism in FUTURE_BASED mode allows the aggregator func
 
 _Generated: 2026-01-08_
 _Benchmark Suite: progressive-aggregator_
-_Region: eu-west-1_
+_Region: eu-central-1_

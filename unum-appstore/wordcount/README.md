@@ -96,11 +96,11 @@ This deploys the CloudFormation stack: `unum-mapreduce-wordcount-dynamo-new`
 After deployment, create `function-arn.yaml` with the Lambda function ARNs:
 
 ```yaml
-UnumMap0: arn:aws:lambda:eu-west-1:528757807812:function:unum-mapreduce-wordcount-dynamo-n-UnumMap0Function-QnqV5dDpHP7z
-Mapper: arn:aws:lambda:eu-west-1:528757807812:function:unum-mapreduce-wordcount-dynamo-new-MapperFunction-DPRPCfGeTdSC
-Partition: arn:aws:lambda:eu-west-1:528757807812:function:unum-mapreduce-wordcount-dynamo--PartitionFunction-A9Q04VZ4o5r7
-Reducer: arn:aws:lambda:eu-west-1:528757807812:function:unum-mapreduce-wordcount-dynamo-ne-ReducerFunction-zvNWr6BslVOQ
-Summary: arn:aws:lambda:eu-west-1:528757807812:function:unum-mapreduce-wordcount-dynamo-ne-SummaryFunction-JKwz97N554Cg
+UnumMap0: arn:aws:lambda:eu-central-1:528757807812:function:unum-mapreduce-wordcount-dynamo-n-UnumMap0Function-QnqV5dDpHP7z
+Mapper: arn:aws:lambda:eu-central-1:528757807812:function:unum-mapreduce-wordcount-dynamo-new-MapperFunction-DPRPCfGeTdSC
+Partition: arn:aws:lambda:eu-central-1:528757807812:function:unum-mapreduce-wordcount-dynamo--PartitionFunction-A9Q04VZ4o5r7
+Reducer: arn:aws:lambda:eu-central-1:528757807812:function:unum-mapreduce-wordcount-dynamo-ne-ReducerFunction-zvNWr6BslVOQ
+Summary: arn:aws:lambda:eu-central-1:528757807812:function:unum-mapreduce-wordcount-dynamo-ne-SummaryFunction-JKwz97N554Cg
 ```
 
 Copy to common directory:
@@ -138,7 +138,7 @@ aws lambda invoke \
   --function-name unum-mapreduce-wordcount-dynamo-n-UnumMap0Function-QnqV5dDpHP7z \
   --payload file://test-payload.json \
   --cli-binary-format raw-in-base64-out \
-  --region eu-west-1 \
+  --region eu-central-1 \
   response.json
 ```
 
@@ -151,7 +151,7 @@ The workflow creates checkpoints in DynamoDB table `unum-dynamo-test-table`. Eac
 List all outputs for a session:
 
 ```powershell
-$result = aws dynamodb scan --table-name unum-dynamo-test-table --region eu-west-1 --output text
+$result = aws dynamodb scan --table-name unum-dynamo-test-table --region eu-central-1 --output text
 $result | Where-Object { $_ -match "YOUR_SESSION_ID" } | Sort-Object
 ```
 
@@ -170,7 +170,7 @@ A successful execution will show:
 Check that all mapper branches marked themselves as ready:
 
 ```powershell
-$allData = aws dynamodb scan --table-name unum-dynamo-test-table --region eu-west-1 --output json | ConvertFrom-Json
+$allData = aws dynamodb scan --table-name unum-dynamo-test-table --region eu-central-1 --output json | ConvertFrom-Json
 $item = $allData.Items | Where-Object { $_.Name.S -eq "YOUR_SESSION_ID/Partition-fanin" }
 $item.ReadyMap.L | ForEach-Object { $_.BOOL }
 ```
@@ -180,7 +180,7 @@ Should show 6 `True` values (one for each mapper).
 #### 3. Get Final Word Count Results
 
 ```powershell
-$allData = aws dynamodb scan --table-name unum-dynamo-test-table --region eu-west-1 --output json | ConvertFrom-Json
+$allData = aws dynamodb scan --table-name unum-dynamo-test-table --region eu-central-1 --output json | ConvertFrom-Json
 $item = $allData.Items | Where-Object { $_.Name.S -eq "YOUR_SESSION_ID/Summary-output" }
 $item.User.S
 ```
@@ -197,7 +197,7 @@ View mapper execution and fan-in coordination:
 
 ```bash
 aws logs tail /aws/lambda/unum-mapreduce-wordcount-dynamo-new-MapperFunction-DPRPCfGeTdSC \
-  --since 5m --format short --region eu-west-1
+  --since 5m --format short --region eu-central-1
 ```
 
 Look for debug messages showing:
@@ -211,11 +211,9 @@ Look for debug messages showing:
 For a typical execution with 6 text inputs:
 
 1. **UnumMap0** (invoked by user)
-
    - Spawns 6 Mapper instances in parallel
 
 2. **Mapper × 6** (invoked by UnumMap0)
-
    - Each processes 1/6th of the input
    - Counts word frequencies
    - Writes checkpoint to DynamoDB
@@ -223,13 +221,11 @@ For a typical execution with 6 text inputs:
    - **Last mapper to finish invokes Partition**
 
 3. **Partition** (invoked automatically by last Mapper)
-
    - Reads all 6 mapper outputs
    - Partitions words across 3 reducers
    - Spawns 3 Reducer instances in parallel
 
 4. **Reducer × 3** (invoked by Partition)
-
    - Each aggregates counts for its partition
    - Writes checkpoint to DynamoDB
    - Participates in fan-in synchronization
@@ -354,7 +350,7 @@ The functions might not have the updated code. Force update Lambda code:
 ```bash
 cd .aws-sam/build/MapperFunction
 Compress-Archive -Path * -DestinationPath ..\Mapper.zip -Force
-aws lambda update-function-code --function-name <MAPPER_FUNCTION_NAME> --zip-file fileb://../Mapper.zip --region eu-west-1
+aws lambda update-function-code --function-name <MAPPER_FUNCTION_NAME> --zip-file fileb://../Mapper.zip --region eu-central-1
 ```
 
 ### Missing function-arn.yaml error

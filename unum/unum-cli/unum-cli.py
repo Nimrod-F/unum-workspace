@@ -251,8 +251,8 @@ def deploy_sam_first():
 
     app_name = app_template["Globals"]["ApplicationName"]
     
-    # Use region from unum-template or default to eu-west-1
-    deploy_region = app_template["Globals"].get("Region", "eu-west-1")
+    # Use region from unum-template or default to eu-central-1
+    deploy_region = app_template["Globals"].get("Region", "eu-central-1")
 
     try:
         ret = subprocess.run(["sam", "deploy",

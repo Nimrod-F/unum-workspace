@@ -6,8 +6,8 @@ import json
 import time
 import uuid
 
-REGION = 'eu-west-1'
-UNUMMAP0_ARN = 'arn:aws:lambda:eu-west-1:133480914851:function:unum-mapreduce-wordcount-dynamo-n-UnumMap0Function-lHKKKDwYqZJM'
+REGION = 'eu-central-1'
+UNUMMAP0_ARN = 'arn:aws:lambda:eu-central-1:133480914851:function:unum-mapreduce-wordcount-dynamo-n-UnumMap0Function-lHKKKDwYqZJM'
 SUMMARY_LOG_GROUP = '/aws/lambda/unum-mapreduce-wordcount-dynamo-ne-SummaryFunction-Jk5iNof4yqC3'
 
 def main():

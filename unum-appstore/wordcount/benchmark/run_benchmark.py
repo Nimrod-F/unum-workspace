@@ -45,7 +45,7 @@ import sys
 # Configuration
 # ============================================================
 
-REGION = os.environ.get('AWS_REGION', 'eu-west-1')
+REGION = os.environ.get('AWS_REGION', 'eu-central-1')
 STACK_NAME = 'unum-mapreduce-wordcount-dynamo-new'
 
 # S3 bucket for wordcount data
@@ -74,7 +74,7 @@ WORKFLOW_STRUCTURE = {
     'Summary': {'count': 1, 'terminal': True},
 }
 
-# Pricing (eu-west-1, as of 2024)
+# Pricing (eu-central-1, as of 2024)
 PRICING = {
     'lambda_gb_second': 0.0000166667,
     'lambda_request': 0.0000002,

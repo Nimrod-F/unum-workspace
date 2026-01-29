@@ -44,7 +44,7 @@ import sys
 # Configuration
 # ============================================================
 
-REGION = os.environ.get('AWS_REGION', 'eu-west-1')
+REGION = os.environ.get('AWS_REGION', 'eu-central-1')
 STACK_NAME = 'progressive-aggregator'
 
 # Function names (will be detected from CloudFormation)
@@ -64,7 +64,7 @@ WORKFLOW_STRUCTURE = {
 }
 TOTAL_INVOCATIONS = 7  # 1 + 5 + 1
 
-# Pricing (eu-west-1, as of 2024)
+# Pricing (eu-central-1, as of 2024)
 PRICING = {
     'lambda_gb_second': 0.0000166667,
     'lambda_request': 0.0000002,

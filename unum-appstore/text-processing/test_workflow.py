@@ -5,7 +5,7 @@ import uuid
 session = str(uuid.uuid4())
 print(f"Session: {session}")
 
-client = boto3.client('lambda', region_name='eu-west-1')
+client = boto3.client('lambda', region_name='eu-central-1')
 
 # Invoke UserMention (branch 0)
 user_payload = {

@@ -7,7 +7,7 @@ Based on the environment check, here's what's already configured:
 - ✅ **Python 3.13.3** installed (via `py` launcher)
 - ✅ **unum-cli dependencies** installed (cfn-flip, coloredlogs, PyGithub)
 - ✅ **AWS CLI 2.17.61** installed
-- ✅ **AWS credentials** configured (region: eu-west-1)
+- ✅ **AWS credentials** configured (region: eu-central-1)
 - ❌ **AWS SAM CLI** NOT installed (required for deployment)
 
 ## Prerequisites Installation
@@ -302,7 +302,7 @@ aws dynamodb create-table `
     --attribute-definitions AttributeName=Name,AttributeType=S `
     --key-schema AttributeName=Name,KeyType=HASH `
     --billing-mode PAY_PER_REQUEST `
-    --region eu-west-1
+    --region eu-central-1
 ```
 
 ## Testing Your Deployment
@@ -326,7 +326,7 @@ $testEvent = @'
 aws lambda invoke `
     --function-name my-app-Function1 `
     --payload $testEvent `
-    --region eu-west-1 `
+    --region eu-central-1 `
     output.json
 
 # View the output
@@ -339,13 +339,13 @@ Get-Content output.json
 # Get log streams
 aws logs describe-log-streams `
     --log-group-name /aws/lambda/my-app-Function1 `
-    --region eu-west-1 `
+    --region eu-central-1 `
     --order-by LastEventTime `
     --descending `
     --max-items 1
 
 # View recent logs
-aws logs tail /aws/lambda/my-app-Function1 --follow --region eu-west-1
+aws logs tail /aws/lambda/my-app-Function1 --follow --region eu-central-1
 ```
 
 ## Troubleshooting

@@ -1,6 +1,6 @@
 Globals:
   ApplicationName: progressive-aggregator
-  Region: eu-west-1
+  Region: eu-central-1
   UnumIntermediaryDataStoreType: dynamodb
   UnumIntermediaryDataStoreName: unum-intermediary-progressive
   FaaSPlatform: aws

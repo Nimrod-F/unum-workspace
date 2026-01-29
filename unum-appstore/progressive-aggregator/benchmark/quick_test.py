@@ -18,7 +18,7 @@ import argparse
 from datetime import datetime, timedelta
 
 
-REGION = 'eu-west-1'
+REGION = 'eu-central-1'
 STACK_NAME = 'progressive-aggregator'
 
 
