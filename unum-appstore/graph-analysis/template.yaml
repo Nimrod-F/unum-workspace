@@ -1,0 +1,83 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: true
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  AggregatorFunction:
+    Value: !GetAtt AggregatorFunction.Arn
+  BFSFunction:
+    Value: !GetAtt BFSFunction.Arn
+  GraphGeneratorFunction:
+    Value: !GetAtt GraphGeneratorFunction.Arn
+  MSTFunction:
+    Value: !GetAtt MSTFunction.Arn
+  PageRankFunction:
+    Value: !GetAtt PageRankFunction.Arn
+Resources:
+  AggregatorFunction:
+    Properties:
+      CodeUri: aggregator/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.11
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: "true"
+    Type: AWS::Serverless::Function
+  BFSFunction:
+    Properties:
+      CodeUri: bfs/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  GraphGeneratorFunction:
+    Properties:
+      CodeUri: graph_generator/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  MSTFunction:
+    Properties:
+      CodeUri: mst/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  PageRankFunction:
+    Properties:
+      CodeUri: pagerank/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

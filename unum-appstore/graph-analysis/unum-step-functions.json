@@ -1,0 +1,52 @@
+{
+  "Comment": "Graph Analysis Pipeline - Fan-out/Fan-in workflow inspired by SeBS benchmarks",
+  "StartAt": "GraphGenerator",
+  "States": {
+    "GraphGenerator": {
+      "Type": "Task",
+      "Resource": "GraphGenerator",
+      "Next": "ParallelAnalysis"
+    },
+    "ParallelAnalysis": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "PageRank",
+          "States": {
+            "PageRank": {
+              "Type": "Task",
+              "Resource": "PageRank",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "BFS",
+          "States": {
+            "BFS": {
+              "Type": "Task",
+              "Resource": "BFS",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "MST",
+          "States": {
+            "MST": {
+              "Type": "Task",
+              "Resource": "MST",
+              "End": true
+            }
+          }
+        }
+      ],
+      "Next": "Aggregator"
+    },
+    "Aggregator": {
+      "Type": "Task",
+      "Resource": "Aggregator",
+      "End": true
+    }
+  }
+}

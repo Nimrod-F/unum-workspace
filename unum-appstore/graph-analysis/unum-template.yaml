@@ -1,0 +1,41 @@
+Globals:
+  ApplicationName: graph-analysis
+  WorkflowType: step-functions
+  WorkflowDefinition: unum-step-functions.json
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  Checkpoint: true
+  GC: false
+  Debug: true
+  Eager: true
+
+Functions:
+  GraphGenerator:
+    Properties:
+      CodeUri: graph_generator/
+      Runtime: python3.11
+      MemorySize: 512
+      Start: true
+  PageRank:
+    Properties:
+      CodeUri: pagerank/
+      Runtime: python3.11
+      MemorySize: 512
+  BFS:
+    Properties:
+      CodeUri: bfs/
+      Runtime: python3.11
+      MemorySize: 512
+  MST:
+    Properties:
+      CodeUri: mst/
+      Runtime: python3.11
+      MemorySize: 512
+  Aggregator:
+    Properties:
+      CodeUri: aggregator/
+      Runtime: python3.11
+      MemorySize: 256
+      Environment:
+        UNUM_FUTURE_BASED: "true"
