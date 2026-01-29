@@ -324,8 +324,54 @@ def deploy_sam_first():
                 print(f'{app_dir}unum_config.json Updated')
 
 
-def create_function_arn_mapping(sam_stdout, unum_template):
-    ''' create a functino-arn.yaml file and return the mapping as dict
+def create_function_arn_mapping_from_cloudformation(stack_name, unum_template):
+    ''' Create function-arn.yaml by querying CloudFormation stack outputs directly.
+    
+    This is a more reliable method than parsing SAM deploy stdout, as it uses
+    the AWS CLI to query the stack outputs directly.
+    '''
+    print(f'Querying CloudFormation stack {stack_name} for function ARNs...')
+    
+    try:
+        ret = subprocess.run(
+            ["aws", "cloudformation", "describe-stacks",
+             "--stack-name", stack_name,
+             "--query", "Stacks[0].Outputs",
+             "--output", "json"],
+            capture_output=True, shell=True, check=True
+        )
+        
+        outputs = json.loads(ret.stdout.decode("utf-8"))
+        function_to_arn_mapping = {}
+        
+        for output in outputs:
+            # OutputKey is like "PageRankFunction", we need to strip "Function"
+            function_name = output["OutputKey"].replace("Function", "")
+            function_arn = output["OutputValue"]
+            function_to_arn_mapping[function_name] = function_arn
+        
+        # Verify we got all functions
+        if len(function_to_arn_mapping) < len(unum_template["Functions"]):
+            print(f'\033[33mWarning: Only found {len(function_to_arn_mapping)} ARNs, expected {len(unum_template["Functions"])}\033[0m')
+        
+        # Store function name to arn mapping in function-arn.yaml
+        with open("function-arn.yaml", 'w') as f:
+            d = yaml.dump(function_to_arn_mapping, Dumper=Dumper)
+            f.write(d)
+        
+        print(f'\033[32mfunction-arn.yaml Created from CloudFormation outputs\033[0m')
+        return function_to_arn_mapping
+        
+    except subprocess.CalledProcessError as e:
+        print(f'\033[31mFailed to query CloudFormation stack: {e.stderr.decode("utf-8") if e.stderr else str(e)}\033[0m')
+        raise
+    except Exception as e:
+        print(f'\033[31mFailed to create function-arn.yaml from CloudFormation: {e}\033[0m')
+        raise
+
+
+def create_function_arn_mapping(sam_stdout, unum_template, stack_name=None):
+    ''' create a function-arn.yaml file and return the mapping as dict
     '''
     # grep for the functions' arn This method relies on string processing sam
     # deploy stdout to get Lambda ARNs. The obvious downside is that if sam
@@ -335,9 +381,19 @@ def create_function_arn_mapping(sam_stdout, unum_template):
     try:
         deploy_output = sam_stdout.split("Outputs")[1]
     except:
-        print(f'Failed to create function-arn.yaml.')
-        print(f'SAM stack with the same name already exists')
-        raise IOError(f'SAM stack with the same name already exists')
+        # SAM output doesn't contain "Outputs" section - this happens when:
+        # 1. Stack already exists and there are no changes to deploy
+        # 2. SAM output format has changed
+        # Fallback to querying CloudFormation directly
+        print(f'\033[33mSAM output does not contain Outputs section.\033[0m')
+        print(f'\033[33mFalling back to CloudFormation query...\033[0m')
+        
+        if stack_name:
+            return create_function_arn_mapping_from_cloudformation(stack_name, unum_template)
+        else:
+            print(f'Failed to create function-arn.yaml.')
+            print(f'SAM stack with the same name already exists or SAM output format changed')
+            raise IOError(f'Cannot parse SAM output and no stack_name provided for CloudFormation fallback')
     
     deploy_output = deploy_output.split('-------------------------------------------------------------------------------------------------')[1]
     
@@ -487,7 +543,7 @@ def deploy_sam(args):
         print(f'\033[32m Lambda resources created\033[0m\n')
         print(f'Creating function-to-arn mapping ......')
         # create the function to arn mapping
-        function_to_arn_mapping = create_function_arn_mapping(sam_output, unum_template)
+        function_to_arn_mapping = create_function_arn_mapping(sam_output, unum_template, stack_name)
         print(f'\033[32m\n Function-to-arn Mapping Created\033[0m\n')
 
     # copy function-arn.yaml into .aws-sam/build/[function_name]/
