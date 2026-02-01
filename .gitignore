@@ -6,7 +6,6 @@
 # These contain AWS account IDs, ARNs, or other sensitive data
 function-arn.yaml
 **/function-arn.yaml
-**/unum_config.json
 **/definition*.json
 **/examples-1.json
 **/*destination*.json
