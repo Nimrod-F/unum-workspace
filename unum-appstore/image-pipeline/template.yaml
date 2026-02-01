@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: true
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  ContourFunction:
+    Value: !GetAtt ContourFunction.Arn
+  FiltersFunction:
+    Value: !GetAtt FiltersFunction.Arn
+  ImageLoaderFunction:
+    Value: !GetAtt ImageLoaderFunction.Arn
+  PublisherFunction:
+    Value: !GetAtt PublisherFunction.Arn
+  ThumbnailFunction:
+    Value: !GetAtt ThumbnailFunction.Arn
+  TransformFunction:
+    Value: !GetAtt TransformFunction.Arn
+Resources:
+  ContourFunction:
+    Properties:
+      CodeUri: contour/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  FiltersFunction:
+    Properties:
+      CodeUri: filters/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  ImageLoaderFunction:
+    Properties:
+      CodeUri: image_loader/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  PublisherFunction:
+    Properties:
+      CodeUri: publisher/
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: 'true'
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  ThumbnailFunction:
+    Properties:
+      CodeUri: thumbnail/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  TransformFunction:
+    Properties:
+      CodeUri: transform/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

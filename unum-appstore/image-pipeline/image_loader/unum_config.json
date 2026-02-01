@@ -1,0 +1,24 @@
+{
+  "Name": "ImageLoader",
+  "Start": true,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": [
+    {
+      "Name": "Thumbnail",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "Filters",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "Contour",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "Transform",
+      "InputType": "Scalar"
+    }
+  ]
+}

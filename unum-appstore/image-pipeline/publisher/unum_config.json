@@ -1,0 +1,6 @@
+{
+  "Name": "Publisher",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true
+}

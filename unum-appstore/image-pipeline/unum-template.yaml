@@ -1,0 +1,54 @@
+Globals:
+  ApplicationName: image-pipeline
+  Region: eu-central-1
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  FaaSPlatform: aws
+  Checkpoint: True
+  GC: False
+  Eager: True
+
+Functions:
+  ImageLoader:
+    Properties:
+      Runtime: python3.11
+      CodeUri: image_loader/
+      Timeout: 60
+      MemorySize: 512
+
+  Thumbnail:
+    Properties:
+      Runtime: python3.11
+      CodeUri: thumbnail/
+      Timeout: 60
+      MemorySize: 512
+
+  Filters:
+    Properties:
+      Runtime: python3.11
+      CodeUri: filters/
+      Timeout: 60
+      MemorySize: 512
+
+  Contour:
+    Properties:
+      Runtime: python3.11
+      CodeUri: contour/
+      Timeout: 60
+      MemorySize: 1024
+
+  Transform:
+    Properties:
+      Runtime: python3.11
+      CodeUri: transform/
+      Timeout: 60
+      MemorySize: 512
+
+  Publisher:
+    Properties:
+      Runtime: python3.11
+      CodeUri: publisher/
+      Timeout: 60
+      MemorySize: 256
+      Environment:
+        UNUM_FUTURE_BASED: "true"

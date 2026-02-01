@@ -1,0 +1,3 @@
+cfn-flip
+boto3
+Pillow
