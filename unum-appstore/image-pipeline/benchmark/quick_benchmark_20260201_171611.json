@@ -1,0 +1,31 @@
+{
+  "timestamp": "20260201_171611",
+  "classic": [
+    {
+      "e2e_ms": 2979.1579246520996,
+      "invoker": "unknown"
+    },
+    {
+      "e2e_ms": 2902.890205383301,
+      "invoker": "unknown"
+    },
+    {
+      "e2e_ms": 3284.393072128296,
+      "invoker": "unknown"
+    }
+  ],
+  "future": [
+    {
+      "e2e_ms": 2878.943920135498,
+      "invoker": "unknown"
+    },
+    {
+      "e2e_ms": 3012.1147632598877,
+      "invoker": "unknown"
+    },
+    {
+      "e2e_ms": 3111.26971244812,
+      "invoker": "unknown"
+    }
+  ]
+}

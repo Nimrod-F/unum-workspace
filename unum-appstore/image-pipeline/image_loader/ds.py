@@ -186,8 +186,11 @@ class LazyInput:
         return f'<LazyInput({self._instance_name}, {status})>'
 
 
-class LazyInputList:
+class LazyInputList(list):
     '''A TRANSPARENT list-like container for eager fan-in inputs.
+    
+    This class inherits from list so isinstance(x, list) returns True,
+    making it fully transparent to user code that expects a regular list.
     
     This class behaves EXACTLY like a regular Python list from the user's
     perspective. When you access inputs[0], it automatically waits for the
@@ -218,6 +221,8 @@ class LazyInputList:
         @param lazy_inputs List of LazyInput objects
         @param debug Whether to print debug messages
         '''
+        # Initialize the list with placeholder values so len() and isinstance work correctly
+        super().__init__([None] * len(lazy_inputs))
         self._inputs = lazy_inputs
         self._debug = debug
     
@@ -464,8 +469,11 @@ class UnumFuture:
         return f'<UnumFuture({self._instance_name}, {status})>'
 
 
-class AsyncFutureInputList:
-    """A list-like container for Future-Based fan-in inputs (async pattern).
+class AsyncFutureInputList(list):
+    """A TRANSPARENT list-like container for Future-Based fan-in inputs (async pattern).
+    
+    This class inherits from list so isinstance(x, list) returns True,
+    making it fully transparent to user code that expects a regular list.
     
     This class supports both sync and async access patterns.
     
@@ -475,6 +483,8 @@ class AsyncFutureInputList:
     """
     
     def __init__(self, futures: List[UnumFuture], debug: bool = False):
+        # Initialize the list with placeholder values so len() and isinstance work correctly
+        super().__init__([None] * len(futures))
         self._futures = futures
         self._debug = debug
         self._resolved_values = {}  # Cache for resolved values

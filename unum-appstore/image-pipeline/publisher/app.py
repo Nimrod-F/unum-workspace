@@ -27,7 +27,7 @@ def lambda_handler(event, context):
     start_time = time.time()
     
     print(f'[Publisher] Starting - Fan-in aggregator')
-    print(f'[Publisher] Received {len(event) if isinstance(event, list) else 1} results')
+    print(f'[Publisher] Received {len(event) if hasattr(event, "__len__") else 1} results')
     
     # Handle different input formats
     all_results = []
@@ -39,6 +39,10 @@ def lambda_handler(event, context):
             all_results = body if isinstance(body, list) else [body]
         else:
             all_results = [event]
+    else:
+        # Handle LazyInputList, AsyncFutureInputList, or other list-like objects
+        # These support iteration and indexing transparently
+        all_results = list(event)
     
     # Parse results from each branch
     branch_results = {}
