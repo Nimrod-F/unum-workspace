@@ -1,0 +1,71 @@
+Globals:
+  ApplicationName: multi-source-dashboard
+  Region: eu-central-1
+  WorkflowType: step-functions
+  WorkflowDefinition: unum-step-functions.json
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediary-multi-dashboard
+  Checkpoint: true
+  GC: false
+  Debug: false
+
+Functions:
+  TriggerDashboard:
+    Properties:
+      CodeUri: trigger-dashboard/
+      Runtime: python3.13
+      Start: true
+      MemorySize: 256
+      Timeout: 30
+
+  FetchSalesData:
+    Properties:
+      CodeUri: fetch-sales-data/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  FetchInventoryData:
+    Properties:
+      CodeUri: fetch-inventory-data/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  FetchMarketingMetrics:
+    Properties:
+      CodeUri: fetch-marketing-metrics/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  FetchExternalMarketData:
+    Properties:
+      CodeUri: fetch-external-market-data/
+      Runtime: python3.13
+      MemorySize: 512
+      Timeout: 60
+
+  FetchWeatherData:
+    Properties:
+      CodeUri: fetch-weather-data/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  FetchCompetitorPricing:
+    Properties:
+      CodeUri: fetch-competitor-pricing/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 60
+
+  MergeDashboardData:
+    Properties:
+      CodeUri: merge-dashboard-data/
+      Runtime: python3.13
+      MemorySize: 512
+      Timeout: 120
+      Environment:
+        UNUM_FUTURE_BASED: "true"

@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: false
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediary-multi-dashboard
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  FetchCompetitorPricingFunction:
+    Value: !GetAtt FetchCompetitorPricingFunction.Arn
+  FetchExternalMarketDataFunction:
+    Value: !GetAtt FetchExternalMarketDataFunction.Arn
+  FetchInventoryDataFunction:
+    Value: !GetAtt FetchInventoryDataFunction.Arn
+  FetchMarketingMetricsFunction:
+    Value: !GetAtt FetchMarketingMetricsFunction.Arn
+  FetchSalesDataFunction:
+    Value: !GetAtt FetchSalesDataFunction.Arn
+  FetchWeatherDataFunction:
+    Value: !GetAtt FetchWeatherDataFunction.Arn
+  MergeDashboardDataFunction:
+    Value: !GetAtt MergeDashboardDataFunction.Arn
+  TriggerDashboardFunction:
+    Value: !GetAtt TriggerDashboardFunction.Arn
+Resources:
+  FetchCompetitorPricingFunction:
+    Properties:
+      CodeUri: fetch-competitor-pricing/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FetchExternalMarketDataFunction:
+    Properties:
+      CodeUri: fetch-external-market-data/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FetchInventoryDataFunction:
+    Properties:
+      CodeUri: fetch-inventory-data/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FetchMarketingMetricsFunction:
+    Properties:
+      CodeUri: fetch-marketing-metrics/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FetchSalesDataFunction:
+    Properties:
+      CodeUri: fetch-sales-data/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FetchWeatherDataFunction:
+    Properties:
+      CodeUri: fetch-weather-data/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  MergeDashboardDataFunction:
+    Properties:
+      CodeUri: merge-dashboard-data/
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: 'true'
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  TriggerDashboardFunction:
+    Properties:
+      CodeUri: trigger-dashboard/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

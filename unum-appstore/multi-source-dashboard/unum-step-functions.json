@@ -1,0 +1,82 @@
+{
+  "Comment": "Multi-Source Data Aggregation Dashboard - Fan-out/Fan-in workflow for benchmarking Future-Based execution",
+  "StartAt": "TriggerDashboard",
+  "States": {
+    "TriggerDashboard": {
+      "Type": "Task",
+      "Resource": "TriggerDashboard",
+      "Next": "ParallelFetch"
+    },
+    "ParallelFetch": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "FetchSalesData",
+          "States": {
+            "FetchSalesData": {
+              "Type": "Task",
+              "Resource": "FetchSalesData",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "FetchInventoryData",
+          "States": {
+            "FetchInventoryData": {
+              "Type": "Task",
+              "Resource": "FetchInventoryData",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "FetchMarketingMetrics",
+          "States": {
+            "FetchMarketingMetrics": {
+              "Type": "Task",
+              "Resource": "FetchMarketingMetrics",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "FetchExternalMarketData",
+          "States": {
+            "FetchExternalMarketData": {
+              "Type": "Task",
+              "Resource": "FetchExternalMarketData",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "FetchWeatherData",
+          "States": {
+            "FetchWeatherData": {
+              "Type": "Task",
+              "Resource": "FetchWeatherData",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "FetchCompetitorPricing",
+          "States": {
+            "FetchCompetitorPricing": {
+              "Type": "Task",
+              "Resource": "FetchCompetitorPricing",
+              "End": true
+            }
+          }
+        }
+      ],
+      "Next": "MergeDashboardData"
+    },
+    "MergeDashboardData": {
+      "Type": "Task",
+      "Resource": "MergeDashboardData",
+      "End": true
+    }
+  }
+}
