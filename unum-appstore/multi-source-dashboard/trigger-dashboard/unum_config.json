@@ -1,0 +1,31 @@
+{
+  "Name": "TriggerDashboard",
+  "Start": true,
+  "Checkpoint": true,
+  "Next": [
+    {
+      "Name": "FetchSalesData",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "FetchInventoryData",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "FetchMarketingMetrics",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "FetchExternalMarketData",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "FetchWeatherData",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "FetchCompetitorPricing",
+      "InputType": "Scalar"
+    }
+  ]
+}

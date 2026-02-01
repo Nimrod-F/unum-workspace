@@ -1,0 +1,51 @@
+# Multi-Source Dashboard Benchmark Configuration
+
+# Benchmark Settings
+benchmark:
+  iterations: 10
+  warm_up_runs: 2
+  cold_start_runs: 3
+  delay_between_runs_sec: 2
+
+# AWS Configuration
+aws:
+  region: eu-central-1  # Change to your AWS region
+  stack_name: multi-source-dashboard
+
+# Function Names (will be auto-discovered from CloudFormation stack)
+# These are logical names - physical ARNs will be discovered automatically
+functions:
+  entry: TriggerDashboard
+  terminal: MergeDashboardData
+
+# DynamoDB Table
+dynamodb:
+  table_name: unum-intermediary-multi-dashboard
+
+# Execution Modes
+modes:
+  - CLASSIC
+  - EAGER
+  - FUTURE_BASED
+
+# Output Configuration
+output:
+  results_dir: ./results
+  charts_dir: ./charts
+
+# Expected Performance (for validation)
+expected:
+  classic_e2e_ms: 3500-5000  # Slowest branch + overhead
+  future_based_improvement_pct: 15-25  # Expected improvement
+
+# CloudWatch Settings
+cloudwatch:
+  log_group_prefix: /aws/lambda/
+  metrics_delay_sec: 10  # Wait time for CloudWatch log propagation
+
+# Metrics Collection
+metrics:
+  collect_lambda_metrics: true
+  collect_dynamodb_metrics: true
+  collect_fan_in_metrics: true
+  collect_memory_metrics: true

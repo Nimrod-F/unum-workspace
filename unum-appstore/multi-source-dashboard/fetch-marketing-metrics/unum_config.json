@@ -1,0 +1,22 @@
+{
+  "Name": "FetchMarketingMetrics",
+  "Start": false,
+  "Checkpoint": true,
+  "Next": {
+    "Name": "MergeDashboardData",
+    "InputType": {
+      "Fan-in": {
+        "Values": [
+          "FetchSalesData-unumIndex-0",
+          "FetchInventoryData-unumIndex-1",
+          "FetchMarketingMetrics-unumIndex-2",
+          "FetchExternalMarketData-unumIndex-3",
+          "FetchWeatherData-unumIndex-4",
+          "FetchCompetitorPricing-unumIndex-5"
+        ],
+        "Mode": "FUTURE"
+      }
+    },
+    "Fan-in-Group": true
+  }
+}
