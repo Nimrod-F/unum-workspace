@@ -1,0 +1,6 @@
+{
+  "Name": "Aggregator",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true
+}

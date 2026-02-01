@@ -29,12 +29,12 @@ Designed to demonstrate Unum's FUTURE mode benefits with naturally varying execu
 
 ## Real Computation Details
 
-| Function | Operations | Complexity | Expected Time |
-|----------|-----------|------------|---------------|
-| **Thumbnail** | `image.thumbnail((128,128))` | O(n) simple resize | **~50-80ms** ⚡ |
-| **Transform** | `ROTATE_90 + ROTATE_180 + FLIP_LR` | O(n) pixel remap | ~100-150ms |
-| **Filters** | `BLUR + SHARPEN + SMOOTH` | O(n×k) convolution | ~150-200ms |
-| **Contour** | `CONTOUR + FIND_EDGES + EMBOSS` | O(n×k²) edge detection | **~200-400ms** ★ |
+| Function      | Operations                         | Complexity             | Expected Time    |
+| ------------- | ---------------------------------- | ---------------------- | ---------------- |
+| **Thumbnail** | `image.thumbnail((128,128))`       | O(n) simple resize     | **~50-80ms** ⚡  |
+| **Transform** | `ROTATE_90 + ROTATE_180 + FLIP_LR` | O(n) pixel remap       | ~100-150ms       |
+| **Filters**   | `BLUR + SHARPEN + SMOOTH`          | O(n×k) convolution     | ~150-200ms       |
+| **Contour**   | `CONTOUR + FIND_EDGES + EMBOSS`    | O(n×k²) edge detection | **~200-400ms** ★ |
 
 **Timing variance: ~5-8x (50ms vs 400ms) - all from REAL computation!**
 
@@ -52,8 +52,9 @@ Designed to demonstrate Unum's FUTURE mode benefits with naturally varying execu
 ## Test Images
 
 Upload test images to S3:
+
 - Small: 640x480 (~50KB)
-- Medium: 1920x1080 (~500KB)  
+- Medium: 1920x1080 (~500KB)
 - Large: 4000x3000 (~2MB)
 
 Larger images = more pronounced timing differences.

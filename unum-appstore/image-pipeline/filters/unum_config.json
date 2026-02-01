@@ -7,7 +7,12 @@
     "Name": "Publisher",
     "InputType": {
       "Fan-in": {
-        "Values": ["Thumbnail-unumIndex-0", "Filters-unumIndex-1", "Contour-unumIndex-2", "Transform-unumIndex-3"]
+        "Values": [
+          "Thumbnail-unumIndex-0",
+          "Filters-unumIndex-1",
+          "Contour-unumIndex-2",
+          "Transform-unumIndex-3"
+        ]
       }
     },
     "Fan-in-Group": true

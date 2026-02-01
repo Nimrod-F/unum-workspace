@@ -1,0 +1,19 @@
+{
+  "Name": "BFS",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Aggregator",
+    "InputType": {
+      "Fan-in": {
+        "Values": [
+          "PageRank-unumIndex-0",
+          "BFS-unumIndex-1",
+          "MST-unumIndex-2"
+        ],
+        "Mode": "FUTURE"
+      }
+    }
+  }
+}
