@@ -856,11 +856,276 @@ def template(args):
         raise ValueError(f'Unknown platform: {args.platform}')
 
 
+def compile_step_functions_workflow(workflow, unum_template, functions_info):
+    """
+    Compile an AWS Step Functions workflow definition to unum_config.json files.
+    
+    Args:
+        workflow: The Step Functions workflow definition (dict)
+        unum_template: The unum template with function definitions
+        functions_info: Dict mapping function names to their CodeUri paths
+    
+    Returns:
+        Dict mapping function names to their unum_config.json content
+    """
+    configs = {}
+    
+    def get_function_code_uri(func_name):
+        """Get the CodeUri for a function from the unum template"""
+        if func_name in functions_info:
+            return functions_info[func_name].get('Properties', {}).get('CodeUri', f'{func_name.lower()}/')
+        return f'{func_name.lower()}/'
+    
+    def find_terminal_functions_in_branch(states, start_at):
+        """
+        Find the terminal function(s) in a branch by following the chain.
+        Returns the name of the last function (the one with "End": true or no "Next").
+        """
+        current = start_at
+        visited = set()
+        
+        while current and current not in visited:
+            visited.add(current)
+            state = states.get(current, {})
+            
+            if state.get('End', False):
+                return current
+            
+            next_state = state.get('Next')
+            if not next_state:
+                return current
+            
+            # Check if Next points to a state in this branch
+            if next_state in states:
+                current = next_state
+            else:
+                # Next points outside this branch
+                return current
+        
+        return current
+    
+    def process_parallel_state(parallel_state, next_after_parallel):
+        """
+        Process a Parallel state and generate configs for all functions in branches.
+        Returns a list of (terminal_function_name, branch_index) tuples.
+        """
+        branches = parallel_state.get('Branches', [])
+        terminal_functions = []  # List of (function_name, branch_index)
+        
+        for branch_idx, branch in enumerate(branches):
+            branch_start = branch.get('StartAt')
+            branch_states = branch.get('States', {})
+            
+            # Find the terminal function of this branch
+            terminal_func = find_terminal_functions_in_branch(branch_states, branch_start)
+            terminal_functions.append((terminal_func, branch_idx))
+            
+            # Process each state in the branch
+            for state_name, state_def in branch_states.items():
+                if state_def.get('Type') != 'Task':
+                    continue
+                
+                func_name = state_def.get('Resource', state_name)
+                is_start = (state_name == branch_start)
+                
+                config = {
+                    "Name": func_name,
+                    "Start": is_start,
+                    "Checkpoint": True,
+                    "Debug": True
+                }
+                
+                # Determine what comes next for this function
+                if state_def.get('End', False):
+                    # This is the terminal function of the branch
+                    # It should have fan-in config pointing to the state after Parallel
+                    pass  # Will be filled in later with fan-in info
+                elif state_def.get('Next'):
+                    next_in_branch = state_def.get('Next')
+                    if next_in_branch in branch_states:
+                        # Next is within the same branch - simple chain
+                        next_state = branch_states.get(next_in_branch, {})
+                        next_func_name = next_state.get('Resource', next_in_branch)
+                        config["Next"] = {
+                            "Name": next_func_name,
+                            "InputType": "Scalar"
+                        }
+                
+                configs[func_name] = config
+        
+        return terminal_functions
+    
+    def generate_fan_in_config(terminal_functions, fan_in_target):
+        """
+        Generate the fan-in Next configuration for terminal functions of parallel branches.
+        """
+        # Build the Values array for fan-in
+        fan_in_values = []
+        for func_name, branch_idx in terminal_functions:
+            fan_in_values.append(f"{func_name}-unumIndex-{branch_idx}")
+        
+        fan_in_next = {
+            "Name": fan_in_target,
+            "InputType": {
+                "Fan-in": {
+                    "Values": fan_in_values
+                }
+            },
+            "Fan-in-Group": True
+        }
+        
+        return fan_in_next
+    
+    def process_states(states, start_at, is_top_level=True):
+        """
+        Process states in a workflow/branch.
+        """
+        # First pass: find all parallel states and their successors
+        parallel_info = {}  # Maps parallel state name to (terminal_functions, next_state)
+        
+        for state_name, state_def in states.items():
+            if state_def.get('Type') == 'Parallel':
+                terminal_funcs = process_parallel_state(state_def, state_def.get('Next'))
+                parallel_info[state_name] = (terminal_funcs, state_def.get('Next'))
+        
+        # Second pass: configure fan-in for terminal functions
+        for parallel_name, (terminal_funcs, next_state) in parallel_info.items():
+            if next_state and next_state in states:
+                next_state_def = states[next_state]
+                fan_in_target = next_state_def.get('Resource', next_state)
+                fan_in_config = generate_fan_in_config(terminal_funcs, fan_in_target)
+                
+                # Update each terminal function with the fan-in config
+                for func_name, branch_idx in terminal_funcs:
+                    if func_name in configs:
+                        configs[func_name]["Next"] = fan_in_config
+        
+        # Third pass: process non-parallel Task states at this level
+        for state_name, state_def in states.items():
+            if state_def.get('Type') == 'Parallel':
+                continue
+            
+            if state_def.get('Type') != 'Task':
+                continue
+            
+            func_name = state_def.get('Resource', state_name)
+            
+            # Skip if already processed (from parallel branches)
+            if func_name in configs:
+                # But we may need to add Next if it's missing
+                if 'Next' not in configs[func_name] and state_def.get('Next'):
+                    next_state = state_def.get('Next')
+                    if next_state in states:
+                        next_state_def = states[next_state]
+                        next_func_name = next_state_def.get('Resource', next_state)
+                        configs[func_name]["Next"] = {
+                            "Name": next_func_name,
+                            "InputType": "Scalar"
+                        }
+                continue
+            
+            is_start = False  # Top-level tasks after Parallel are not start
+            
+            config = {
+                "Name": func_name,
+                "Start": is_start,
+                "Checkpoint": True,
+                "Debug": True
+            }
+            
+            if state_def.get('Next'):
+                next_state = state_def.get('Next')
+                if next_state in states:
+                    next_state_def = states[next_state]
+                    next_func_name = next_state_def.get('Resource', next_state)
+                    config["Next"] = {
+                        "Name": next_func_name,
+                        "InputType": "Scalar"
+                    }
+            
+            configs[func_name] = config
+    
+    # Start processing from the top level
+    states = workflow.get('States', {})
+    start_at = workflow.get('StartAt')
+    
+    process_states(states, start_at, is_top_level=True)
+    
+    return configs
+
 
 def compile_workflow(args):
-    print(args)
-    print(args.platform)
-    print(type(args))
+    """
+    Compile workflow definitions to unum_config.json files for each function.
+    
+    Supported platforms:
+    - step-functions: AWS Step Functions workflow definition
+    """
+    print(f'\n\033[33m\033[1mCompiling workflow...\033[0m\n')
+    
+    # Load workflow definition
+    try:
+        with open(args.workflow, 'r') as f:
+            workflow = json.loads(f.read())
+        print(f'\033[32mLoaded workflow definition: {args.workflow}\033[0m')
+    except Exception as e:
+        print(f'\033[31mFailed to load workflow file: {args.workflow}\033[0m')
+        raise e
+    
+    # Load unum template
+    try:
+        with open(args.template, 'r') as f:
+            unum_template = yaml.load(f.read(), Loader=Loader)
+        print(f'\033[32mLoaded unum template: {args.template}\033[0m')
+    except Exception as e:
+        print(f'\033[31mFailed to load unum template file: {args.template}\033[0m')
+        raise e
+    
+    # Extract function info from template
+    functions_info = unum_template.get('Functions', {})
+    
+    if args.platform == 'step-functions':
+        configs = compile_step_functions_workflow(workflow, unum_template, functions_info)
+    else:
+        raise ValueError(f'Unsupported workflow platform: {args.platform}')
+    
+    # Write unum_config.json files
+    print(f'\n\033[33mGenerating unum_config.json files...\033[0m\n')
+    
+    for func_name, config in configs.items():
+        # Get the CodeUri from template
+        if func_name in functions_info:
+            code_uri = functions_info[func_name].get('Properties', {}).get('CodeUri', f'{func_name.lower()}/')
+        else:
+            code_uri = f'{func_name.lower()}/'
+        
+        # Ensure directory exists
+        code_dir = code_uri.rstrip('/')
+        if not os.path.exists(code_dir):
+            print(f'\033[33mWarning: Directory {code_dir} does not exist, creating it...\033[0m')
+            os.makedirs(code_dir, exist_ok=True)
+        
+        config_path = os.path.join(code_dir, 'unum_config.json')
+        
+        try:
+            with open(config_path, 'w') as f:
+                f.write(json.dumps(config, indent=2))
+            print(f'\033[32m  ✓ {config_path}\033[0m')
+        except Exception as e:
+            print(f'\033[31m  ✗ Failed to write {config_path}: {e}\033[0m')
+            raise e
+    
+    print(f'\n\033[32m\033[1mCompilation succeeded! Generated {len(configs)} unum_config.json files.\033[0m\n')
+    
+    # Print summary
+    print(f'\033[36mWorkflow Summary:\033[0m')
+    start_functions = [name for name, cfg in configs.items() if cfg.get('Start', False)]
+    end_functions = [name for name, cfg in configs.items() if 'Next' not in cfg]
+    
+    print(f'  Start functions: {", ".join(start_functions)}')
+    print(f'  End functions: {", ".join(end_functions)}')
+    print(f'  Total functions: {len(configs)}')
+    print()
 
 
 
