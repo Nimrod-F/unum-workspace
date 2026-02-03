@@ -3,12 +3,25 @@ Contour - SLOWEST branch (~200-400ms)
 
 Heavy edge detection and contour extraction - most computationally expensive.
 This is the SLOWEST branch due to complex convolution kernels.
+
+BENCHMARK SUPPORT:
+Set ARTIFICIAL_DELAY_MS environment variable to add simulated delay.
+This allows testing Future-Based execution benefits with varying branch times.
 """
 import json
 import time
 import base64
+import os
 from io import BytesIO
 from PIL import Image, ImageFilter
+
+
+def get_artificial_delay() -> int:
+    """Get artificial delay from environment variable (in milliseconds)"""
+    try:
+        return int(os.environ.get('ARTIFICIAL_DELAY_MS', '0'))
+    except (ValueError, TypeError):
+        return 0
 
 
 def lambda_handler(event, context):
@@ -106,6 +119,13 @@ def lambda_handler(event, context):
     compute_time = (time.time() - compute_start) * 1000
     # === END COMPUTATION ===
     
+    # === ARTIFICIAL DELAY (for benchmarking) ===
+    artificial_delay_ms = get_artificial_delay()
+    if artificial_delay_ms > 0:
+        print(f'[Contour] Applying artificial delay: {artificial_delay_ms}ms')
+        time.sleep(artificial_delay_ms / 1000.0)
+    # === END ARTIFICIAL DELAY ===
+    
     # Save final result
     output_buffer = BytesIO()
     contour_img.save(output_buffer, format='JPEG', quality=85)
@@ -122,11 +142,12 @@ def lambda_handler(event, context):
         'output_bytes': len(output_bytes),
         'decode_time_ms': int(decode_time),
         'compute_time_ms': int(compute_time),
+        'artificial_delay_ms': artificial_delay_ms,
         'total_time_ms': int(total_time),
         'timestamp': time.time()
     }
     
-    print(f'[Contour] COMPLETE - Compute: {compute_time:.0f}ms, Total: {total_time:.0f}ms')
+    print(f'[Contour] COMPLETE - Compute: {compute_time:.0f}ms, Delay: {artificial_delay_ms}ms, Total: {total_time:.0f}ms')
     print(f'[Contour] This is the SLOWEST branch - triggers Publisher in CLASSIC mode')
     print(f'[Contour] Filter times: {[f["filter"] + ":" + str(f["time_ms"]) + "ms" for f in results]}')
     

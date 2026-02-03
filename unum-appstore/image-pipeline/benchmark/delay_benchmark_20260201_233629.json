@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-02-01T23:36:29.193564",
+  "config": {
+    "region": "eu-central-1",
+    "test_image": "s3://unum-benchmark-images/test-images/sample-1920x1080.jpg",
+    "natural_times_ms": {
+      "Thumbnail": 80,
+      "Transform": 120,
+      "Filters": 180,
+      "Contour": 300
+    }
+  },
+  "scenarios": [
+    {
+      "name": "Staggered Delays",
+      "description": "Linear increase: 0s, 1s, 2s, 3s - realistic variance",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 1000,
+        "Filters": 2000,
+        "Contour": 3000
+      },
+      "classic": {
+        "avg_latency_ms": 2982.5726747512817,
+        "runs": [
+          {
+            "e2e_ms": 2983.6463928222656,
+            "invoker": "unknown",
+            "cold_starts": 0,
+            "error": null,
+            "branch_durations": {
+              "Thumbnail": 0.0,
+              "Transform": 0.0,
+              "Filters": 0.0,
+              "Contour": 0.0
+            }
+          },
+          {
+            "e2e_ms": 2981.498956680298,
+            "invoker": "unknown",
+            "cold_starts": 0,
+            "error": null,
+            "branch_durations": {
+              "Thumbnail": 0.0,
+              "Transform": 0.0,
+              "Filters": 0.0,
+              "Contour": 0.0
+            }
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 2824.4582414627075,
+        "runs": [
+          {
+            "e2e_ms": 2925.534963607788,
+            "invoker": "unknown",
+            "cold_starts": 0,
+            "error": null,
+            "branch_durations": {
+              "Thumbnail": 0.0,
+              "Transform": 0.0,
+              "Filters": 0.0,
+              "Contour": 0.0
+            }
+          },
+          {
+            "e2e_ms": 2723.381519317627,
+            "invoker": "unknown",
+            "cold_starts": 0,
+            "error": null,
+            "branch_durations": {
+              "Thumbnail": 0.0,
+              "Transform": 0.0,
+              "Filters": 0.0,
+              "Contour": 0.0
+            }
+          }
+        ]
+      },
+      "improvement_ms": 158.11443328857422,
+      "improvement_pct": 5.301276801302402,
+      "theoretical_max_savings_ms": 3220
+    }
+  ]
+}

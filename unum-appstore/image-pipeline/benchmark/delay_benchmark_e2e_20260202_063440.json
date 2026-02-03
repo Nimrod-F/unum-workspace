@@ -1,0 +1,142 @@
+{
+  "timestamp": "20260202_063440",
+  "scenarios": [
+    {
+      "name": "Reversed (Fastest Slowest)",
+      "delays": {
+        "Thumbnail": 4000,
+        "Transform": 2000,
+        "Filters": 1000,
+        "Contour": 0
+      },
+      "classic": {
+        "avg_latency_ms": 13114.259004592896,
+        "runs": [
+          {
+            "e2e_ms": 15639.522552490234,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 10588.995456695557,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 8838.98651599884,
+        "runs": [
+          {
+            "e2e_ms": 8957.967042922974,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 8720.005989074707,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 4275.272488594055,
+      "improvement_pct": 32.600183411786844
+    },
+    {
+      "name": "Bimodal (2 Fast, 2 Slow)",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 0,
+        "Filters": 3000,
+        "Contour": 3000
+      },
+      "classic": {
+        "avg_latency_ms": 12659.87479686737,
+        "runs": [
+          {
+            "e2e_ms": 14169.941186904907,
+            "invoker": "unknown",
+            "branches": {
+              "Transform": 8294.4
+            },
+            "error": null
+          },
+          {
+            "e2e_ms": 11149.808406829834,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 11233.816742897034,
+        "runs": [
+          {
+            "e2e_ms": 11239.175081253052,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 11228.458404541016,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 1426.058053970337,
+      "improvement_pct": 11.26439302798799
+    },
+    {
+      "name": "Single Slow (Transform)",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 4000,
+        "Filters": 0,
+        "Contour": 0
+      },
+      "classic": {
+        "avg_latency_ms": 12867.3015832901,
+        "runs": [
+          {
+            "e2e_ms": 15273.205995559692,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 10461.397171020508,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 10368.70276927948,
+        "runs": [
+          {
+            "e2e_ms": 10271.349668502808,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 10466.055870056152,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 2498.59881401062,
+      "improvement_pct": 19.418203559131484
+    }
+  ]
+}

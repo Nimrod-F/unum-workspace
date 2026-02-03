@@ -1,0 +1,140 @@
+{
+  "timestamp": "20260202_064032",
+  "scenarios": [
+    {
+      "name": "Thumbnail Slowest",
+      "delays": {
+        "Thumbnail": 5000,
+        "Transform": 0,
+        "Filters": 0,
+        "Contour": 0
+      },
+      "classic": {
+        "avg_latency_ms": 9759.015917778015,
+        "runs": [
+          {
+            "e2e_ms": 11221.947193145752,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 8296.084642410278,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 8139.816045761108,
+        "runs": [
+          {
+            "e2e_ms": 8124.845266342163,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 8154.786825180054,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 1619.1998720169067,
+      "improvement_pct": 16.591835546319867
+    },
+    {
+      "name": "Exponential Growth",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 500,
+        "Filters": 1500,
+        "Contour": 4000
+      },
+      "classic": {
+        "avg_latency_ms": 13801.943063735962,
+        "runs": [
+          {
+            "e2e_ms": 15273.353099822998,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 12330.533027648926,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 12170.7284450531,
+        "runs": [
+          {
+            "e2e_ms": 12188.62509727478,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 12152.83179283142,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 1631.2146186828613,
+      "improvement_pct": 11.818731689806855
+    },
+    {
+      "name": "Three Fast, One Slow",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 0,
+        "Filters": 0,
+        "Contour": 6000
+      },
+      "classic": {
+        "avg_latency_ms": 15957.286357879639,
+        "runs": [
+          {
+            "e2e_ms": 17425.158977508545,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 14489.413738250732,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 14227.20730304718,
+        "runs": [
+          {
+            "e2e_ms": 14165.389776229858,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 14289.024829864502,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 1730.0790548324585,
+      "improvement_pct": 10.841937758284026
+    }
+  ]
+}

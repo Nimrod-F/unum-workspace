@@ -1,0 +1,50 @@
+{
+  "timestamp": "20260202_000420",
+  "scenarios": [
+    {
+      "name": "Extreme Outlier",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 0,
+        "Filters": 0,
+        "Contour": 5000
+      },
+      "classic": {
+        "avg_latency_ms": 13660.318851470947,
+        "runs": [
+          {
+            "e2e_ms": 15150.811195373535,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 12169.82650756836,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 12013.55516910553,
+        "runs": [
+          {
+            "e2e_ms": 11974.609375,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 12052.50096321106,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 1646.7636823654175,
+      "improvement_pct": 12.055089637882746
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "timestamp": "20260202_000203",
+  "scenarios": [
+    {
+      "name": "Staggered Delays",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 1000,
+        "Filters": 2000,
+        "Contour": 3000
+      },
+      "classic": {
+        "avg_latency_ms": 11369.4566488266,
+        "runs": [
+          {
+            "e2e_ms": 12866.37806892395,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 9872.535228729248,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 9703.883051872253,
+        "runs": [
+          {
+            "e2e_ms": 9658.157348632812,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 9749.608755111694,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 1665.5735969543457,
+      "improvement_pct": 14.64954437489538
+    }
+  ]
+}

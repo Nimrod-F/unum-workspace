@@ -3,12 +3,25 @@ Thumbnail - FASTEST branch (~50-80ms)
 
 Simple image resize operation - computationally lightweight.
 This should complete first and trigger the Publisher in FUTURE mode.
+
+BENCHMARK SUPPORT:
+Set ARTIFICIAL_DELAY_MS environment variable to add simulated delay.
+This allows testing Future-Based execution benefits with varying branch times.
 """
 import json
 import time
 import base64
+import os
 from io import BytesIO
 from PIL import Image
+
+
+def get_artificial_delay() -> int:
+    """Get artificial delay from environment variable (in milliseconds)"""
+    try:
+        return int(os.environ.get('ARTIFICIAL_DELAY_MS', '0'))
+    except (ValueError, TypeError):
+        return 0
 
 
 def lambda_handler(event, context):
@@ -54,6 +67,13 @@ def lambda_handler(event, context):
     compute_time = (time.time() - compute_start) * 1000
     # === END COMPUTATION ===
     
+    # === ARTIFICIAL DELAY (for benchmarking) ===
+    artificial_delay_ms = get_artificial_delay()
+    if artificial_delay_ms > 0:
+        print(f'[Thumbnail] Applying artificial delay: {artificial_delay_ms}ms')
+        time.sleep(artificial_delay_ms / 1000.0)
+    # === END ARTIFICIAL DELAY ===
+    
     total_time = (time.time() - start_time) * 1000
     
     result = {
@@ -65,11 +85,12 @@ def lambda_handler(event, context):
         'output_bytes': len(thumb_bytes),
         'decode_time_ms': int(decode_time),
         'compute_time_ms': int(compute_time),
+        'artificial_delay_ms': artificial_delay_ms,
         'total_time_ms': int(total_time),
         'timestamp': time.time()
     }
     
-    print(f'[Thumbnail] COMPLETE - Compute: {compute_time:.0f}ms, Total: {total_time:.0f}ms')
+    print(f'[Thumbnail] COMPLETE - Compute: {compute_time:.0f}ms, Delay: {artificial_delay_ms}ms, Total: {total_time:.0f}ms')
     print(f'[Thumbnail] This is the FASTEST branch - should trigger Publisher in FUTURE mode')
     
     return result

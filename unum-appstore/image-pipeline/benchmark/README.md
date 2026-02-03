@@ -13,11 +13,100 @@ ImageLoader → [Thumbnail, Transform, Filters, Contour] → Publisher
 | Function | Expected Duration | Notes |
 |----------|------------------|-------|
 | ImageLoader | ~50ms | Load image from S3 |
-| Thumbnail | ~100ms | Resize to 128x128 (**FASTEST**) |
-| Transform | ~200ms | Rotate + flip |
-| Filters | ~350ms | Blur + sharpen |
-| Contour | ~1400ms | Edge detection (**SLOWEST**) |
-| Publisher | ~100ms | Aggregate results |
+| Thumbnail | ~80ms | Resize to 128x128 (**FASTEST**) |
+| Transform | ~120ms | Rotate + flip |
+| Filters | ~180ms | Blur + sharpen |
+| Contour | ~300ms | Edge detection (**SLOWEST**) |
+| Publisher | ~50ms | Aggregate results |
+
+## Benchmarks
+
+### 1. Quick Benchmark (`quick_benchmark.py`)
+Standard comparison without artificial delays - tests natural execution.
+
+### 2. Artificial Delay Benchmark (`delay_benchmark.py`) ⭐ NEW
+Introduces configurable artificial delays to each branch to clearly demonstrate
+Future-Based execution benefits under different variance scenarios.
+
+## Artificial Delay Benchmark
+
+This benchmark is specifically designed to highlight the advantages of Future-Based execution
+by creating controlled scenarios with different branch execution time variances.
+
+### Key Insight
+
+| Mode | Behavior | E2E Latency |
+|------|----------|-------------|
+| **CLASSIC** | Fan-in waits for ALL branches | `max(branch_times)` |
+| **FUTURE_BASED** | Fan-in starts with FIRST branch | `min(branch_time) + processing` |
+
+The larger the variance between branch times, the greater the benefit of Future-Based execution.
+
+### Delay Scenarios
+
+| Scenario | Thumbnail | Transform | Filters | Contour | Expected Savings |
+|----------|-----------|-----------|---------|---------|------------------|
+| **Uniform** | 0ms | 0ms | 0ms | 0ms | Baseline (natural variance) |
+| **Staggered** | 0ms | 1000ms | 2000ms | 3000ms | ~3000ms |
+| **Extreme** | 0ms | 0ms | 0ms | 5000ms | ~5000ms |
+| **Reversed** | 3000ms | 2000ms | 1000ms | 0ms | ~3000ms |
+| **Moderate** | 0ms | 500ms | 1000ms | 1500ms | ~1500ms |
+| **Bimodal** | 0ms | 0ms | 2000ms | 2000ms | ~2000ms |
+
+### Usage
+
+```bash
+# Run staggered scenario (default)
+python delay_benchmark.py
+
+# Run specific scenarios
+python delay_benchmark.py --scenarios staggered extreme --iterations 5
+
+# Run all scenarios
+python delay_benchmark.py --scenarios all --iterations 3
+
+# Custom delays (Thumbnail, Transform, Filters, Contour in ms)
+python delay_benchmark.py --custom 0,1000,2000,5000 --iterations 3
+
+# Skip cold start forcing (faster, less accurate)
+python delay_benchmark.py --scenarios staggered --no-cold --iterations 5
+```
+
+### How It Works
+
+1. **Configuration**: Sets `ARTIFICIAL_DELAY_MS` environment variable on each branch Lambda
+2. **Branch Execution**: Each branch reads the delay and sleeps after completing real work
+3. **Measurement**: Compares E2E latency between CLASSIC and FUTURE_BASED modes
+4. **Analysis**: Tracks which branch invokes Publisher (slowest in CLASSIC, fastest in FUTURE)
+
+### Expected Results
+
+For the **Staggered** scenario (0, 1000, 2000, 3000ms delays):
+
+```
+CLASSIC Mode:
+  - Thumbnail completes at ~80ms
+  - Transform completes at ~1120ms  
+  - Filters completes at ~2180ms
+  - Contour completes at ~3300ms     ← Publisher invoked here
+  - E2E: ~3400ms
+
+FUTURE_BASED Mode:
+  - Thumbnail completes at ~80ms     ← Publisher invoked here (uses futures)
+  - Publisher starts, waits for remaining data via futures
+  - E2E: ~3400ms BUT Publisher started 3+ seconds earlier
+  - Cold start latency eliminated for Publisher
+```
+
+### Generate Charts
+
+```bash
+# Generate visualization from latest results
+python generate_delay_charts.py --latest
+
+# Generate from specific results file
+python generate_delay_charts.py delay_benchmark_20260201_123456.json
+```
 
 ## Execution Modes
 
@@ -30,7 +119,7 @@ ImageLoader → [Thumbnail, Transform, Filters, Contour] → Publisher
 - Fan-in triggered by the **FASTEST** branch (Thumbnail)
 - Publisher starts early, other results pre-resolved in background
 - Total latency = ImageLoader + Thumbnail + Publisher
-- **Expected improvement: 1300ms (Contour - Thumbnail)**
+- **Expected improvement: proportional to branch variance**
 
 ## Metrics Collected
 
@@ -42,8 +131,8 @@ ImageLoader → [Thumbnail, Transform, Filters, Contour] → Publisher
 | Cold Start Duration | Init Duration from logs |
 | Memory Usage | Max Memory Used |
 | Invoker Branch | Which branch triggered Publisher |
-| Pre-resolved Count | Branches already complete (FUTURE benefit) |
-| Branch Variance | Max - Min branch duration |
+| Artificial Delay | Configured delay per branch |
+| Theoretical Savings | max(branch_times) - min(branch_times) |
 
 ## Usage
 

@@ -1,0 +1,176 @@
+{
+  "timestamp": "20260202_001211",
+  "scenarios": [
+    {
+      "name": "Uniform (Baseline)",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 0,
+        "Filters": 0,
+        "Contour": 0
+      },
+      "classic": {
+        "avg_latency_ms": 8057.542324066162,
+        "runs": [
+          {
+            "e2e_ms": 9989.38250541687,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 7034.029006958008,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 7149.215459823608,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 6890.508651733398,
+        "runs": [
+          {
+            "e2e_ms": 6761.587142944336,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 6987.444877624512,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 6922.493934631348,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 1167.0336723327637,
+      "improvement_pct": 14.483742379448417
+    },
+    {
+      "name": "Staggered Delays",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 1000,
+        "Filters": 2000,
+        "Contour": 3000
+      },
+      "classic": {
+        "avg_latency_ms": 11098.813454310099,
+        "runs": [
+          {
+            "e2e_ms": 13002.2132396698,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 10133.747339248657,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 10160.47978401184,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 10134.115219116211,
+        "runs": [
+          {
+            "e2e_ms": 10046.247243881226,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 10118.99733543396,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 10237.101078033447,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 964.6982351938877,
+      "improvement_pct": 8.691904221700906
+    },
+    {
+      "name": "Extreme Outlier",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 0,
+        "Filters": 0,
+        "Contour": 5000
+      },
+      "classic": {
+        "avg_latency_ms": 12997.92742729187,
+        "runs": [
+          {
+            "e2e_ms": 15215.636253356934,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 11983.667373657227,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 11794.47865486145,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 11831.854025522867,
+        "runs": [
+          {
+            "e2e_ms": 11858.450412750244,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 11837.34679222107,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          },
+          {
+            "e2e_ms": 11799.76487159729,
+            "invoker": "unknown",
+            "branches": {},
+            "error": null
+          }
+        ]
+      },
+      "improvement_ms": 1166.0734017690029,
+      "improvement_pct": 8.971225668798455
+    }
+  ]
+}

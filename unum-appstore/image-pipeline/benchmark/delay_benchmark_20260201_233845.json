@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-02-01T23:38:45.552900",
+  "config": {
+    "region": "eu-central-1",
+    "test_image": "s3://unum-benchmark-images/test-images/sample-1920x1080.jpg",
+    "natural_times_ms": {
+      "Thumbnail": 80,
+      "Transform": 120,
+      "Filters": 180,
+      "Contour": 300
+    }
+  },
+  "scenarios": [
+    {
+      "name": "Extreme Outlier",
+      "description": "One branch 5s slower - highlights maximum benefit",
+      "delays": {
+        "Thumbnail": 0,
+        "Transform": 0,
+        "Filters": 0,
+        "Contour": 5000
+      },
+      "classic": {
+        "avg_latency_ms": 2761.4394426345825,
+        "runs": [
+          {
+            "e2e_ms": 2829.9081325531006,
+            "invoker": "unknown",
+            "cold_starts": 0,
+            "error": null,
+            "branch_durations": {
+              "Thumbnail": 0.0,
+              "Transform": 0.0,
+              "Filters": 0.0,
+              "Contour": 0.0
+            }
+          },
+          {
+            "e2e_ms": 2692.9707527160645,
+            "invoker": "unknown",
+            "cold_starts": 0,
+            "error": null,
+            "branch_durations": {
+              "Thumbnail": 0.0,
+              "Transform": 0.0,
+              "Filters": 0.0,
+              "Contour": 0.0
+            }
+          }
+        ]
+      },
+      "future": {
+        "avg_latency_ms": 2720.45636177063,
+        "runs": [
+          {
+            "e2e_ms": 2693.2995319366455,
+            "invoker": "unknown",
+            "cold_starts": 0,
+            "error": null,
+            "branch_durations": {
+              "Thumbnail": 0.0,
+              "Transform": 0.0,
+              "Filters": 0.0,
+              "Contour": 0.0
+            }
+          },
+          {
+            "e2e_ms": 2747.6131916046143,
+            "invoker": "unknown",
+            "cold_starts": 0,
+            "error": null,
+            "branch_durations": {
+              "Thumbnail": 0.0,
+              "Transform": 0.0,
+              "Filters": 0.0,
+              "Contour": 0.0
+            }
+          }
+        ]
+      },
+      "improvement_ms": 40.98308086395264,
+      "improvement_pct": 1.4841202103223479,
+      "theoretical_max_savings_ms": 5220
+    }
+  ]
+}
