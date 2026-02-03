@@ -1,0 +1,18 @@
+{
+  "Name": "UserMention",
+  "Start": true,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "CreatePost",
+    "InputType": {
+      "Fan-in": {
+        "Values": [
+          "UserMention-unumIndex-0",
+          "ShortenUrl-unumIndex-1"
+        ]
+      }
+    },
+    "Fan-in-Group": true
+  }
+}

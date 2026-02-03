@@ -1,5 +1,7 @@
 import uuid
 import time, datetime, json, os, math
+import asyncio
+from typing import List, Optional, Any, Dict, Tuple
 
 
 if os.environ['FAAS_PLATFORM'] == 'aws':
@@ -11,7 +13,390 @@ elif os.environ['FAAS_PLATFORM'] =='gcloud':
 
 
 # =============================================================================
-# LAZY INPUT (FUTURE/PROMISE PATTERN) FOR EAGER FAN-IN
+# FUTURE-BASED EXECUTION (ASYNC PATTERN) FOR EAGER FAN-IN
+# =============================================================================
+# This implements the true Future-Based execution pattern using asyncio.Event()
+# for non-blocking waiting. The key difference from LazyInput:
+#   - LazyInput: Synchronous polling (blocks the thread)
+#   - UnumFuture: Async waiting (yields control to event loop)
+#
+# Benefits of UnumFuture:
+#   1. Non-blocking waiting - CPU doesn't spin-wait
+#   2. Early invocation - Function starts as soon as ONE input is ready
+#   3. Lazy evaluation - Only blocks when accessing a specific parameter
+#   4. Event-driven wakeup - When value arrives, set_value() unblocks waiting code
+# =============================================================================
+
+
+class UnumFuture:
+    """A true Future/Promise implementation using asyncio.Event().
+    
+    This is the core primitive for Future-Based execution. Each UnumFuture
+    wraps either:
+    - A ready value (immediately available)
+    - A pending value (will arrive when the branch finishes)
+    
+    The asyncio.Event() is the key to non-blocking waiting:
+    - Starts as "not set" (blocking)
+    - When value arrives, we call set() to unblock
+    - await wait() suspends the coroutine until the event is set
+    
+    Usage:
+        # Create a future for a pending value
+        future = UnumFuture(datastore, session, "branch-a", is_ready=False)
+        
+        # In async function, wait for the value
+        value = await future.await_value()  # Non-blocking wait
+        
+        # Or check if ready without blocking
+        if future.is_ready:
+            value = future.get_value_sync()
+    """
+    
+    def __init__(
+        self,
+        datastore=None,
+        session: str = None,
+        instance_name: str = None,
+        value: Any = None,
+        is_ready: bool = False,
+        poll_interval: float = 0.1,
+        timeout: float = 300,
+        debug: bool = False
+    ):
+        """Initialize an UnumFuture.
+        
+        @param datastore The datastore driver for polling (optional if value provided)
+        @param session The session ID for polling
+        @param instance_name The instance name of the branch
+        @param value Pre-populated value if already ready
+        @param is_ready Whether the value is immediately available
+        @param poll_interval Seconds between polls (for async polling)
+        @param timeout Maximum seconds to wait before raising TimeoutError
+        @param debug Enable debug logging
+        """
+        self._datastore = datastore
+        self._session = session
+        self._instance_name = instance_name
+        self._value = value
+        self._is_ready = is_ready
+        self._poll_interval = poll_interval
+        self._timeout = timeout
+        self._debug = debug
+        self._gc_info = None
+        
+        # THE KEY: asyncio.Event for non-blocking waiting
+        self._event = asyncio.Event()
+        if is_ready:
+            self._event.set()  # Signal: "value is ready"
+    
+    @property
+    def is_ready(self) -> bool:
+        """Check if value is available (non-blocking)."""
+        return self._is_ready
+    
+    @property
+    def instance_name(self) -> str:
+        """Get the instance name of the branch."""
+        return self._instance_name
+    
+    @property
+    def gc_info(self) -> Optional[Dict]:
+        """Get GC info (only available after resolution)."""
+        return self._gc_info
+    
+    def set_value(self, value: Any, gc_info: Dict = None):
+        """Set the value when it becomes available (unblocks all waiters).
+        
+        This is called when the checkpoint becomes available in the datastore.
+        It sets the asyncio.Event which unblocks any coroutines waiting in
+        await_value().
+        
+        @param value The resolved value
+        @param gc_info Optional GC information from the checkpoint
+        """
+        self._value = value
+        self._gc_info = gc_info
+        self._is_ready = True
+        self._event.set()  # UNBLOCKS all waiting await_value() calls
+        
+        if self._debug:
+            print(f'[DEBUG] UnumFuture resolved: {self._instance_name}')
+    
+    def get_value_sync(self) -> Any:
+        """Get the value synchronously (raises if not ready).
+        
+        Use this only when you know the value is already ready.
+        For async code, use await_value() instead.
+        
+        @return The resolved value
+        @raises ValueError if value is not ready yet
+        """
+        if not self._is_ready:
+            raise ValueError(f'Value not ready for {self._instance_name}. Use await_value() for async waiting.')
+        return self._value
+    
+    async def await_value(self) -> Any:
+        """Wait until the value is available and return it (async/await pattern).
+        
+        This is the main method for Future-Based execution. It:
+        1. If value is already ready: returns immediately
+        2. If value is pending: polls the datastore until available or timeout
+        
+        The waiting is NON-BLOCKING - it yields control to the event loop
+        using asyncio.sleep() between polls, allowing other coroutines to run.
+        
+        @return The resolved value
+        @raises TimeoutError if timeout is exceeded
+        """
+        if self._is_ready:
+            return self._value
+        
+        start_time = time.time()
+        
+        while not self._is_ready:
+            # Try to fetch from datastore
+            if await self._poll_datastore():
+                break
+            
+            # Check timeout
+            elapsed = time.time() - start_time
+            if elapsed >= self._timeout:
+                raise TimeoutError(
+                    f'Timeout waiting for {self._instance_name} after {elapsed:.2f}s'
+                )
+            
+            if self._debug:
+                print(f'[DEBUG] UnumFuture waiting for {self._instance_name} ({elapsed:.1f}s elapsed)')
+            
+            # Non-blocking sleep - yields control to event loop
+            await asyncio.sleep(self._poll_interval)
+        
+        return self._value
+    
+    async def _poll_datastore(self) -> bool:
+        """Check if the checkpoint is available in the datastore (async-safe).
+        
+        This runs the synchronous datastore call in a way that doesn't block
+        the event loop for too long.
+        
+        @return True if value was fetched, False otherwise
+        """
+        if self._datastore is None:
+            return False
+        
+        # Run the synchronous datastore call
+        # In a production system, you might use run_in_executor for truly async I/O
+        checkpoint = self._datastore.get_checkpoint_full(self._session, self._instance_name)
+        
+        if checkpoint is not None:
+            self.set_value(
+                value=checkpoint.get('User'),
+                gc_info=checkpoint.get('GC')
+            )
+            return True
+        
+        return False
+    
+    def try_resolve(self) -> bool:
+        """Try to fetch the data without blocking (synchronous).
+        
+        @return True if data was fetched, False if not available yet
+        """
+        if self._is_ready:
+            return True
+        
+        if self._datastore is None:
+            return False
+        
+        checkpoint = self._datastore.get_checkpoint_full(self._session, self._instance_name)
+        
+        if checkpoint is not None:
+            self.set_value(
+                value=checkpoint.get('User'),
+                gc_info=checkpoint.get('GC')
+            )
+            return True
+        
+        return False
+    
+    def __repr__(self):
+        status = "ready" if self._is_ready else "pending"
+        return f'<UnumFuture({self._instance_name}, {status})>'
+
+
+class AsyncFutureInputList:
+    """A list-like container for Future-Based fan-in inputs (async pattern).
+    
+    This class supports both sync and async access patterns:
+    
+    Async access (recommended for Future-Based execution):
+        async def lambda_handler(inputs, context):
+            # Access first input - non-blocking wait
+            data0 = await inputs.get_async(0)
+            
+            # Or iterate asynchronously
+            async for data in inputs:
+                process(data)
+    
+    Sync access (for backwards compatibility):
+        def lambda_handler(inputs, context):
+            # Runs event loop internally
+            data0 = inputs[0]  # Blocks until ready
+    
+    The async pattern is more efficient because it doesn't block the thread
+    while waiting for values.
+    """
+    
+    def __init__(self, futures: List[UnumFuture], debug: bool = False):
+        """
+        @param futures List of UnumFuture objects
+        @param debug Whether to print debug messages
+        """
+        self._futures = futures
+        self._debug = debug
+    
+    def __len__(self) -> int:
+        return len(self._futures)
+    
+    # =========================================================================
+    # ASYNC ACCESS (Future-Based pattern)
+    # =========================================================================
+    
+    async def get_async(self, index: int) -> Any:
+        """Get value by index asynchronously (non-blocking wait).
+        
+        @param index The index of the input
+        @return The resolved value
+        """
+        return await self._futures[index].await_value()
+    
+    async def get_all_async(self) -> List[Any]:
+        """Get all values asynchronously, waiting as needed.
+        
+        Uses asyncio.gather for efficient parallel waiting.
+        
+        @return List of resolved values in order
+        """
+        return await asyncio.gather(*[f.await_value() for f in self._futures])
+    
+    async def __aiter__(self):
+        """Async iterator - yields values as they become ready (in order).
+        
+        Usage:
+            async for data in inputs:
+                process(data)
+        """
+        for future in self._futures:
+            yield await future.await_value()
+    
+    # =========================================================================
+    # SYNC ACCESS (for backwards compatibility)
+    # These methods run the event loop internally for sync code
+    # =========================================================================
+    
+    def __getitem__(self, index) -> Any:
+        """Get value by index synchronously (blocks until ready).
+        
+        This runs the async await in an event loop for sync compatibility.
+        """
+        if isinstance(index, slice):
+            return [self._sync_get(i) for i in range(*index.indices(len(self._futures)))]
+        return self._sync_get(index)
+    
+    def _sync_get(self, index: int) -> Any:
+        """Internal sync getter that runs async code."""
+        future = self._futures[index]
+        
+        if future.is_ready:
+            return future.get_value_sync()
+        
+        # Run the async wait in an event loop
+        try:
+            loop = asyncio.get_running_loop()
+            # Already in an async context
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                return pool.submit(asyncio.run, future.await_value()).result()
+        except RuntimeError:
+            # No event loop running - we can create one
+            return asyncio.run(future.await_value())
+    
+    def __iter__(self):
+        """Sync iterator - yields values (blocks for each if needed)."""
+        for future in self._futures:
+            if future.is_ready:
+                yield future.get_value_sync()
+            else:
+                try:
+                    loop = asyncio.get_running_loop()
+                    import concurrent.futures
+                    with concurrent.futures.ThreadPoolExecutor() as pool:
+                        yield pool.submit(asyncio.run, future.await_value()).result()
+                except RuntimeError:
+                    yield asyncio.run(future.await_value())
+    
+    # =========================================================================
+    # Utility methods
+    # =========================================================================
+    
+    def is_ready(self, index: int) -> bool:
+        """Check if a specific input is ready without blocking."""
+        return self._futures[index].is_ready
+    
+    def all_ready(self) -> bool:
+        """Check if ALL inputs are ready without blocking."""
+        return all(f.is_ready for f in self._futures)
+    
+    def get_ready_count(self) -> Tuple[int, int]:
+        """Get count of ready and pending inputs.
+        
+        @return Tuple of (ready_count, pending_count)
+        """
+        ready = sum(1 for f in self._futures if f.is_ready)
+        return ready, len(self._futures) - ready
+    
+    def try_resolve_all(self) -> Tuple[int, int]:
+        """Try to resolve all inputs without blocking.
+        
+        @return Tuple of (num_resolved, num_pending)
+        """
+        resolved = 0
+        pending = 0
+        for future in self._futures:
+            if future.try_resolve():
+                resolved += 1
+            else:
+                pending += 1
+        return resolved, pending
+    
+    def get_gc_tasks(self) -> Dict:
+        """Get GC info from all resolved inputs.
+        
+        Note: This will block waiting for any unresolved inputs.
+        
+        @return Dict of GC tasks
+        """
+        gc_tasks = {}
+        for future in self._futures:
+            if not future.is_ready:
+                # Force sync resolution
+                _ = self._sync_get(self._futures.index(future))
+            if future.gc_info:
+                gc_tasks.update(future.gc_info)
+        return gc_tasks
+    
+    def get_futures(self) -> List[UnumFuture]:
+        """Get the underlying list of UnumFuture objects."""
+        return self._futures
+    
+    def __repr__(self):
+        ready, pending = self.get_ready_count()
+        return f'<AsyncFutureInputList({ready}/{len(self._futures)} ready)>'
+
+
+# =============================================================================
+# LAZY INPUT (SYNCHRONOUS PATTERN) FOR EAGER FAN-IN
 # =============================================================================
 
 class LazyInput:
@@ -773,6 +1158,52 @@ class FirestoreDriver(UnumIntermediaryDataStore):
         return LazyInputList(lazy_inputs, debug=self.debug)
 
 
+    def create_future_inputs(self, session, instance_names, ready_names=None, poll_interval=0.1, timeout=300):
+        '''Create an AsyncFutureInputList for Future-Based execution (Firestore version).
+        
+        This is the preferred method for true async fan-in with asyncio.Event().
+        
+        @param session The session ID
+        @param instance_names List of instance names for the fan-in inputs
+        @param ready_names Optional list of names already known to be ready
+        @param poll_interval Default poll interval for each UnumFuture
+        @param timeout Default timeout for each UnumFuture
+        @return AsyncFutureInputList containing UnumFuture objects
+        '''
+        ready_set = set(ready_names) if ready_names else set()
+        
+        futures = []
+        for name in instance_names:
+            is_ready = name in ready_set
+            
+            if is_ready:
+                # Pre-fetch the value since we know it's ready
+                checkpoint = self.get_checkpoint_full(session, name)
+                futures.append(UnumFuture(
+                    datastore=self,
+                    session=session,
+                    instance_name=name,
+                    value=checkpoint.get('User') if checkpoint else None,
+                    is_ready=True,
+                    poll_interval=poll_interval,
+                    timeout=timeout,
+                    debug=self.debug
+                ))
+            else:
+                # Create a pending future
+                futures.append(UnumFuture(
+                    datastore=self,
+                    session=session,
+                    instance_name=name,
+                    is_ready=False,
+                    poll_interval=poll_interval,
+                    timeout=timeout,
+                    debug=self.debug
+                ))
+        
+        return AsyncFutureInputList(futures, debug=self.debug)
+
+
     def test(self):
 
         print(f'Firestore test')
@@ -1129,6 +1560,63 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
         ]
         
         return LazyInputList(lazy_inputs, debug=self.debug)
+
+
+    def create_future_inputs(self, session, instance_names, ready_names=None, poll_interval=0.1, timeout=300):
+        '''Create an AsyncFutureInputList for Future-Based execution (DynamoDB version).
+        
+        This is the preferred method for true async fan-in with asyncio.Event().
+        The returned list supports both sync and async access patterns.
+        
+        Async usage (recommended):
+            async def lambda_handler(inputs, context):
+                data0 = await inputs.get_async(0)  # Non-blocking wait
+                async for data in inputs:
+                    process(data)
+        
+        Sync usage (backwards compatible):
+            def lambda_handler(inputs, context):
+                data0 = inputs[0]  # Blocks until ready
+        
+        @param session The session ID
+        @param instance_names List of instance names for the fan-in inputs
+        @param ready_names Optional list of names already known to be ready (from EagerFanIn metadata)
+        @param poll_interval Default poll interval for each UnumFuture
+        @param timeout Default timeout for each UnumFuture
+        @return AsyncFutureInputList containing UnumFuture objects
+        '''
+        ready_set = set(ready_names) if ready_names else set()
+        
+        futures = []
+        for name in instance_names:
+            is_ready = name in ready_set
+            
+            if is_ready:
+                # Pre-fetch the value since we know it's ready
+                checkpoint = self.get_checkpoint_full(session, name)
+                futures.append(UnumFuture(
+                    datastore=self,
+                    session=session,
+                    instance_name=name,
+                    value=checkpoint.get('User') if checkpoint else None,
+                    is_ready=True,
+                    poll_interval=poll_interval,
+                    timeout=timeout,
+                    debug=self.debug
+                ))
+            else:
+                # Create a pending future
+                futures.append(UnumFuture(
+                    datastore=self,
+                    session=session,
+                    instance_name=name,
+                    is_ready=False,
+                    poll_interval=poll_interval,
+                    timeout=timeout,
+                    debug=self.debug
+                ))
+        
+        return AsyncFutureInputList(futures, debug=self.debug)
 
 
     def get_checkpoint(self, session, instance_name):
