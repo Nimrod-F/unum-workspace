@@ -1,5 +1,40 @@
 import uuid
 import time, datetime, json, os, math
+import asyncio
+from typing import Any, List, Dict, Optional, Tuple
+
+
+def safe_asyncio_run(coro):
+    """Safely run async code in Lambda environment (handles warm containers).
+    
+    AWS Lambda warm containers can have issues with asyncio.run() because
+    it tries to close the event loop after each call. On subsequent invocations
+    in the same container, there may be no current event loop in the thread.
+    
+    This function creates a new event loop, runs the coroutine, and properly
+    cleans up, making it safe for repeated use in Lambda warm containers.
+    """
+    try:
+        # Try to get existing loop (might work in some cases)
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            raise RuntimeError("Event loop is closed")
+        # If we have a running loop, we can't use run() - use run_until_complete
+        if loop.is_running():
+            # This shouldn't happen in Lambda, but handle it anyway
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(asyncio.run, coro)
+                return future.result()
+        return loop.run_until_complete(coro)
+    except RuntimeError:
+        # No event loop or loop is closed - create a new one
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
 
 
 if os.environ['FAAS_PLATFORM'] == 'aws':
@@ -8,6 +43,679 @@ if os.environ['FAAS_PLATFORM'] == 'aws':
 elif os.environ['FAAS_PLATFORM'] =='gcloud':
     from google.cloud import firestore
     from google.cloud import exceptions as gcloudexceptions
+
+
+# =============================================================================
+# LAZY INPUT (FUTURE/PROMISE PATTERN) FOR EAGER FAN-IN
+# =============================================================================
+
+class LazyInput:
+    '''A Future/Promise-like wrapper for a single fan-in input.
+    
+    When the fan-in function is invoked eagerly (before all inputs are ready),
+    each input is wrapped in a LazyInput. The actual data is fetched only when
+    the user code tries to access it via .get() or .value property.
+    
+    If the data is not yet available, .get() will poll the datastore until
+    the data becomes available or timeout is reached.
+    
+    Usage in user code:
+        def lambda_handler(inputs, context):
+            # inputs is a LazyInputList
+            
+            # Do initialization that doesn't need any inputs
+            result = initialize_something()
+            
+            # Access first input - blocks if not ready
+            data0 = inputs[0].get()  # or inputs[0].value
+            
+            # Process data0...
+            intermediate = process(data0)
+            
+            # Access second input - blocks if not ready  
+            data1 = inputs[1].get()
+            
+            # Continue processing...
+            return combine(intermediate, data1)
+    '''
+    
+    def __init__(self, datastore, session, instance_name, poll_interval=0.1, timeout=300, debug=False):
+        '''
+        @param datastore The datastore driver instance
+        @param session The session ID
+        @param instance_name The instance name of the branch whose output we need
+        @param poll_interval Seconds between polls if data not ready
+        @param timeout Maximum seconds to wait
+        @param debug Whether to print debug messages
+        '''
+        self._datastore = datastore
+        self._session = session
+        self._instance_name = instance_name
+        self._poll_interval = poll_interval
+        self._timeout = timeout
+        self._debug = debug
+        
+        # Cached values
+        self._resolved = False
+        self._data = None
+        self._gc_info = None
+    
+    @property
+    def is_resolved(self):
+        '''Check if this input has been fetched (without blocking)'''
+        return self._resolved
+    
+    @property
+    def instance_name(self):
+        '''Get the instance name of the branch'''
+        return self._instance_name
+    
+    def try_resolve(self):
+        '''Try to fetch the data without blocking.
+        
+        @return True if data was fetched, False if not available yet
+        '''
+        if self._resolved:
+            return True
+        
+        # Try to read the checkpoint (use get_checkpoint_full for full data)
+        checkpoint = self._datastore.get_checkpoint_full(self._session, self._instance_name)
+        
+        if checkpoint is not None:
+            # Data is available - cache it
+            self._data = checkpoint.get('User')
+            self._gc_info = checkpoint.get('GC')
+            self._resolved = True
+            
+            if self._debug:
+                print(f'[DEBUG] LazyInput resolved: {self._instance_name}')
+            
+            return True
+        
+        return False
+    
+    def get(self, poll_interval=None, timeout=None):
+        '''Get the data, waiting if necessary.
+        
+        If the data is not yet available, this will poll the datastore
+        until it becomes available or timeout is reached.
+        
+        @param poll_interval Override default poll interval
+        @param timeout Override default timeout
+        @return The user data from this branch
+        @raises TimeoutError if timeout exceeded
+        '''
+        if self._resolved:
+            return self._data
+        
+        interval = poll_interval if poll_interval is not None else self._poll_interval
+        max_wait = timeout if timeout is not None else self._timeout
+        
+        start_time = time.time()
+        
+        while True:
+            if self.try_resolve():
+                return self._data
+            
+            elapsed = time.time() - start_time
+            if elapsed >= max_wait:
+                raise TimeoutError(
+                    f'Timeout waiting for input from {self._instance_name} '
+                    f'after {elapsed:.2f}s'
+                )
+            
+            if self._debug:
+                print(f'[DEBUG] LazyInput waiting for {self._instance_name} ({elapsed:.1f}s elapsed)')
+            
+            time.sleep(interval)
+    
+    @property
+    def value(self):
+        '''Alias for get() - property access that waits for data'''
+        return self.get()
+    
+    @property
+    def gc_info(self):
+        '''Get GC info (only available after resolution)'''
+        if not self._resolved:
+            self.get()  # Force resolution
+        return self._gc_info
+    
+    def __repr__(self):
+        status = "resolved" if self._resolved else "pending"
+        return f'<LazyInput({self._instance_name}, {status})>'
+
+
+class LazyInputList:
+    '''A TRANSPARENT list-like container for eager fan-in inputs.
+    
+    This class behaves EXACTLY like a regular Python list from the user's
+    perspective. When you access inputs[0], it automatically waits for the
+    data if not ready and returns the actual value - NOT a wrapper object.
+    
+    This means fan-in functions don't need to be written differently!
+    The eager fan-in optimization is completely transparent to user code.
+    
+    Example - user code is IDENTICAL for regular and eager fan-in:
+        def lambda_handler(inputs, context):
+            # Works exactly the same whether eager or not
+            user_mentions = inputs[0]    # Blocks if not ready, returns data
+            shortened_urls = inputs[1]   # Blocks if not ready, returns data
+            
+            # Iteration works normally too
+            for data in inputs:
+                process(data)
+            
+            return combine(user_mentions, shortened_urls)
+    
+    The only difference is WHEN the blocking happens:
+    - Regular fan-in: All inputs fetched BEFORE lambda_handler is called
+    - Eager fan-in: Each input fetched when first accessed (on-demand)
+    '''
+    
+    def __init__(self, lazy_inputs, debug=False):
+        '''
+        @param lazy_inputs List of LazyInput objects
+        @param debug Whether to print debug messages
+        '''
+        self._inputs = lazy_inputs
+        self._debug = debug
+    
+    def __len__(self):
+        return len(self._inputs)
+    
+    def __getitem__(self, index):
+        '''Get data by index - AUTOMATICALLY waits if not ready.
+        
+        Returns the actual user data, not the LazyInput wrapper.
+        This makes the list behave exactly like a regular Python list.
+        '''
+        if isinstance(index, slice):
+            # Handle slicing
+            return [inp.get() for inp in self._inputs[index]]
+        return self._inputs[index].get()
+    
+    def __iter__(self):
+        '''Iterate over the actual data values (waits for each as needed)'''
+        for inp in self._inputs:
+            yield inp.get()
+    
+    def __contains__(self, item):
+        '''Check if item is in the list (resolves all inputs)'''
+        for inp in self._inputs:
+            if inp.get() == item:
+                return True
+        return False
+    
+    def index(self, value, start=0, stop=None):
+        '''Find index of value (resolves inputs as needed)'''
+        if stop is None:
+            stop = len(self._inputs)
+        for i in range(start, stop):
+            if self._inputs[i].get() == value:
+                return i
+        raise ValueError(f'{value} is not in list')
+    
+    def count(self, value):
+        '''Count occurrences of value (resolves all inputs)'''
+        return sum(1 for inp in self._inputs if inp.get() == value)
+    
+    # ---- Methods for advanced usage (optional, not needed for normal code) ----
+    
+    def get_all(self, poll_interval=None, timeout=None):
+        '''Get all values as a regular list, waiting for any that aren't ready.
+        
+        @return List of user data values in order
+        '''
+        return [inp.get(poll_interval, timeout) for inp in self._inputs]
+    
+    def to_list(self):
+        '''Convert to a regular Python list (waits for all inputs)'''
+        return self.get_all()
+    
+    def is_ready(self, index):
+        '''Check if a specific input is ready WITHOUT blocking'''
+        return self._inputs[index].is_resolved or self._inputs[index].try_resolve()
+    
+    def all_ready(self):
+        '''Check if ALL inputs are ready WITHOUT blocking'''
+        for inp in self._inputs:
+            if not inp.is_resolved and not inp.try_resolve():
+                return False
+        return True
+    
+    def get_resolved(self):
+        '''Get values that are already resolved without blocking.
+        
+        @return Dict mapping index to value for resolved inputs
+        '''
+        result = {}
+        for i, inp in enumerate(self._inputs):
+            if inp.is_resolved:
+                result[i] = inp._data
+        return result
+    
+    def get_pending_indices(self):
+        '''Get indices of inputs that aren't resolved yet.
+        
+        @return List of indices
+        '''
+        return [i for i, inp in enumerate(self._inputs) if not inp.is_resolved]
+    
+    def try_resolve_all(self):
+        '''Try to resolve all inputs without blocking.
+        
+        @return Tuple of (num_resolved, num_pending)
+        '''
+        resolved = 0
+        pending = 0
+        for inp in self._inputs:
+            if inp.try_resolve():
+                resolved += 1
+            else:
+                pending += 1
+        return resolved, pending
+    
+    def get_gc_tasks(self):
+        '''Get GC info from all resolved inputs.
+        
+        @return Dict of GC tasks (waits for all inputs to resolve)
+        '''
+        gc_tasks = {}
+        for inp in self._inputs:
+            gc_info = inp.gc_info  # This will wait if not resolved
+            if gc_info:
+                gc_tasks.update(gc_info)
+        return gc_tasks
+    
+    def __repr__(self):
+        resolved = sum(1 for inp in self._inputs if inp.is_resolved)
+        return f'<LazyInputList({resolved}/{len(self._inputs)} resolved)>'
+
+
+# =============================================================================
+# FUTURE-BASED EXECUTION (ASYNC PATTERN) FOR EAGER FAN-IN
+# =============================================================================
+# This implements the true Future-Based execution pattern using asyncio.Event()
+# for non-blocking waiting. The key difference from LazyInput:
+#   - LazyInput: Synchronous polling (blocks the thread)
+#   - UnumFuture: Async waiting (yields control to event loop)
+# =============================================================================
+
+class UnumFuture:
+    """A true Future/Promise implementation using asyncio.Event().
+    
+    This is the core primitive for Future-Based execution. Each UnumFuture
+    wraps either:
+    - A ready value (immediately available)
+    - A pending value (will arrive when the branch finishes)
+    """
+    
+    def __init__(
+        self,
+        datastore=None,
+        session: str = None,
+        instance_name: str = None,
+        value: Any = None,
+        is_ready: bool = False,
+        poll_interval: float = 0.1,
+        timeout: float = 300,
+        debug: bool = False
+    ):
+        self._datastore = datastore
+        self._session = session
+        self._instance_name = instance_name
+        self._value = value
+        self._is_ready = is_ready
+        self._poll_interval = poll_interval
+        self._timeout = timeout
+        self._debug = debug
+        self._gc_info = None
+        
+        # Python 3.10+ doesn't require an event loop to create asyncio.Event()
+        self._event = asyncio.Event()
+        if is_ready:
+            self._event.set()
+    
+    @property
+    def is_ready(self) -> bool:
+        return self._is_ready
+    
+    @property
+    def instance_name(self) -> str:
+        return self._instance_name
+    
+    @property
+    def gc_info(self) -> Optional[Dict]:
+        return self._gc_info
+    
+    def set_value(self, value: Any, gc_info: Dict = None):
+        self._value = value
+        self._gc_info = gc_info
+        self._is_ready = True
+        self._event.set()
+        
+        if self._debug:
+            print(f'[DEBUG] UnumFuture resolved: {self._instance_name}')
+    
+    def get_value_sync(self) -> Any:
+        if not self._is_ready:
+            raise ValueError(f'Value not ready for {self._instance_name}. Use await_value() for async waiting.')
+        return self._value
+    
+    async def await_value(self) -> Any:
+        if self._is_ready:
+            return self._value
+        
+        start_time = time.time()
+        
+        while not self._is_ready:
+            if await self._poll_datastore():
+                break
+            
+            elapsed = time.time() - start_time
+            if elapsed >= self._timeout:
+                raise TimeoutError(
+                    f'Timeout waiting for {self._instance_name} after {elapsed:.2f}s'
+                )
+            
+            if self._debug:
+                print(f'[DEBUG] UnumFuture waiting for {self._instance_name} ({elapsed:.1f}s elapsed)')
+            
+            await asyncio.sleep(self._poll_interval)
+        
+        return self._value
+    
+    async def _poll_datastore(self) -> bool:
+        if self._datastore is None:
+            return False
+        
+        checkpoint = self._datastore.get_checkpoint_full(self._session, self._instance_name)
+        
+        if checkpoint is not None:
+            self.set_value(
+                value=checkpoint.get('User'),
+                gc_info=checkpoint.get('GC')
+            )
+            return True
+        
+        return False
+    
+    def try_resolve(self) -> bool:
+        if self._is_ready:
+            return True
+        
+        if self._datastore is None:
+            return False
+        
+        checkpoint = self._datastore.get_checkpoint_full(self._session, self._instance_name)
+        
+        if checkpoint is not None:
+            self.set_value(
+                value=checkpoint.get('User'),
+                gc_info=checkpoint.get('GC')
+            )
+            return True
+        
+        return False
+    
+    def __repr__(self):
+        status = "ready" if self._is_ready else "pending"
+        return f'<UnumFuture({self._instance_name}, {status})>'
+
+
+class AsyncFutureInputList:
+    """A list-like container for Future-Based fan-in inputs (async pattern).
+    
+    This class supports both sync and async access patterns.
+    
+    OPTIMIZATION: We resolve ALL pending futures in a SINGLE asyncio.run() call
+    instead of calling asyncio.run() for each input access. This avoids the
+    expensive overhead of creating/destroying event loops multiple times.
+    """
+    
+    def __init__(self, futures: List[UnumFuture], debug: bool = False):
+        self._futures = futures
+        self._debug = debug
+        self._resolved_values = {}  # Cache for resolved values
+        self._all_resolved = False
+    
+    def __len__(self) -> int:
+        return len(self._futures)
+    
+    def _resolve_all_sync(self):
+        """Resolve ALL pending futures in a single asyncio.run() call.
+        
+        This is much more efficient than calling asyncio.run() per input.
+        """
+        if self._all_resolved:
+            return
+        
+        # First, cache any already-resolved values
+        for i, future in enumerate(self._futures):
+            if future.is_ready and i not in self._resolved_values:
+                self._resolved_values[i] = future.get_value_sync()
+        
+        # Find pending futures
+        pending_indices = [i for i, f in enumerate(self._futures) if i not in self._resolved_values]
+        
+        if not pending_indices:
+            self._all_resolved = True
+            return
+        
+        # Resolve ALL pending futures in a SINGLE event loop (Lambda-safe)
+        async def resolve_all_pending():
+            tasks = [self._futures[i].await_value() for i in pending_indices]
+            return await asyncio.gather(*tasks)
+        
+        try:
+            results = safe_asyncio_run(resolve_all_pending())
+            for i, idx in enumerate(pending_indices):
+                self._resolved_values[idx] = results[i]
+        except Exception as e:
+            if self._debug:
+                print(f'[DEBUG] Error resolving futures: {e}')
+            raise
+        
+        self._all_resolved = True
+    
+    # ASYNC ACCESS
+    async def get_async(self, index: int) -> Any:
+        return await self._futures[index].await_value()
+    
+    async def get_all_async(self) -> List[Any]:
+        return await asyncio.gather(*[f.await_value() for f in self._futures])
+    
+    async def __aiter__(self):
+        for future in self._futures:
+            yield await future.await_value()
+    
+    # SYNC ACCESS - PARALLEL BACKGROUND POLLING
+    # When waiting for index X, also poll ALL other pending futures in parallel.
+    # This way, by the time user code processes inputs[0] and asks for inputs[1],
+    # inputs[1] might already be resolved from background polling.
+    
+    def _resolve_with_background_polling(self, target_index: int):
+        """Resolve target_index while polling ALL pending futures in parallel.
+        
+        This is the FASTEST approach:
+        - Wait specifically for target_index
+        - But also poll all other pending futures in the background
+        - When target is ready, return immediately (background tasks continue)
+        - Future accesses benefit from background resolution
+        """
+        if target_index in self._resolved_values:
+            return
+        
+        if self._futures[target_index].is_ready:
+            self._resolved_values[target_index] = self._futures[target_index].get_value_sync()
+            return
+        
+        # Find ALL pending indices (including target)
+        pending_indices = [
+            i for i in range(len(self._futures))
+            if i not in self._resolved_values and not self._futures[i].is_ready
+        ]
+        
+        if not pending_indices:
+            # Target must be ready now
+            self._resolved_values[target_index] = self._futures[target_index].get_value_sync()
+            return
+        
+        async def resolve_target_with_background():
+            """Poll all pending futures, return when target is ready."""
+            
+            # Create tasks for ALL pending futures
+            tasks = {
+                i: asyncio.create_task(self._futures[i].await_value())
+                for i in pending_indices
+            }
+            
+            # Wait until our target is done, but let others run in background
+            target_task = tasks[target_index]
+            
+            # Use asyncio.wait to wait for target while others poll in parallel
+            done, pending_tasks = await asyncio.wait(
+                tasks.values(),
+                return_when=asyncio.FIRST_COMPLETED
+            )
+            
+            # Collect results from completed tasks
+            results = {}
+            for i, task in tasks.items():
+                if task.done() and not task.cancelled():
+                    try:
+                        results[i] = task.result()
+                    except Exception:
+                        pass
+            
+            # If target not done yet, keep waiting for it specifically
+            # while other tasks continue in background
+            while not target_task.done():
+                done, pending_tasks = await asyncio.wait(
+                    [t for t in tasks.values() if not t.done()],
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+                # Collect newly completed results
+                for i, task in tasks.items():
+                    if i not in results and task.done() and not task.cancelled():
+                        try:
+                            results[i] = task.result()
+                        except Exception:
+                            pass
+            
+            # Final collection of all completed tasks
+            for i, task in tasks.items():
+                if i not in results and task.done() and not task.cancelled():
+                    try:
+                        results[i] = task.result()
+                    except Exception:
+                        pass
+            
+            return results
+        
+        try:
+            results = safe_asyncio_run(resolve_target_with_background())
+            # Cache ALL resolved values (not just target)
+            for i, value in results.items():
+                self._resolved_values[i] = value
+        except Exception as e:
+            if self._debug:
+                print(f'[DEBUG] Error resolving future[{target_index}]: {e}')
+            raise
+    
+    def __getitem__(self, index) -> Any:
+        if isinstance(index, slice):
+            # For slices, resolve all indices in parallel
+            indices = list(range(*index.indices(len(self._futures))))
+            if indices:
+                # Use parallel resolution for slice
+                self._resolve_with_background_polling(indices[0])
+            results = []
+            for i in indices:
+                if i not in self._resolved_values:
+                    self._resolve_with_background_polling(i)
+                results.append(self._resolved_values[i])
+            return results
+        
+        # Check if already resolved (cached from background polling)
+        if index in self._resolved_values:
+            return self._resolved_values[index]
+        
+        # Check if the future is ready (no async needed)
+        if self._futures[index].is_ready:
+            self._resolved_values[index] = self._futures[index].get_value_sync()
+            return self._resolved_values[index]
+        
+        # PARALLEL BACKGROUND POLLING: Wait for this index,
+        # but poll ALL pending futures in parallel so future accesses are faster
+        self._resolve_with_background_polling(index)
+        return self._resolved_values[index]
+    
+    def __iter__(self):
+        """Iterate over values - polls ALL in background for speed."""
+        # On first iteration, start polling all in background
+        # Each yield returns as soon as that index is ready
+        for i in range(len(self._futures)):
+            if i not in self._resolved_values:
+                self._resolve_with_background_polling(i)
+            yield self._resolved_values[i]
+    
+    # Utility methods
+    def is_ready(self, index: int) -> bool:
+        return self._futures[index].is_ready or index in self._resolved_values
+    
+    def all_ready(self) -> bool:
+        return all(f.is_ready for f in self._futures)
+    
+    def get_ready_count(self) -> Tuple[int, int]:
+        ready = sum(1 for f in self._futures if f.is_ready)
+        return ready, len(self._futures) - ready
+    
+    def get_all(self) -> List[Any]:
+        """Get ALL values, resolving any pending in PARALLEL.
+        
+        Use this when you know you need all inputs - it's more efficient
+        to resolve all pending futures in parallel than one-by-one.
+        
+        Example:
+            # If you need all inputs anyway, this is faster:
+            all_data = inputs.get_all()
+            
+            # Than accessing each individually:
+            data0 = inputs[0]  # waits for 0
+            data1 = inputs[1]  # waits for 1
+            data2 = inputs[2]  # waits for 2
+        """
+        self._resolve_all_sync()
+        return [self._resolved_values[i] for i in range(len(self._futures))]
+    
+    def try_resolve_all(self) -> Tuple[int, int]:
+        resolved = 0
+        pending = 0
+        for i, future in enumerate(self._futures):
+            if future.try_resolve():
+                self._resolved_values[i] = future.get_value_sync()
+                resolved += 1
+            else:
+                pending += 1
+        return resolved, pending
+    
+    def get_gc_tasks(self) -> Dict:
+        self._resolve_all_sync()
+        gc_tasks = {}
+        for future in self._futures:
+            if future.gc_info:
+                gc_tasks.update(future.gc_info)
+        return gc_tasks
+    
+    def get_futures(self) -> List[UnumFuture]:
+        return self._futures
+    
+    def __repr__(self):
+        ready, pending = self.get_ready_count()
+        return f'<AsyncFutureInputList({ready}/{len(self._futures)} ready)>'
+
 
 class UnumIntermediaryDataStore(object):
     
@@ -355,6 +1063,176 @@ class FirestoreDriver(UnumIntermediaryDataStore):
         return True
 
 
+    # =========================================================================
+    # EAGER FAN-IN SUPPORT (Firestore)
+    # These methods enable the eager fan-in pattern where the fan-in function
+    # is invoked immediately by the first branch to complete, and then waits
+    # for remaining inputs by polling the datastore.
+    # =========================================================================
+
+    def try_claim_eager_fanin(self, session, aggregation_function_instance_name):
+        '''Atomically try to claim the right to invoke the fan-in function.
+        
+        Uses Firestore's create() which fails if document exists.
+        
+        @return True if this caller claimed the right to invoke, False otherwise
+        '''
+        claim_doc = f'{aggregation_function_instance_name}-eager-claim'
+        
+        try:
+            result = self._create_if_not_exist(session, claim_doc, {
+                'ClaimedAt': datetime.datetime.now().isoformat(),
+                'Claimed': True
+            })
+            if result == 1:
+                if self.debug:
+                    print(f'[DEBUG] Successfully claimed eager fan-in for {aggregation_function_instance_name}')
+                return True
+            else:
+                if self.debug:
+                    print(f'[DEBUG] Eager fan-in already claimed for {aggregation_function_instance_name}')
+                return False
+        except Exception as e:
+            if self.debug:
+                print(f'[DEBUG] Error claiming eager fan-in: {e}')
+            return False
+
+
+    def check_checkpoints_exist(self, session, instance_names):
+        '''Check which checkpoints exist in the datastore.
+        
+        @param session The session ID (collection name in Firestore)
+        @param instance_names List of instance names to check
+        @return Tuple of (ready_list, missing_list)
+        '''
+        ready = []
+        missing = []
+        
+        for name in instance_names:
+            doc = self._read(session, name)
+            if doc is not None:
+                ready.append(name)
+            else:
+                missing.append(name)
+        
+        return ready, missing
+
+
+    def await_checkpoints(self, session, instance_names, poll_interval=0.1, timeout=300):
+        '''Poll the datastore until all required checkpoints are available.
+        
+        @param session The session ID
+        @param instance_names List of instance names whose checkpoints are needed
+        @param poll_interval Seconds between polls
+        @param timeout Maximum seconds to wait
+        @return True when all checkpoints are available
+        @raises TimeoutError if timeout is exceeded
+        '''
+        start_time = time.time()
+        
+        while True:
+            ready, missing = self.check_checkpoints_exist(session, instance_names)
+            
+            if not missing:
+                if self.debug:
+                    print(f'[DEBUG] All {len(instance_names)} checkpoints ready after {time.time() - start_time:.2f}s')
+                return True
+            
+            elapsed = time.time() - start_time
+            if elapsed >= timeout:
+                raise TimeoutError(
+                    f'Timeout waiting for checkpoints after {elapsed:.2f}s. '
+                    f'Missing: {missing}'
+                )
+            
+            if self.debug:
+                print(f'[DEBUG] Waiting for {len(missing)} checkpoints: {missing[:3]}{"..." if len(missing) > 3 else ""}')
+            
+            time.sleep(poll_interval)
+
+
+    def read_input_with_await(self, session, values, poll_interval=0.1, timeout=300):
+        '''Read inputs for fan-in, waiting for any that aren't ready yet.
+        '''
+        self.await_checkpoints(session, values, poll_interval, timeout)
+        return self.read_input(session, values)
+
+
+    def get_checkpoint_full(self, session, instance_name):
+        '''Get the full checkpoint document including User data and GC info.
+        
+        Used by LazyInput to fetch a single input's data on-demand.
+        '''
+        doc = self._read(session, instance_name)
+        if doc is None:
+            return None
+        
+        result = {'User': doc.get('User', doc)}
+        if 'GC' in doc:
+            result['GC'] = doc['GC']
+        
+        return result
+
+
+    def create_lazy_inputs(self, session, instance_names, poll_interval=0.1, timeout=300):
+        '''Create a LazyInputList for eager fan-in (Firestore version).
+        '''
+        lazy_inputs = [
+            LazyInput(
+                datastore=self,
+                session=session,
+                instance_name=name,
+                poll_interval=poll_interval,
+                timeout=timeout,
+                debug=self.debug
+            )
+            for name in instance_names
+        ]
+        
+        return LazyInputList(lazy_inputs, debug=self.debug)
+
+
+    def create_future_inputs(self, session, instance_names, ready_names=None, poll_interval=0.1, timeout=300):
+        '''Create an AsyncFutureInputList for Future-Based execution (Firestore version).
+        
+        @param session The session ID
+        @param instance_names List of instance names for the fan-in inputs
+        @param ready_names Optional list of names already known to be ready
+        @param poll_interval Default poll interval for each UnumFuture
+        @param timeout Default timeout for each UnumFuture
+        @return AsyncFutureInputList containing UnumFuture objects
+        '''
+        ready_set = set(ready_names) if ready_names else set()
+        
+        futures = []
+        for name in instance_names:
+            is_ready = name in ready_set
+            
+            if is_ready:
+                checkpoint = self.get_checkpoint_full(session, name)
+                futures.append(UnumFuture(
+                    datastore=self,
+                    session=session,
+                    instance_name=name,
+                    value=checkpoint.get('User') if checkpoint else None,
+                    is_ready=True,
+                    poll_interval=poll_interval,
+                    timeout=timeout,
+                    debug=self.debug
+                ))
+            else:
+                futures.append(UnumFuture(
+                    datastore=self,
+                    session=session,
+                    instance_name=name,
+                    is_ready=False,
+                    poll_interval=poll_interval,
+                    timeout=timeout,
+                    debug=self.debug
+                ))
+        
+        return AsyncFutureInputList(futures, debug=self.debug)
+
 
     def test(self):
 
@@ -539,6 +1417,227 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
         return vals
 
 
+    # =========================================================================
+    # EAGER FAN-IN SUPPORT
+    # These methods enable the eager fan-in pattern where the fan-in function
+    # is invoked immediately by the first branch to complete, and then waits
+    # for remaining inputs by polling the datastore.
+    # =========================================================================
+
+    def try_claim_eager_fanin(self, session, aggregation_function_instance_name):
+        '''Atomically try to claim the right to invoke the fan-in function.
+        
+        The first branch to call this successfully "wins" and should invoke
+        the fan-in function. All other branches will get False.
+        
+        Uses DynamoDB conditional write to ensure exactly-once semantics.
+        
+        @param session The session ID
+        @param aggregation_function_instance_name The name of the fan-in function instance
+        @return True if this caller claimed the right to invoke, False otherwise
+        '''
+        claim_name = f'{session}/{aggregation_function_instance_name}-eager-claim'
+        
+        try:
+            self.table.put_item(
+                Item={
+                    "Name": claim_name,
+                    "ClaimedAt": datetime.datetime.now().isoformat(),
+                    "Claimed": True
+                },
+                ConditionExpression='attribute_not_exists(#N)',
+                ExpressionAttributeNames={"#N": "Name"}
+            )
+            if self.debug:
+                print(f'[DEBUG] Successfully claimed eager fan-in for {aggregation_function_instance_name}')
+            return True
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                if self.debug:
+                    print(f'[DEBUG] Eager fan-in already claimed for {aggregation_function_instance_name}')
+                return False
+            raise e
+
+
+    def check_checkpoints_exist(self, session, instance_names):
+        '''Check which checkpoints exist in the datastore.
+        
+        @param session The session ID
+        @param instance_names List of instance names to check
+        @return Tuple of (ready_list, missing_list) where ready_list contains
+                names that exist and missing_list contains names that don't
+        '''
+        item_names = [f'{session}/{v}-output' for v in instance_names]
+        request_keys = [{'Name': k} for k in item_names]
+        
+        ready = []
+        missing = []
+        
+        for i in range(math.ceil(len(request_keys)/100)):
+            this_batch = request_keys[i*100:(i+1)*100]
+            this_batch_names = [k['Name'] for k in this_batch]
+            
+            try:
+                response = self.resource.batch_get_item(
+                    RequestItems={
+                        self.name: {
+                            'Keys': this_batch,
+                            'ConsistentRead': True,
+                            'ProjectionExpression': '#N',
+                            'ExpressionAttributeNames': {'#N': 'Name'}
+                        }
+                    })
+                
+                found_names = {item['Name'] for item in response.get('Responses', {}).get(self.name, [])}
+                
+                for name in this_batch_names:
+                    instance_name = name.replace(f'{session}/', '').replace('-output', '')
+                    if name in found_names:
+                        ready.append(instance_name)
+                    else:
+                        missing.append(instance_name)
+                        
+            except Exception as e:
+                if self.debug:
+                    print(f'[DEBUG] Error checking checkpoints: {e}')
+                # On error, assume all in this batch are missing
+                for name in this_batch_names:
+                    instance_name = name.replace(f'{session}/', '').replace('-output', '')
+                    missing.append(instance_name)
+        
+        return ready, missing
+
+
+    def await_checkpoints(self, session, instance_names, poll_interval=0.1, timeout=300):
+        '''Poll the datastore until all required checkpoints are available.
+        
+        This implements the "await" part of the promise pattern for eager fan-in.
+        The fan-in function is invoked early, does as much work as possible,
+        then calls this method to wait for any missing inputs.
+        
+        @param session The session ID  
+        @param instance_names List of instance names whose checkpoints are needed
+        @param poll_interval Seconds between polls (default 100ms)
+        @param timeout Maximum seconds to wait before raising an exception
+        @return True when all checkpoints are available
+        @raises TimeoutError if timeout is exceeded
+        '''
+        start_time = time.time()
+        
+        while True:
+            ready, missing = self.check_checkpoints_exist(session, instance_names)
+            
+            if not missing:
+                if self.debug:
+                    print(f'[DEBUG] All {len(instance_names)} checkpoints ready after {time.time() - start_time:.2f}s')
+                return True
+            
+            elapsed = time.time() - start_time
+            if elapsed >= timeout:
+                raise TimeoutError(
+                    f'Timeout waiting for checkpoints after {elapsed:.2f}s. '
+                    f'Missing: {missing}'
+                )
+            
+            if self.debug:
+                print(f'[DEBUG] Waiting for {len(missing)} checkpoints: {missing[:3]}{"..." if len(missing) > 3 else ""}')
+            
+            time.sleep(poll_interval)
+
+
+    def read_input_with_await(self, session, values, poll_interval=0.1, timeout=300):
+        '''Read inputs for fan-in, waiting for any that aren't ready yet.
+        
+        This is a variant of read_input that supports the eager fan-in pattern.
+        Instead of failing if inputs are missing, it polls until they're available.
+        
+        @param session The session ID
+        @param values List of instance names to read
+        @param poll_interval Seconds between polls for missing items
+        @param timeout Maximum seconds to wait
+        @return Ordered list of checkpoint data, same as read_input
+        '''
+        # First, wait for all checkpoints to exist
+        self.await_checkpoints(session, values, poll_interval, timeout)
+        
+        # Then read them all (they should all exist now)
+        return self.read_input(session, values)
+
+
+    def create_lazy_inputs(self, session, instance_names, poll_interval=0.1, timeout=300):
+        '''Create a LazyInputList for eager fan-in.
+        
+        Returns a list-like object where each element is a LazyInput that
+        fetches data on-demand. This allows the fan-in function to execute
+        as much as possible before blocking on inputs that aren't ready.
+        
+        @param session The session ID
+        @param instance_names List of instance names for the fan-in inputs
+        @param poll_interval Default poll interval for each LazyInput
+        @param timeout Default timeout for each LazyInput
+        @return LazyInputList containing LazyInput objects
+        '''
+        lazy_inputs = [
+            LazyInput(
+                datastore=self,
+                session=session,
+                instance_name=name,
+                poll_interval=poll_interval,
+                timeout=timeout,
+                debug=self.debug
+            )
+            for name in instance_names
+        ]
+        
+        return LazyInputList(lazy_inputs, debug=self.debug)
+
+
+    def create_future_inputs(self, session, instance_names, ready_names=None, poll_interval=0.1, timeout=300):
+        '''Create an AsyncFutureInputList for Future-Based execution (DynamoDB version).
+        
+        This is the preferred method for true async fan-in with asyncio.Event().
+        The returned list supports both sync and async access patterns.
+        
+        @param session The session ID
+        @param instance_names List of instance names for the fan-in inputs
+        @param ready_names Optional list of names already known to be ready (from EagerFanIn metadata)
+        @param poll_interval Default poll interval for each UnumFuture
+        @param timeout Default timeout for each UnumFuture
+        @return AsyncFutureInputList containing UnumFuture objects
+        '''
+        ready_set = set(ready_names) if ready_names else set()
+        
+        futures = []
+        for name in instance_names:
+            is_ready = name in ready_set
+            
+            if is_ready:
+                # Pre-fetch the value since we know it's ready
+                checkpoint = self.get_checkpoint_full(session, name)
+                futures.append(UnumFuture(
+                    datastore=self,
+                    session=session,
+                    instance_name=name,
+                    value=checkpoint.get('User') if checkpoint else None,
+                    is_ready=True,
+                    poll_interval=poll_interval,
+                    timeout=timeout,
+                    debug=self.debug
+                ))
+            else:
+                # Create a pending future
+                futures.append(UnumFuture(
+                    datastore=self,
+                    session=session,
+                    instance_name=name,
+                    is_ready=False,
+                    poll_interval=poll_interval,
+                    timeout=timeout,
+                    debug=self.debug
+                ))
+        
+        return AsyncFutureInputList(futures, debug=self.debug)
+
 
     def get_checkpoint(self, session, instance_name):
         '''Given the session ID and the function's instance name, return the
@@ -574,19 +1673,71 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                 Key={
                     'Name': self.checkpoint_name(session, instance_name)
                 },
-                ConsistentRead=True,
-                ProjectionExpression='#Value',
-                ExpressionAttributeNames= {
-                    '#Value': 'Value'
-                })
+                ConsistentRead=True
+            )
         except Exception as e:
             print(f"[WARN] get_checkpoint() Error Code: {e.response['Error']['Code']}")
             raise e
 
         if "Item" in ret:
-            return ret["Item"]["Value"]
+            item = ret["Item"]
+            # Support both old format (Value) and new format (User)
+            if "Value" in item:
+                value = item["Value"]
+            elif "User" in item:
+                value = item["User"]
+            else:
+                return None
+            # Parse JSON string if needed
+            if isinstance(value, str):
+                try:
+                    return json.loads(value)
+                except json.JSONDecodeError:
+                    return value
+            return value
         else:
             return None
+
+
+    def get_checkpoint_full(self, session, instance_name):
+        '''Get the full checkpoint item including User data and GC info.
+        
+        Used by LazyInput to fetch a single input's data on-demand.
+        
+        @param session The session ID
+        @param instance_name The instance name
+        @return Dict with 'User' and optionally 'GC' keys, or None if not exists
+        '''
+        try:
+            ret = self.table.get_item(
+                Key={
+                    'Name': self.checkpoint_name(session, instance_name)
+                },
+                ConsistentRead=True
+            )
+        except Exception as e:
+            if self.debug:
+                print(f"[DEBUG] get_checkpoint_full() error: {e}")
+            return None
+
+        if "Item" not in ret:
+            return None
+        
+        item = ret["Item"]
+        result = {}
+        
+        # Parse the User field (stored as JSON string)
+        if 'User' in item:
+            result['User'] = json.loads(item['User']) if isinstance(item['User'], str) else item['User']
+        elif 'Value' in item:
+            # Fallback for older format
+            result['User'] = json.loads(item['Value']) if isinstance(item['Value'], str) else item['Value']
+        
+        # Get GC info if present
+        if 'GC' in item:
+            result['GC'] = item['GC']
+        
+        return result
 
 
 
@@ -731,7 +1882,7 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
 
 
 
-    def fanin_sync_ready(self, session, aggregation_function_instance_name, index, num_branches):
+    def fanin_sync_ready(self, session, aggregation_function_instance_name, index, my_instance_name, num_branches):
         '''Mark my branch as ready and check if fan-in is ready to run
 
         In the case of fan-in, all upstream branches need to have created

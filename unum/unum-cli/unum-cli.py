@@ -126,7 +126,7 @@ def sam_build_clean(args):
     return
 
 def populate_common_directory():
-    """Copy Unum runtime files to the common directory if they don't exist"""
+    """Copy Unum runtime files to the common directory, always overwriting existing files"""
     # Find the unum runtime directory relative to this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     runtime_dir = os.path.join(script_dir, '..', 'runtime')
@@ -140,15 +140,14 @@ def populate_common_directory():
     # List of runtime files to copy
     runtime_files = ['unum.py', 'ds.py', 'main.py', 'faas_invoke_backend.py']
     
-    # Copy runtime files to common directory
+    # Copy runtime files to common directory (always overwrite to ensure latest version)
     for filename in runtime_files:
         src = os.path.join(runtime_dir, filename)
         dst = os.path.join(common_dir, filename)
         
         if os.path.exists(src):
-            if not os.path.exists(dst):
-                print(f'Copying {filename} to common directory')
-                shutil.copy2(src, dst)
+            print(f'Copying {filename} to common directory')
+            shutil.copy2(src, dst)
         else:
             print(f'\033[33mWarning: Runtime file {filename} not found at {src}\033[0m')
 

@@ -10,21 +10,24 @@ ImageLoader → [Thumbnail, Transform, Filters, Contour] → Publisher
 ```
 
 ### Expected Task Durations (Real PIL Computation)
-| Function | Expected Duration | Notes |
-|----------|------------------|-------|
-| ImageLoader | ~50ms | Load image from S3 |
-| Thumbnail | ~80ms | Resize to 128x128 (**FASTEST**) |
-| Transform | ~120ms | Rotate + flip |
-| Filters | ~180ms | Blur + sharpen |
-| Contour | ~300ms | Edge detection (**SLOWEST**) |
-| Publisher | ~50ms | Aggregate results |
+
+| Function    | Expected Duration | Notes                           |
+| ----------- | ----------------- | ------------------------------- |
+| ImageLoader | ~50ms             | Load image from S3              |
+| Thumbnail   | ~80ms             | Resize to 128x128 (**FASTEST**) |
+| Transform   | ~120ms            | Rotate + flip                   |
+| Filters     | ~180ms            | Blur + sharpen                  |
+| Contour     | ~300ms            | Edge detection (**SLOWEST**)    |
+| Publisher   | ~50ms             | Aggregate results               |
 
 ## Benchmarks
 
 ### 1. Quick Benchmark (`quick_benchmark.py`)
+
 Standard comparison without artificial delays - tests natural execution.
 
 ### 2. Artificial Delay Benchmark (`delay_benchmark.py`) ⭐ NEW
+
 Introduces configurable artificial delays to each branch to clearly demonstrate
 Future-Based execution benefits under different variance scenarios.
 
@@ -35,23 +38,23 @@ by creating controlled scenarios with different branch execution time variances.
 
 ### Key Insight
 
-| Mode | Behavior | E2E Latency |
-|------|----------|-------------|
-| **CLASSIC** | Fan-in waits for ALL branches | `max(branch_times)` |
+| Mode             | Behavior                        | E2E Latency                     |
+| ---------------- | ------------------------------- | ------------------------------- |
+| **CLASSIC**      | Fan-in waits for ALL branches   | `max(branch_times)`             |
 | **FUTURE_BASED** | Fan-in starts with FIRST branch | `min(branch_time) + processing` |
 
 The larger the variance between branch times, the greater the benefit of Future-Based execution.
 
 ### Delay Scenarios
 
-| Scenario | Thumbnail | Transform | Filters | Contour | Expected Savings |
-|----------|-----------|-----------|---------|---------|------------------|
-| **Uniform** | 0ms | 0ms | 0ms | 0ms | Baseline (natural variance) |
-| **Staggered** | 0ms | 1000ms | 2000ms | 3000ms | ~3000ms |
-| **Extreme** | 0ms | 0ms | 0ms | 5000ms | ~5000ms |
-| **Reversed** | 3000ms | 2000ms | 1000ms | 0ms | ~3000ms |
-| **Moderate** | 0ms | 500ms | 1000ms | 1500ms | ~1500ms |
-| **Bimodal** | 0ms | 0ms | 2000ms | 2000ms | ~2000ms |
+| Scenario      | Thumbnail | Transform | Filters | Contour | Expected Savings            |
+| ------------- | --------- | --------- | ------- | ------- | --------------------------- |
+| **Uniform**   | 0ms       | 0ms       | 0ms     | 0ms     | Baseline (natural variance) |
+| **Staggered** | 0ms       | 1000ms    | 2000ms  | 3000ms  | ~3000ms                     |
+| **Extreme**   | 0ms       | 0ms       | 0ms     | 5000ms  | ~5000ms                     |
+| **Reversed**  | 3000ms    | 2000ms    | 1000ms  | 0ms     | ~3000ms                     |
+| **Moderate**  | 0ms       | 500ms     | 1000ms  | 1500ms  | ~1500ms                     |
+| **Bimodal**   | 0ms       | 0ms       | 2000ms  | 2000ms  | ~2000ms                     |
 
 ### Usage
 
@@ -86,7 +89,7 @@ For the **Staggered** scenario (0, 1000, 2000, 3000ms delays):
 ```
 CLASSIC Mode:
   - Thumbnail completes at ~80ms
-  - Transform completes at ~1120ms  
+  - Transform completes at ~1120ms
   - Filters completes at ~2180ms
   - Contour completes at ~3300ms     ← Publisher invoked here
   - E2E: ~3400ms
@@ -111,11 +114,13 @@ python generate_delay_charts.py delay_benchmark_20260201_123456.json
 ## Execution Modes
 
 ### CLASSIC Mode
+
 - Fan-in triggered by the **SLOWEST** branch (Contour)
 - Publisher waits for all branches to complete before starting
 - Total latency = ImageLoader + Contour + Publisher
 
 ### FUTURE_BASED Mode
+
 - Fan-in triggered by the **FASTEST** branch (Thumbnail)
 - Publisher starts early, other results pre-resolved in background
 - Total latency = ImageLoader + Thumbnail + Publisher
@@ -123,16 +128,16 @@ python generate_delay_charts.py delay_benchmark_20260201_123456.json
 
 ## Metrics Collected
 
-| Metric | Description |
-|--------|-------------|
-| E2E Latency | Time from invoke to completion |
-| Per-Function Duration | CloudWatch REPORT logs |
-| Billed Duration | For cost calculation |
-| Cold Start Duration | Init Duration from logs |
-| Memory Usage | Max Memory Used |
-| Invoker Branch | Which branch triggered Publisher |
-| Artificial Delay | Configured delay per branch |
-| Theoretical Savings | max(branch_times) - min(branch_times) |
+| Metric                | Description                           |
+| --------------------- | ------------------------------------- |
+| E2E Latency           | Time from invoke to completion        |
+| Per-Function Duration | CloudWatch REPORT logs                |
+| Billed Duration       | For cost calculation                  |
+| Cold Start Duration   | Init Duration from logs               |
+| Memory Usage          | Max Memory Used                       |
+| Invoker Branch        | Which branch triggered Publisher      |
+| Artificial Delay      | Configured delay per branch           |
+| Theoretical Savings   | max(branch_times) - min(branch_times) |
 
 ## Usage
 
@@ -184,6 +189,7 @@ python quick_benchmark.py
 ## Output Files
 
 ### Results Directory
+
 ```
 results/
 ├── benchmark_image-pipeline_CLASSIC_<timestamp>_runs.json
@@ -194,6 +200,7 @@ results/
 ```
 
 ### Charts Directory
+
 ```
 charts/
 ├── e2e_latency_comparison.png      # Bar chart with error bars
@@ -210,11 +217,11 @@ charts/
 
 Based on real PIL computation timing:
 
-| Metric | CLASSIC | FUTURE_BASED | Improvement |
-|--------|---------|--------------|-------------|
-| E2E Latency | ~1600ms | ~300ms | **~1300ms (80%)** |
-| Invoker | Contour | Thumbnail | - |
-| Pre-resolved | 0 | 3-4 | - |
+| Metric       | CLASSIC | FUTURE_BASED | Improvement       |
+| ------------ | ------- | ------------ | ----------------- |
+| E2E Latency  | ~1600ms | ~300ms       | **~1300ms (80%)** |
+| Invoker      | Contour | Thumbnail    | -                 |
+| Pre-resolved | 0       | 3-4          | -                 |
 
 ### Why FUTURE_BASED is Faster
 
@@ -231,6 +238,7 @@ FUTURE:     |--Loader--|--Thumb(100ms)--|--Publisher--|     Total: ~300ms
 ## Configuration
 
 ### Environment Variables
+
 ```bash
 export AWS_REGION=eu-central-1
 export AWS_PROFILE=research-profile
@@ -239,7 +247,9 @@ export TEST_KEY=test-images/sample-1920x1080.jpg
 ```
 
 ### Modify in Script
+
 Edit `run_benchmark.py`:
+
 ```python
 REGION = 'eu-central-1'
 PROFILE = 'research-profile'
@@ -250,15 +260,18 @@ TEST_KEY = 'test-images/sample-1920x1080.jpg'
 ## Troubleshooting
 
 ### No CloudWatch Logs
+
 - Increase wait time in `run_benchmark.py` (default: 15s)
 - Check Lambda function permissions
 
 ### Function Errors
+
 - Verify S3 bucket and image exist
 - Check Lambda role has S3 read permissions
 - Ensure PIL/Pillow layer is attached
 
 ### Cold Start Inconsistency
+
 - Increase cold start wait time
 - Force cold starts by updating function config
 
@@ -269,6 +282,7 @@ This benchmark demonstrates the **Future-Based Execution** optimization for serv
 > In fan-in scenarios with varying branch durations, FUTURE_BASED execution allows the aggregator to start early (triggered by the fastest branch) while other results are resolved in the background via parallel polling.
 
 This is particularly beneficial when:
+
 - Branch durations have high variance (σ > 1s)
 - Aggregator processing is independent of input order
 - Latency is more important than raw compute efficiency

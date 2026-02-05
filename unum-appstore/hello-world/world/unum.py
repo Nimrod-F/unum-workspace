@@ -176,6 +176,29 @@ class Unum(object):
         self.my_outgoing_edges = None
 
 
+    def has_only_scalar_continuations(self) -> bool:
+        '''Check if all continuations are Scalar type (no Fan-in)
+        
+        This is used for the Early Invocation optimization. Scalar continuations
+        receive data in the payload (Source: "http"), so they don't need to
+        wait for our checkpoint to be written to the datastore.
+        
+        Fan-in continuations need the checkpoint to be written first because
+        the aggregator reads data from the datastore.
+        
+        @return True if all continuations are Scalar, False otherwise
+        '''
+        if not self.cont_list:
+            return True  # No continuations, vacuously true
+        
+        for cont in self.cont_list:
+            # UnumContinuationInputType.SCALAR has value 1
+            if cont.input_type.value != 1:
+                return False
+        
+        return True
+
+
 
     def get_checkpoint(self, input_payload):
         '''Return the checkpoint of this instance
@@ -1108,78 +1131,181 @@ class UnumContinuation(object):
 
 
     def _run_fan_in(self, user_function_output, session, next_payload_metadata, input_payload, unum_index_list, **kwargs):
-        '''Run fan-in
-
-        This function guarantees the following semantics:
-
-            1. Only invoke the aggregation function when all its inputs are
-               ready in the intermediary data store
-
-            2. In the absence of faults, only one of the branches will invoke
-               the aggregation function
-
-        All branches need to have configurations with
-
+        '''Run fan-in - supports both EAGER and CLASSIC modes
+        
+        Mode is controlled by EAGER environment variable (set in unum-template.yaml):
+        - EAGER=True/1: Eager fan-in (invoke immediately on first branch, poll for missing)
+        - EAGER=False/0 or unset: Classic fan-in (wait for all branches before invoking)
+        
+        EAGER MODE:
+        Reduces cold start latency by invoking the aggregation function as soon as
+        the FIRST branch completes. The aggregation function will poll/wait for any
+        missing inputs using the await pattern.
+        
+        CLASSIC MODE:
+        Traditional fan-in where the aggregation function is only invoked when ALL
+        branches have completed and checkpointed their outputs.
+        
+        All branches need to have configurations with:
             1. "Checkpoint: True"
-
             2. the exact same Fan-in continuation where the "Values" are
                listed in the same order
-
-        Functions with a Fan-in continuation might have a "Pop" Next Payload
-        Modifier. Therefore, the `next_payload_metadata` parameter may not
-        have the "Fan-out" field for this function and we need the
-        input_payload for the Fan-out metadata.
-
-
         '''
-        if self.check_conditional(user_function_output, input_payload, unum_index_list) == False:
-            return
+        # Check if EAGER mode is enabled via environment variable
+        eager_mode = os.environ.get('EAGER', 'false').lower() in ('true', '1', 'yes')
+        
+        if eager_mode:
+            self._run_fan_in_eager(user_function_output, session, next_payload_metadata, input_payload, unum_index_list, **kwargs)
+        else:
+            self._run_fan_in_classic(user_function_output, session, next_payload_metadata, input_payload, unum_index_list, **kwargs)
 
+
+    def _run_fan_in_classic(self, user_function_output, session, next_payload_metadata, input_payload, unum_index_list, **kwargs):
+        '''Classic fan-in - wait for all branches before invoking
+        
+        This function guarantees the following semantics:
+            1. Only invoke the aggregation function when all its inputs are
+               ready in the intermediary data store
+            2. In the absence of faults, only one of the branches will invoke
+               the aggregation function
+               
+        NOTE: ALL branches must register their readiness, regardless of the conditional.
+        The conditional only controls which branch(es) are allowed to INVOKE the 
+        aggregation function once all inputs are ready.
+        '''
         # compute the aggregation function's instance name based on the input payload
+        # For fan-in, we should NOT include Fan-out in the aggregation function name
+        # because all branches fan into the SAME aggregation function instance
         payload = {}
         for f in next_payload_metadata:
             if next_payload_metadata[f] != None:
-                if f == "Fan-out" and "Fan-out" in payload:
-                    payload["Fan-out"]["OuterLoop"] = next_payload_metadata[f]
+                # Skip Fan-out when building the aggregation function name for fan-in
+                if f == "Fan-out":
+                    continue
                 else:
                     payload[f] = next_payload_metadata[f]
 
-
-
         aggregation_function_instance_name = Unum.compute_instance_name(self.function_name, payload)
 
+        if self.debug:
+            print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC fan-in aggregation_function_instance_name: {aggregation_function_instance_name}')
 
         # deciding my index in the bitmap
-        # if this is a map fan-in, use unum_index_list[0]. Otherwise, use my position in the values list
         my_index = -1
-
         for i, v in enumerate(self.fan_in_values):
-            # print(f'i: {i}. v: {v}, my node name: {self.my_node_name}')
-            # print(f"v.startswith(self.my_node_name): {v.startswith(self.my_node_name)}")
             if v.startswith(self.my_node_name):
-                # print(f"v.endswith('*'): v.endswith('*')")
                 if v.endswith('*'):
                     my_index = unum_index_list[0]
                 else:
                     my_index = i
 
-        # print(f'[DEBUG] Fan-in values from config: {self.fan_in_values}. My index: {my_index}')        
-
         branch_instance_names = self.expand_all_fan_in_value_names(unum_index_list, input_payload)
-
         num_branches = len(branch_instance_names)
 
-        if self.datastore.fanin_sync_ready(session, aggregation_function_instance_name, my_index, kwargs['my_curr_instance_name'], num_branches):
+        # ALL branches must register readiness, even if they won't invoke
+        all_ready = self.datastore.fanin_sync_ready(session, aggregation_function_instance_name, my_index, kwargs['my_curr_instance_name'], num_branches)
+
+        # Classic mode FIX: The branch that sees all_ready=True MUST invoke, regardless of conditional
+        # The conditional is just an optimization hint - correctness requires last-to-finish to invoke
+        if all_ready:
             payload['Data'] = {'Source': self.datastore.my_type, 'Value': branch_instance_names}
             payload['Session'] = session
 
             if self.debug:
-                print(f'[DEBUG] {self.my_node_name}-{unum_index_list} is invoking {self.function_name} with {payload}')
+                print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC invoking {self.function_name} (all branches ready, this branch triggered invocation)')
 
             self.invoker.invoke(self.function_name, payload)
         else:
-            # fan-in not ready. just return
-            pass
+            # Not all branches ready yet - check if we should log that we're waiting
+            conditional_pass = self.check_conditional(user_function_output, input_payload, unum_index_list)
+            if self.debug:
+                if conditional_pass:
+                    print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC fan-in not ready yet (conditional=true but waiting for others)')
+                else:
+                    print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC fan-in: conditional false, not invoking')
+
+
+    def _run_fan_in_eager(self, user_function_output, session, next_payload_metadata, input_payload, unum_index_list, **kwargs):
+        '''Eager fan-in - invoke immediately on first branch, poll for missing inputs
+        
+        This reduces cold start latency by invoking the aggregation function as soon as
+        the FIRST branch completes. The aggregation function will then poll/wait for
+        any missing inputs using the await pattern.
+        
+        Semantics:
+            1. The FIRST branch to complete claims the right to invoke the aggregation
+               function (atomic operation to ensure exactly-once invocation)
+            2. The aggregation function is invoked immediately with metadata indicating
+               which inputs are expected and which are already ready
+            3. The aggregation function uses await_checkpoints() to poll for missing inputs
+            4. All branches still checkpoint their outputs for the aggregation to read
+        '''
+        # compute the aggregation function's instance name based on the input payload
+        # For fan-in, we should NOT include Fan-out in the aggregation function name
+        # because all branches fan into the SAME aggregation function instance
+        payload = {}
+        for f in next_payload_metadata:
+            if next_payload_metadata[f] != None:
+                # Skip Fan-out when building the aggregation function name for fan-in
+                if f == "Fan-out":
+                    continue
+                else:
+                    payload[f] = next_payload_metadata[f]
+
+        aggregation_function_instance_name = Unum.compute_instance_name(self.function_name, payload)
+        
+        if self.debug:
+            print(f'[DEBUG] {self.my_node_name}-{unum_index_list} EAGER fan-in aggregation_function_instance_name: {aggregation_function_instance_name}')
+
+        # Get all branch instance names that need to be collected
+        branch_instance_names = self.expand_all_fan_in_value_names(unum_index_list, input_payload)
+        num_branches = len(branch_instance_names)
+
+        # Try to claim the right to invoke the aggregation function (first one wins)
+        # This is atomic - only one branch will succeed
+        claimed = self.datastore.try_claim_eager_fanin(session, aggregation_function_instance_name)
+
+        if claimed:
+            # We claimed the right to invoke - do it immediately!
+            # The aggregation function will wait for any missing inputs
+            
+            # Check which inputs are already available
+            ready, missing = self.datastore.check_checkpoints_exist(session, branch_instance_names)
+            
+            payload['Data'] = {
+                'Source': self.datastore.my_type,
+                'Value': branch_instance_names,
+                'EagerFanIn': {
+                    'Enabled': True,
+                    'Ready': ready,
+                    'Missing': missing,
+                    'TotalBranches': num_branches
+                }
+            }
+            payload['Session'] = session
+
+            if self.debug:
+                print(f'[DEBUG] {self.my_node_name}-{unum_index_list} EAGER invoking {self.function_name}')
+                print(f'[DEBUG] Ready: {len(ready)}/{num_branches}, Missing: {missing}')
+
+            self.invoker.invoke(self.function_name, payload)
+        else:
+            # Another branch already claimed - just ensure we've checkpointed (done by caller)
+            if self.debug:
+                print(f'[DEBUG] {self.my_node_name}-{unum_index_list} EAGER fan-in already claimed by another branch')
+
+        # Also do the traditional sync for backwards compatibility and to track completion
+        # This doesn't invoke again but updates the readiness bitmap
+        my_index = -1
+        for i, v in enumerate(self.fan_in_values):
+            if v.startswith(self.my_node_name):
+                if v.endswith('*'):
+                    my_index = unum_index_list[0]
+                else:
+                    my_index = i
+
+        # Update sync point (for monitoring/debugging purposes, doesn't trigger invocation)
+        self.datastore.fanin_sync_ready(session, aggregation_function_instance_name, my_index, kwargs['my_curr_instance_name'], num_branches)
 
 
 
