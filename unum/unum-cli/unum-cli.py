@@ -138,7 +138,8 @@ def populate_common_directory():
         os.makedirs(common_dir)
     
     # List of runtime files to copy
-    runtime_files = ['unum.py', 'ds.py', 'main.py', 'faas_invoke_backend.py']
+    # unum_streaming.py provides partial parameter streaming support
+    runtime_files = ['unum.py', 'ds.py', 'main.py', 'faas_invoke_backend.py', 'unum_streaming.py']
     
     # Copy runtime files to common directory (always overwrite to ensure latest version)
     for filename in runtime_files:
@@ -151,6 +152,101 @@ def populate_common_directory():
         else:
             print(f'\033[33mWarning: Runtime file {filename} not found at {src}\033[0m')
 
+
+def apply_streaming_transform(platform_template):
+    """
+    Apply AST transformation for Partial Parameter Streaming.
+    
+    This analyzes each function's app.py to find return value construction,
+    and injects code to:
+    1. Publish each field to datastore as soon as it's computed
+    2. Invoke next function early with futures for pending fields
+    3. Allow receiver to resolve futures on-demand
+    """
+    try:
+        from streaming_transformer import StreamingAnalyzer, StreamingTransformer
+    except ImportError:
+        print('\033[33mWarning: streaming_transformer not found, skipping streaming optimization\033[0m')
+        return
+    
+    print('\n\033[36mApplying Partial Parameter Streaming...\033[0m')
+    
+    for func_name in platform_template["Resources"]:
+        resource = platform_template["Resources"][func_name]
+        if resource.get("Type") != "AWS::Lambda::Function" and resource.get("Type") != "AWS::Serverless::Function":
+            continue
+        
+        app_dir = resource["Properties"]["CodeUri"]
+        app_path = os.path.join(app_dir, 'app.py')
+        
+        if not os.path.exists(app_path):
+            print(f'  [{func_name}] No app.py found, skipping')
+            continue
+        
+        # Analyze the file
+        try:
+            with open(app_path, 'r') as f:
+                source = f.read()
+            
+            analyzer = StreamingAnalyzer()
+            analysis = analyzer.analyze(source)
+            
+            if not analysis.can_stream:
+                print(f'  [{func_name}] {analysis.reason}')
+                continue
+            
+            # Backup original
+            backup_path = os.path.join(app_dir, 'app.py.original')
+            if not os.path.exists(backup_path):
+                shutil.copy2(app_path, backup_path)
+            
+            # Transform the source
+            transformer = StreamingTransformer(analysis, func_name)
+            new_source, messages = transformer.transform(source)
+            
+            # Write transformed source
+            with open(app_path, 'w') as f:
+                f.write(new_source)
+            
+            for msg in messages:
+                print(f'  [{func_name}] \033[32m{msg}\033[0m')
+                
+        except Exception as e:
+            import traceback
+            print(f'  [{func_name}] \033[33mError during transformation: {e}\033[0m')
+            traceback.print_exc()
+    
+    print('')
+
+
+def restore_original_files(platform_template):
+    """
+    Restore app.py files from .original backups if they exist.
+    
+    This is called when building in normal mode (without -s) to ensure
+    the source files don't contain injected streaming code.
+    """
+    restored_count = 0
+    
+    for func_name in platform_template["Resources"]:
+        resource = platform_template["Resources"][func_name]
+        if resource.get("Type") != "AWS::Lambda::Function" and resource.get("Type") != "AWS::Serverless::Function":
+            continue
+        
+        app_dir = resource["Properties"]["CodeUri"]
+        app_path = os.path.join(app_dir, 'app.py')
+        backup_path = os.path.join(app_dir, 'app.py.original')
+        
+        if os.path.exists(backup_path):
+            # Restore from backup
+            shutil.copy2(backup_path, app_path)
+            restored_count += 1
+            print(f'  [{func_name}] Restored app.py from backup')
+    
+    if restored_count > 0:
+        print(f'\n\033[36mRestored {restored_count} app.py file(s) from .original backups\033[0m\n')
+
+
 def sam_build(platform_template, args):
 
     if args.clean:
@@ -159,6 +255,15 @@ def sam_build(platform_template, args):
 
     # Ensure common directory has runtime files
     populate_common_directory()
+    
+    # Handle streaming mode vs normal mode
+    if getattr(args, 'streaming', False):
+        # Apply streaming transformation to app.py files
+        apply_streaming_transform(platform_template)
+    else:
+        # Normal mode: restore original files if backups exist
+        # This ensures we don't accidentally deploy transformed code
+        restore_original_files(platform_template)
 
     # copy files from common to each functions directory
     for f in platform_template["Resources"]:
@@ -1050,6 +1155,13 @@ def compile_step_functions_workflow(workflow, unum_template, functions_info):
     
     process_states(states, start_at, is_top_level=True)
     
+    # Set Start flag for the entry function
+    if start_at:
+        start_state = states.get(start_at, {})
+        start_func_name = start_state.get('Resource', start_at)
+        if start_func_name in configs:
+            configs[start_func_name]["Start"] = True
+    
     return configs
 
 
@@ -1158,6 +1270,9 @@ def main():
     build_parser.add_argument('-s', '--platform_template',
         help="platform template file", required=False)
     build_parser.add_argument("-c", "--clean", help="Remove build artifacts",
+        required=False, action="store_true")
+    build_parser.add_argument("--streaming", dest="streaming",
+        help="Enable Partial Parameter Streaming (invoke next function as params become ready)",
         required=False, action="store_true")
 
     # deploy command parser

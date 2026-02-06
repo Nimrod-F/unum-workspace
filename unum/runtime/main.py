@@ -10,6 +10,33 @@ if os.environ['FAAS_PLATFORM'] == 'gcloud':
 
 from unum import Unum
 from app import lambda_handler as user_lambda
+from unum_early import (
+    init_early_continuation, 
+    was_early_triggered, 
+    wait_for_early_threads,
+    cleanup_early_state
+)
+
+# Streaming support - conditionally imported
+try:
+    from unum_streaming import (
+        get_streaming_output,
+        clear_streaming_output,
+        is_future,
+        resolve_all_futures,
+        LazyFutureDict,
+        register_unum_context,
+        unregister_unum_context,
+        was_streaming_invoked
+    )
+    STREAMING_AVAILABLE = True
+except ImportError:
+    STREAMING_AVAILABLE = False
+    def get_streaming_output(): return None
+    def clear_streaming_output(): pass
+    def register_unum_context(u, e): pass
+    def unregister_unum_context(): pass
+    def was_streaming_invoked(): return False
 
 '''Create the unum runtime context from this function's unum configuration and
 the workflow's intermediary data store information.
@@ -134,7 +161,26 @@ def ingress(event):
             if unum.gc == True:
                 unum.my_gc_tasks = event['GC']
 
-        return event["Data"]["Value"]
+        input_value = event["Data"]["Value"]
+        
+        # STREAMING SUPPORT: Check if input contains future references
+        # If so, wrap with LazyFutureDict for transparent lazy resolution
+        if STREAMING_AVAILABLE and isinstance(input_value, dict):
+            # Check if this is a streaming payload (contains __streaming__ marker or futures)
+            is_streaming = input_value.get('__streaming__', False)
+            has_futures = any(
+                isinstance(v, dict) and v.get('__unum_future__') 
+                for v in input_value.values()
+            )
+            
+            if is_streaming or has_futures:
+                print(f'[STREAMING] Input contains futures, wrapping with LazyFutureDict')
+                # Remove streaming marker before passing to user function
+                if '__streaming__' in input_value:
+                    del input_value['__streaming__']
+                return LazyFutureDict(input_value)
+        
+        return input_value
     else:
         # Check if this is an eager fan-in invocation
         eager_fanin = event["Data"].get("EagerFanIn", {})
@@ -252,6 +298,57 @@ def egress(user_function_output, event):
             unum.my_gc_tasks = {}
         finally:
             unum._lazy_inputs = None  # Clean up
+
+    # =========================================================================
+    # STREAMING CHECK: If user function set streaming output, it means
+    # the continuation was already invoked mid-execution with partial data.
+    # We just need to ensure all fields are published and cleanup.
+    # =========================================================================
+    streaming_output = get_streaming_output() if STREAMING_AVAILABLE else None
+    streaming_invoked = was_streaming_invoked() if STREAMING_AVAILABLE else False
+    
+    if streaming_output is not None or streaming_invoked:
+        print('[STREAMING] Detected streaming output - continuation was invoked mid-execution')
+        clear_streaming_output()
+        
+        # Still need to checkpoint for durability (with the FINAL output)
+        if unum.gc == True:
+            gc = {
+                unum.get_my_instance_name(event): unum.get_my_outgoing_edges(event, user_function_output)
+            }
+            checkpoint_data = {
+                'GC': gc,
+                "User": json.dumps(user_function_output)
+            }
+        else:
+            checkpoint_data = {
+                "User": json.dumps(user_function_output)
+            }
+        
+        unum.run_checkpoint(event, checkpoint_data)
+        
+        # GC if enabled
+        if unum.gc == True:
+            unum.run_gc()
+        
+        unum.cleanup()
+        
+        return unum.curr_session, None
+
+    # Check if early continuation was already triggered during user function execution
+    # If so, checkpoint and continuation were already started - just wait for completion
+    if was_early_triggered():
+        print('[EARLY_CONTINUATION] Detected early trigger - waiting for background threads')
+        wait_for_early_threads(timeout=10.0)
+        
+        # Still need to do GC if enabled
+        if unum.gc == True:
+            unum.run_gc()
+        
+        unum.cleanup()
+        cleanup_early_state()
+        
+        return unum.curr_session, None
 
     # Compute all the outgoing edges for this execution.
     #
@@ -396,6 +493,7 @@ def lambda_handler(event, context):
     '''
 
     unum.cleanup()
+    cleanup_early_state()  # Clean up any state from previous invocations
 
     if os.environ['FAAS_PLATFORM'] == 'gcloud':
         if 'data' in event:
@@ -411,7 +509,33 @@ def lambda_handler(event, context):
     ckpt_ret = unum.get_checkpoint(input_data)
     if ckpt_ret == None:
         user_function_input = ingress(input_data)
-        user_function_output = user_lambda(user_function_input, context)
+        
+        # Initialize early continuation support
+        # This allows user functions to call signal_output_ready() to trigger
+        # continuation before the function fully completes
+        def build_checkpoint_data(output):
+            if unum.gc:
+                gc = {
+                    unum.get_my_instance_name(input_data): unum.get_my_outgoing_edges(input_data, output)
+                }
+                return {'GC': gc, 'User': json.dumps(output)}
+            else:
+                return {'User': json.dumps(output)}
+        
+        init_early_continuation(unum, input_data, build_checkpoint_data)
+        
+        # Register unum context for streaming support
+        # This allows transformed user code to invoke continuation during execution
+        if STREAMING_AVAILABLE:
+            register_unum_context(unum, input_data)
+        
+        try:
+            user_function_output = user_lambda(user_function_input, context)
+        finally:
+            # Unregister streaming context
+            if STREAMING_AVAILABLE:
+                unregister_unum_context()
+        
         if unum.debug:
             print(f'[DEBUG] User function input: {user_function_input}')
             print(f'[DEBUG] User function output: {user_function_output}')

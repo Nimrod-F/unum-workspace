@@ -2236,3 +2236,105 @@ class S3Driver(UnumIntermediaryDataStore):
         return ret
 
 
+# =============================================================================
+# MODULE-LEVEL STREAMING FUNCTIONS
+# These functions provide a simple interface for the unum_streaming module
+# to read/write streaming field values without needing a full datastore instance.
+# =============================================================================
+
+_streaming_ds_instance = None
+
+def _get_streaming_datastore():
+    """Get or create a datastore instance for streaming operations."""
+    global _streaming_ds_instance
+    if _streaming_ds_instance is None:
+        ds_type = os.environ.get('UNUM_INTERMEDIARY_DATASTORE_TYPE', 'dynamodb')
+        ds_name = os.environ.get('UNUM_INTERMEDIARY_DATASTORE_NAME', '')
+        _streaming_ds_instance = UnumIntermediaryDataStore.create(ds_type, ds_name, debug=False)
+    return _streaming_ds_instance
+
+
+def write_intermediary(key: str, value: str) -> bool:
+    """
+    Write a value to the intermediary datastore for streaming.
+    
+    This is a module-level convenience function used by unum_streaming.
+    
+    Args:
+        key: The key to write to (format: streaming/{session}/{source}/{field})
+        value: The JSON-serialized value to store
+        
+    Returns:
+        True if successful
+    """
+    ds = _get_streaming_datastore()
+    if ds is None:
+        return False
+    
+    try:
+        if ds.my_type == 'dynamodb':
+            # Use DynamoDB table directly
+            ds.table.put_item(
+                Item={
+                    "Name": key,
+                    "Value": value,
+                    "Timestamp": datetime.datetime.now().isoformat()
+                }
+            )
+        elif ds.my_type == 's3':
+            # Use S3 - write to temp file first
+            local_path = f'/tmp/{key.replace("/", "_")}'
+            with open(local_path, 'w') as f:
+                f.write(value)
+            ds.backend.upload_file(local_path, ds.name, key)
+        else:
+            print(f'[Streaming] Unsupported datastore type: {ds.my_type}')
+            return False
+        return True
+    except Exception as e:
+        print(f'[Streaming] Error writing to datastore: {e}')
+        return False
+
+
+def read_intermediary(key: str) -> Optional[str]:
+    """
+    Read a value from the intermediary datastore for streaming.
+    
+    This is a module-level convenience function used by unum_streaming.
+    
+    Args:
+        key: The key to read from (format: streaming/{session}/{source}/{field})
+        
+    Returns:
+        The value as a string, or None if not found
+    """
+    ds = _get_streaming_datastore()
+    if ds is None:
+        return None
+    
+    try:
+        if ds.my_type == 'dynamodb':
+            response = ds.table.get_item(
+                Key={"Name": key},
+                ConsistentRead=True
+            )
+            item = response.get('Item')
+            if item:
+                return item.get('Value')
+            return None
+        elif ds.my_type == 's3':
+            local_path = f'/tmp/{key.replace("/", "_")}'
+            try:
+                ds.backend.download_file(ds.name, key, local_path)
+                with open(local_path, 'r') as f:
+                    return f.read()
+            except:
+                return None
+        else:
+            print(f'[Streaming] Unsupported datastore type: {ds.my_type}')
+            return None
+    except Exception as e:
+        # Key not found or other error
+        return None
+
+
