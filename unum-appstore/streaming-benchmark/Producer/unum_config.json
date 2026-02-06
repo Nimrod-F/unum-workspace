@@ -1,0 +1,10 @@
+{
+    "Name": "Producer",
+    "Start": true,
+    "Next": [
+        {
+            "Name": "Consumer",
+            "InputType": "Scalar"
+        }
+    ]
+}

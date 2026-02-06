@@ -2243,14 +2243,30 @@ class S3Driver(UnumIntermediaryDataStore):
 # =============================================================================
 
 _streaming_ds_instance = None
+_streaming_ds_initialized = False
 
 def _get_streaming_datastore():
     """Get or create a datastore instance for streaming operations."""
-    global _streaming_ds_instance
-    if _streaming_ds_instance is None:
+    global _streaming_ds_instance, _streaming_ds_initialized
+    
+    if _streaming_ds_initialized:
+        return _streaming_ds_instance
+    
+    _streaming_ds_initialized = True
+    
+    try:
         ds_type = os.environ.get('UNUM_INTERMEDIARY_DATASTORE_TYPE', 'dynamodb')
         ds_name = os.environ.get('UNUM_INTERMEDIARY_DATASTORE_NAME', '')
-        _streaming_ds_instance = UnumIntermediaryDataStore.create(ds_type, ds_name, debug=False)
+        
+        if not ds_name:
+            print('[Streaming] No UNUM_INTERMEDIARY_DATASTORE_NAME set, streaming disabled')
+            return None
+        
+        _streaming_ds_instance = UnumIntermediaryDataStore.create(ds_type, ds_name, False)
+    except Exception as e:
+        print(f'[Streaming] Failed to initialize datastore: {e}')
+        _streaming_ds_instance = None
+    
     return _streaming_ds_instance
 
 
@@ -2336,5 +2352,100 @@ def read_intermediary(key: str) -> Optional[str]:
     except Exception as e:
         # Key not found or other error
         return None
+
+
+def delete_intermediary(key: str) -> bool:
+    """
+    Delete a value from the intermediary datastore.
+    
+    Used for cleanup of streaming keys after workflow completes.
+    
+    Args:
+        key: The key to delete (format: streaming/{session}/{source}/{field})
+        
+    Returns:
+        True if successful
+    """
+    ds = _get_streaming_datastore()
+    if ds is None:
+        return False
+    
+    try:
+        if ds.my_type == 'dynamodb':
+            ds.table.delete_item(Key={"Name": key})
+        elif ds.my_type == 's3':
+            ds.backend.delete_object(Bucket=ds.name, Key=key)
+        else:
+            print(f'[Streaming] Unsupported datastore type: {ds.my_type}')
+            return False
+        return True
+    except Exception as e:
+        print(f'[Streaming] Error deleting from datastore: {e}')
+        return False
+
+
+def list_streaming_keys(session_id: str) -> list:
+    """
+    List all streaming keys for a given session.
+    
+    Used for cleanup after workflow completes.
+    
+    Args:
+        session_id: The session ID to list keys for
+        
+    Returns:
+        List of keys matching the pattern streaming/{session_id}/*
+    """
+    ds = _get_streaming_datastore()
+    if ds is None:
+        return []
+    
+    prefix = f"streaming/{session_id}/"
+    keys = []
+    
+    try:
+        if ds.my_type == 'dynamodb':
+            # Scan for keys with prefix (not ideal but simple)
+            response = ds.table.scan(
+                FilterExpression="begins_with(#n, :prefix)",
+                ExpressionAttributeNames={"#n": "Name"},
+                ExpressionAttributeValues={":prefix": prefix}
+            )
+            for item in response.get('Items', []):
+                keys.append(item.get('Name'))
+        elif ds.my_type == 's3':
+            response = ds.backend.list_objects_v2(Bucket=ds.name, Prefix=prefix)
+            for obj in response.get('Contents', []):
+                keys.append(obj.get('Key'))
+    except Exception as e:
+        print(f'[Streaming] Error listing keys: {e}')
+    
+    return keys
+
+
+def cleanup_session_streaming_keys(session_id: str) -> int:
+    """
+    Clean up all streaming keys for a completed session.
+    
+    Should be called at the end of a workflow to remove
+    temporary streaming data.
+    
+    Args:
+        session_id: The session ID to clean up
+        
+    Returns:
+        Number of keys deleted
+    """
+    keys = list_streaming_keys(session_id)
+    deleted = 0
+    
+    for key in keys:
+        if delete_intermediary(key):
+            deleted += 1
+    
+    if deleted > 0:
+        print(f'[Streaming] Cleaned up {deleted} streaming keys for session {session_id}')
+    
+    return deleted
 
 

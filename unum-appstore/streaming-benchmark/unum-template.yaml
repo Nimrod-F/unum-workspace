@@ -1,0 +1,24 @@
+Unum:
+  # Unum workflow configuration
+  DataStore:
+    Type: dynamodb
+
+Functions:
+  Producer:
+    Name: Producer
+    Source: Producer/
+    Next:
+      - Name: Consumer
+        InputType: Scalar
+    Start: true
+
+  Consumer:
+    Name: Consumer
+    Source: Consumer/
+    Next:
+      - Name: Aggregator
+        InputType: Scalar
+
+  Aggregator:
+    Name: Aggregator
+    Source: Aggregator/

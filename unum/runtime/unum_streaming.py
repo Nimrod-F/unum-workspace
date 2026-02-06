@@ -8,6 +8,16 @@ Key concepts:
 - Publisher: Function that computes parameters and publishes them incrementally
 - Future: Reference to a parameter that will be available later
 - Resolver: Mechanism to wait for and retrieve future values
+
+Error Handling:
+- StreamingTimeoutError: Raised when future resolution times out
+- StreamingResolutionError: Raised when future cannot be resolved
+- Transient errors are retried with exponential backoff
+- Graceful degradation when streaming fails
+
+Cleanup:
+- cleanup_session_streaming_keys(): Remove streaming keys after workflow completes
+- Keys are stored as: streaming/{session}/{source}/{field}
 """
 
 import json
@@ -18,7 +28,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 # Try to import datastore functions
 try:
-    from ds import write_intermediary, read_intermediary
+    from ds import write_intermediary, read_intermediary, delete_intermediary, cleanup_session_streaming_keys, list_streaming_keys
 except ImportError:
     # Fallback for testing
     _memory_store = {}
@@ -26,12 +36,74 @@ except ImportError:
         _memory_store[key] = value
     def read_intermediary(key):
         return _memory_store.get(key)
+    def delete_intermediary(key):
+        _memory_store.pop(key, None)
+    def list_streaming_keys(session_id):
+        prefix = f"streaming/{session_id}/"
+        return [k for k in _memory_store.keys() if k.startswith(prefix)]
+    def cleanup_session_streaming_keys(session_id):
+        keys = list_streaming_keys(session_id)
+        for k in keys:
+            delete_intermediary(k)
+        return len(keys)
+
+
+# =============================================================================
+# CUSTOM EXCEPTIONS
+# =============================================================================
+
+class StreamingError(Exception):
+    """Base exception for streaming errors"""
+    pass
+
+
+class StreamingTimeoutError(StreamingError):
+    """Raised when future resolution times out"""
+    def __init__(self, field_name: str, source_function: str, session_id: str, 
+                 timeout: float, attempts: int):
+        self.field_name = field_name
+        self.source_function = source_function
+        self.session_id = session_id
+        self.timeout = timeout
+        self.attempts = attempts
+        super().__init__(
+            f"Future '{field_name}' from '{source_function}' not resolved within {timeout}s "
+            f"(session={session_id}, attempts={attempts})"
+        )
+
+
+class StreamingResolutionError(StreamingError):
+    """Raised when future cannot be resolved due to errors"""
+    def __init__(self, field_name: str, source_function: str, session_id: str,
+                 error: Exception, attempts: int):
+        self.field_name = field_name
+        self.source_function = source_function
+        self.session_id = session_id
+        self.original_error = error
+        self.attempts = attempts
+        super().__init__(
+            f"Failed to resolve future '{field_name}' from '{source_function}' "
+            f"after {attempts} attempts: {error}"
+        )
+
+
+class StreamingPublishError(StreamingError):
+    """Raised when publishing a field fails"""
+    def __init__(self, field_name: str, source_function: str, error: Exception):
+        self.field_name = field_name
+        self.source_function = source_function
+        self.original_error = error
+        super().__init__(
+            f"Failed to publish field '{field_name}' from '{source_function}': {error}"
+        )
+
 
 # Configuration
 STREAMING_POLL_INTERVAL = 0.1  # 100ms initial poll interval
 STREAMING_MAX_POLL_INTERVAL = 1.0  # 1s max poll interval
 STREAMING_TIMEOUT = 300  # 5 minutes max wait
 STREAMING_DEBUG = os.environ.get('STREAMING_DEBUG', 'false').lower() == 'true'
+STREAMING_MAX_RETRIES = 3  # Max retries for transient errors
 
 def debug_log(msg: str):
     """Print debug message if debugging is enabled"""
@@ -70,6 +142,9 @@ def publish_field(session_id: str, source_function: str, field_name: str, value:
     
     Called by sender function after computing each field.
     The value is stored so the receiver can retrieve it.
+    
+    Raises:
+        StreamingPublishError: If publishing fails after retries
     """
     key = make_streaming_key(session_id, source_function, field_name)
     
@@ -80,12 +155,20 @@ def publish_field(session_id: str, source_function: str, field_name: str, value:
         "ready": True
     }
     
-    try:
-        write_intermediary(key, json.dumps(data, default=str))
-        debug_log(f"Published field '{field_name}' to {key}")
-    except Exception as e:
-        print(f"[STREAMING] ERROR: Failed to publish field '{field_name}': {e}")
-        raise
+    last_error = None
+    for attempt in range(STREAMING_MAX_RETRIES):
+        try:
+            write_intermediary(key, json.dumps(data, default=str))
+            debug_log(f"Published field '{field_name}' to {key}")
+            return
+        except Exception as e:
+            last_error = e
+            debug_log(f"Publish attempt {attempt + 1} failed for '{field_name}': {e}")
+            if attempt < STREAMING_MAX_RETRIES - 1:
+                time.sleep(0.1 * (attempt + 1))  # Brief backoff
+    
+    raise StreamingPublishError(field_name, source_function, last_error)
+
 
 def resolve_future(future_ref: dict, timeout: float = STREAMING_TIMEOUT) -> Any:
     """
@@ -93,6 +176,10 @@ def resolve_future(future_ref: dict, timeout: float = STREAMING_TIMEOUT) -> Any:
     
     Blocks until the value is available or timeout.
     Uses exponential backoff to avoid hammering the datastore.
+    
+    Raises:
+        StreamingTimeoutError: If future not resolved within timeout
+        StreamingResolutionError: If persistent errors prevent resolution
     """
     if not is_future(future_ref):
         # Already a resolved value, return as-is
@@ -109,27 +196,41 @@ def resolve_future(future_ref: dict, timeout: float = STREAMING_TIMEOUT) -> Any:
     start_time = time.time()
     poll_interval = STREAMING_POLL_INTERVAL
     attempts = 0
+    consecutive_errors = 0
+    last_error = None
     
     while True:
         attempts += 1
         try:
             data_str = read_intermediary(key)
+            consecutive_errors = 0  # Reset on successful read
+            
             if data_str:
                 data = json.loads(data_str)
                 if data.get("ready"):
                     elapsed = time.time() - start_time
                     debug_log(f"Resolved '{field_name}' after {elapsed:.3f}s ({attempts} attempts)")
                     return data["value"]
+                    
         except json.JSONDecodeError as e:
             debug_log(f"JSON decode error for '{field_name}': {e}")
+            consecutive_errors += 1
+            last_error = e
         except Exception as e:
             debug_log(f"Read error for '{field_name}': {e}")
+            consecutive_errors += 1
+            last_error = e
+        
+        # Check for persistent errors
+        if consecutive_errors >= STREAMING_MAX_RETRIES:
+            raise StreamingResolutionError(
+                field_name, source_function, session_id, last_error, attempts
+            )
         
         elapsed = time.time() - start_time
         if elapsed > timeout:
-            raise TimeoutError(
-                f"Future '{field_name}' from '{source_function}' not resolved within {timeout}s "
-                f"(session={session_id}, attempts={attempts})"
+            raise StreamingTimeoutError(
+                field_name, source_function, session_id, timeout, attempts
             )
         
         time.sleep(poll_interval)
@@ -270,24 +371,38 @@ class LazyFutureDict(dict):
     
     This allows the receiver function to access fields normally,
     and futures are resolved only when actually accessed.
+    
+    Error Handling:
+    - Resolution errors are propagated to the caller
+    - Use get_with_fallback() for graceful degradation
+    - resolution_status() reports which fields resolved successfully
     """
     
     def __init__(self, data: dict):
         super().__init__()
         self._raw_data = data
         self._resolved = {}
+        self._errors = {}  # Track resolution errors
         
     def __getitem__(self, key):
         if key in self._resolved:
             return self._resolved[key]
         
+        if key in self._errors:
+            # Re-raise previous error
+            raise self._errors[key]
+        
         if key in self._raw_data:
             value = self._raw_data[key]
             if is_future(value):
                 debug_log(f"Lazily resolving future for key '{key}'")
-                resolved = resolve_future(value)
-                self._resolved[key] = resolved
-                return resolved
+                try:
+                    resolved = resolve_future(value)
+                    self._resolved[key] = resolved
+                    return resolved
+                except (StreamingTimeoutError, StreamingResolutionError) as e:
+                    self._errors[key] = e
+                    raise
             else:
                 self._resolved[key] = value
                 return value
@@ -299,6 +414,35 @@ class LazyFutureDict(dict):
             return self[key]
         except KeyError:
             return default
+    
+    def get_with_fallback(self, key, fallback=None) -> Tuple[Any, bool]:
+        """
+        Get value with fallback on resolution failure.
+        
+        Returns:
+            Tuple of (value, success)
+        """
+        try:
+            return (self[key], True)
+        except (KeyError, StreamingError):
+            return (fallback, False)
+    
+    def resolution_status(self) -> dict:
+        """
+        Get status of all fields.
+        
+        Returns dict mapping key -> {"resolved": bool, "error": Optional[str]}
+        """
+        status = {}
+        for key in self._raw_data:
+            if key in self._resolved:
+                status[key] = {"resolved": True, "error": None}
+            elif key in self._errors:
+                status[key] = {"resolved": False, "error": str(self._errors[key])}
+            else:
+                # Not yet accessed
+                status[key] = {"resolved": None, "error": None}
+        return status
     
     def __contains__(self, key):
         return key in self._raw_data
@@ -317,6 +461,12 @@ class LazyFutureDict(dict):
     
     def __len__(self):
         return len(self._raw_data)
+    
+    def __repr__(self):
+        resolved_count = len(self._resolved)
+        total_count = len(self._raw_data)
+        error_count = len(self._errors)
+        return f"<LazyFutureDict(resolved={resolved_count}/{total_count}, errors={error_count})>"
 
 
 def wrap_input_with_lazy_resolution(event: dict) -> dict:
@@ -502,3 +652,101 @@ def invoke_streaming_continuation(unum_instance, event: dict, streaming_payload:
         import traceback
         traceback.print_exc()
         return False
+
+
+# =============================================================================
+# CLEANUP FUNCTIONS
+# =============================================================================
+
+def cleanup_streaming_data(session_id: str) -> int:
+    """
+    Clean up all streaming data for a session.
+    
+    Should be called by the final function in a workflow
+    or by a dedicated cleanup function.
+    
+    Args:
+        session_id: The session ID to clean up
+        
+    Returns:
+        Number of keys deleted
+    """
+    debug_log(f"Cleaning up streaming data for session {session_id}")
+    return cleanup_session_streaming_keys(session_id)
+
+
+def register_cleanup_on_complete(session_id: str):
+    """
+    Register a callback to clean up streaming data when workflow completes.
+    
+    This is an alternative to manual cleanup - uses atexit to ensure
+    cleanup happens even if the function terminates unexpectedly.
+    """
+    import atexit
+    
+    def cleanup():
+        cleanup_streaming_data(session_id)
+    
+    atexit.register(cleanup)
+    debug_log(f"Registered cleanup callback for session {session_id}")
+
+
+# =============================================================================
+# GRACEFUL DEGRADATION
+# =============================================================================
+
+def resolve_future_with_fallback(future_ref: dict, fallback: Any = None, 
+                                  timeout: float = STREAMING_TIMEOUT) -> Tuple[Any, bool]:
+    """
+    Resolve a future with fallback on failure.
+    
+    This provides graceful degradation - if the future can't be resolved,
+    returns the fallback value instead of raising an exception.
+    
+    Args:
+        future_ref: The future reference to resolve
+        fallback: Value to return if resolution fails
+        timeout: Maximum time to wait
+        
+    Returns:
+        Tuple of (value, success) where success is True if resolved
+    """
+    try:
+        value = resolve_future(future_ref, timeout)
+        return (value, True)
+    except (StreamingTimeoutError, StreamingResolutionError) as e:
+        debug_log(f"Failed to resolve future, using fallback: {e}")
+        return (fallback, False)
+    except Exception as e:
+        debug_log(f"Unexpected error resolving future, using fallback: {e}")
+        return (fallback, False)
+
+
+def resolve_all_with_report(data: dict) -> Tuple[dict, dict]:
+    """
+    Resolve all futures in a dict and report on resolution success.
+    
+    Returns:
+        Tuple of (resolved_data, resolution_report)
+        resolution_report is a dict mapping field names to status
+    """
+    resolved = {}
+    report = {}
+    
+    for key, value in data.items():
+        if is_future(value):
+            resolved_value, success = resolve_future_with_fallback(value)
+            resolved[key] = resolved_value
+            report[key] = {
+                "was_future": True,
+                "resolved": success,
+                "source": value.get("source", "unknown"),
+            }
+        else:
+            resolved[key] = value
+            report[key] = {
+                "was_future": False,
+                "resolved": True
+            }
+    
+    return (resolved, report)

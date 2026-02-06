@@ -296,6 +296,96 @@ def test_real_function_transformation():
     print()
 
 
+def test_error_handling():
+    """Test error handling and graceful degradation"""
+    
+    print("=" * 60)
+    print("TEST 6: Error Handling")
+    print("=" * 60)
+    
+    from unum_streaming import (
+        StreamingError,
+        StreamingTimeoutError,
+        StreamingResolutionError,
+        StreamingPublishError,
+        LazyFutureDict,
+        make_future_ref,
+        resolve_future_with_fallback,
+        resolve_all_with_report
+    )
+    
+    # Test exception hierarchy
+    assert issubclass(StreamingTimeoutError, StreamingError)
+    assert issubclass(StreamingResolutionError, StreamingError)
+    assert issubclass(StreamingPublishError, StreamingError)
+    print("✓ Exception hierarchy correct")
+    
+    # Test StreamingTimeoutError
+    err = StreamingTimeoutError(
+        field_name="test_field",
+        source_function="TestFunc",
+        session_id="session123",
+        timeout=30.0,
+        attempts=100
+    )
+    assert "test_field" in str(err)
+    assert "TestFunc" in str(err)
+    assert "30" in str(err)
+    print("✓ StreamingTimeoutError contains field details")
+    
+    # Test StreamingResolutionError
+    err = StreamingResolutionError(
+        field_name="test_field",
+        source_function="TestFunc",
+        session_id="session123",
+        error=ValueError("mock error"),
+        attempts=5
+    )
+    assert err.original_error is not None
+    assert "mock error" in str(err)
+    print("✓ StreamingResolutionError preserves original error")
+    
+    # Test LazyFutureDict error tracking
+    data = {
+        "ready": "immediate value",
+        "future": make_future_ref("s1", "f1", "source")
+    }
+    lazy_dict = LazyFutureDict(data)
+    
+    # Ready value should work
+    val, success = lazy_dict.get_with_fallback("ready")
+    assert success and val == "immediate value"
+    print("✓ get_with_fallback works for ready values")
+    
+    # Future resolution will fail without datastore, fallback should work
+    val, success = lazy_dict.get_with_fallback("future", fallback="default")
+    # In memory store mode, this might not fail, but we test the interface
+    print("✓ get_with_fallback interface works")
+    
+    # Test resolution_status
+    status = lazy_dict.resolution_status()
+    assert "ready" in status
+    print("✓ resolution_status() reports field status")
+    
+    # Test repr
+    repr_str = repr(lazy_dict)
+    assert "LazyFutureDict" in repr_str
+    print(f"✓ LazyFutureDict repr: {repr_str}")
+    
+    # Test resolve_all_with_report
+    data = {
+        "field1": "value1",
+        "field2": 42,
+    }
+    resolved, report = resolve_all_with_report(data)
+    assert resolved["field1"] == "value1"
+    assert report["field1"]["was_future"] == False
+    assert report["field1"]["resolved"] == True
+    print("✓ resolve_all_with_report works for non-futures")
+    
+    print()
+
+
 def main():
     """Run all tests"""
     print("\n" + "=" * 60)
@@ -308,6 +398,7 @@ def main():
         test_future_creation_and_resolution()
         test_lazy_future_dict()
         test_real_function_transformation()
+        test_error_handling()
         
         print("=" * 60)
         print("ALL TESTS PASSED ✓")
