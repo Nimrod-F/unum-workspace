@@ -351,14 +351,51 @@ class StreamingTransformer:
         # First field computation line
         first_field_line = min(f.computed_at_line for f in self.analysis.fields)
         
-        # Insert right after function definition (before first field)
-        # Look for the first non-docstring, non-comment line after def
-        for i in range(handler_line, first_field_line):
-            line = lines[i - 1].strip() if i <= len(lines) else ""
-            if line and not line.startswith('#') and not line.startswith('"""') and not line.startswith("'''"):
-                if not line.startswith('def '):
-                    return i
+        # Find the end of the docstring (if any) then insert after it
+        in_docstring = False
+        docstring_char = None
         
+        for i in range(handler_line, first_field_line):
+            if i > len(lines):
+                break
+            line = lines[i - 1]
+            stripped = line.strip()
+            
+            # Skip the function definition line itself
+            if stripped.startswith('def '):
+                continue
+            
+            # Handle docstrings
+            if not in_docstring:
+                # Check for docstring start
+                if stripped.startswith('"""') or stripped.startswith("'''"):
+                    docstring_char = stripped[:3]
+                    # Check if single-line docstring (ends on same line)
+                    if stripped.count(docstring_char) >= 2:
+                        # Single line docstring, continue to next line
+                        continue
+                    else:
+                        # Multi-line docstring starts
+                        in_docstring = True
+                        continue
+                elif stripped.startswith('#'):
+                    # Comment line, skip
+                    continue
+                elif not stripped:
+                    # Empty line, skip
+                    continue
+                else:
+                    # Found first actual code line
+                    return i - 1  # Insert BEFORE this line (after previous line)
+            else:
+                # Inside docstring, look for end
+                if docstring_char and docstring_char in stripped:
+                    # Docstring ends on this line
+                    in_docstring = False
+                    # Next line will be checked for code
+                    continue
+        
+        # If we didn't find a good spot, use right after handler definition
         return handler_line
 
 

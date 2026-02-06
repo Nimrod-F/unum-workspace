@@ -1,24 +1,31 @@
-Unum:
-  # Unum workflow configuration
-  DataStore:
-    Type: dynamodb
+Globals:
+  ApplicationName: streaming-benchmark
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-streaming-benchmark
+  FaaSPlatform: aws
+  Checkpoint: true
+  GC: false
+  Debug: false
 
 Functions:
   Producer:
-    Name: Producer
-    Source: Producer/
+    Properties:
+      CodeUri: Producer/
+      Runtime: python3.11
+      Start: true
     Next:
       - Name: Consumer
         InputType: Scalar
-    Start: true
 
   Consumer:
-    Name: Consumer
-    Source: Consumer/
+    Properties:
+      CodeUri: Consumer/
+      Runtime: python3.11
     Next:
       - Name: Aggregator
         InputType: Scalar
 
   Aggregator:
-    Name: Aggregator
-    Source: Aggregator/
+    Properties:
+      CodeUri: Aggregator/
+      Runtime: python3.11

@@ -10,12 +10,6 @@ if os.environ['FAAS_PLATFORM'] == 'gcloud':
 
 from unum import Unum
 from app import lambda_handler as user_lambda
-from unum_early import (
-    init_early_continuation, 
-    was_early_triggered, 
-    wait_for_early_threads,
-    cleanup_early_state
-)
 
 # Streaming support - conditionally imported
 try:
@@ -335,21 +329,6 @@ def egress(user_function_output, event):
         
         return unum.curr_session, None
 
-    # Check if early continuation was already triggered during user function execution
-    # If so, checkpoint and continuation were already started - just wait for completion
-    if was_early_triggered():
-        print('[EARLY_CONTINUATION] Detected early trigger - waiting for background threads')
-        wait_for_early_threads(timeout=10.0)
-        
-        # Still need to do GC if enabled
-        if unum.gc == True:
-            unum.run_gc()
-        
-        unum.cleanup()
-        cleanup_early_state()
-        
-        return unum.curr_session, None
-
     # Compute all the outgoing edges for this execution.
     #
     # Outgoing edges are needed for GC *at the next node*.
@@ -493,7 +472,6 @@ def lambda_handler(event, context):
     '''
 
     unum.cleanup()
-    cleanup_early_state()  # Clean up any state from previous invocations
 
     if os.environ['FAAS_PLATFORM'] == 'gcloud':
         if 'data' in event:
@@ -521,8 +499,6 @@ def lambda_handler(event, context):
                 return {'GC': gc, 'User': json.dumps(output)}
             else:
                 return {'User': json.dumps(output)}
-        
-        init_early_continuation(unum, input_data, build_checkpoint_data)
         
         # Register unum context for streaming support
         # This allows transformed user code to invoke continuation during execution

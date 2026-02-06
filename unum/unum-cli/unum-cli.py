@@ -188,6 +188,11 @@ def apply_streaming_transform(platform_template):
             with open(app_path, 'r') as f:
                 source = f.read()
             
+            # Check if already transformed (has streaming imports)
+            if 'from unum_streaming import StreamingPublisher' in source:
+                print(f'  [{func_name}] Already transformed, skipping')
+                continue
+            
             analyzer = StreamingAnalyzer()
             analysis = analyzer.analyze(source)
             
