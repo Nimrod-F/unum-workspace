@@ -1,0 +1,10 @@
+{
+  "Name": "Comparator",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Reporter",
+    "InputType": "Scalar"
+  }
+}

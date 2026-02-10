@@ -1,0 +1,26 @@
+{
+  "Comment": "NLP Pipeline - 4-stage chain for benchmarking partial parameter streaming",
+  "StartAt": "Tokenizer",
+  "States": {
+    "Tokenizer": {
+      "Type": "Task",
+      "Resource": "Tokenizer",
+      "Next": "Analyzer"
+    },
+    "Analyzer": {
+      "Type": "Task",
+      "Resource": "Analyzer",
+      "Next": "Classifier"
+    },
+    "Classifier": {
+      "Type": "Task",
+      "Resource": "Classifier",
+      "Next": "Summarizer"
+    },
+    "Summarizer": {
+      "Type": "Task",
+      "Resource": "Summarizer",
+      "End": true
+    }
+  }
+}

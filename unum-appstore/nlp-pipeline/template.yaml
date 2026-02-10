@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: false
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-nlp-pipeline
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  AnalyzerFunction:
+    Value: !GetAtt AnalyzerFunction.Arn
+  ClassifierFunction:
+    Value: !GetAtt ClassifierFunction.Arn
+  SummarizerFunction:
+    Value: !GetAtt SummarizerFunction.Arn
+  TokenizerFunction:
+    Value: !GetAtt TokenizerFunction.Arn
+Resources:
+  AnalyzerFunction:
+    Properties:
+      CodeUri: analyzer/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  ClassifierFunction:
+    Properties:
+      CodeUri: classifier/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  SummarizerFunction:
+    Properties:
+      CodeUri: summarizer/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  TokenizerFunction:
+    Properties:
+      CodeUri: tokenizer/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

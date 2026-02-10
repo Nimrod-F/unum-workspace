@@ -1,0 +1,29 @@
+Globals:
+  ApplicationName: unum-dna-analysis
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-dna-analysis
+  GC: false
+  Checkpoint: true
+  Eager: false
+  WorkflowDefinition: unum-step-functions.json
+  WorkflowType: step-functions
+
+Functions:
+  Reader:
+    Properties:
+      CodeUri: reader/
+      Runtime: python3.11
+      Start: true
+  DnaAnalyzer:
+    Properties:
+      CodeUri: dna_analyzer/
+      Runtime: python3.11
+  Comparator:
+    Properties:
+      CodeUri: comparator/
+      Runtime: python3.11
+  Reporter:
+    Properties:
+      CodeUri: reporter/
+      Runtime: python3.11

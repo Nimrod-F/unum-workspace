@@ -1,0 +1,10 @@
+{
+  "Name": "DnaAnalyzer",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Comparator",
+    "InputType": "Scalar"
+  }
+}
