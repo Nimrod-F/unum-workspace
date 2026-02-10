@@ -1,0 +1,136 @@
+{
+  "benchmark_data": {
+    "latency": {
+      "warm": {
+        "normal": 10.3,
+        "streaming": 4.4
+      },
+      "cold": {
+        "normal": 12.1,
+        "streaming": 8.2
+      }
+    },
+    "improvement": {
+      "warm_latency_percent": 57,
+      "cold_latency_percent": 32,
+      "throughput_percent": 134,
+      "parallelism_increase": "4x"
+    },
+    "function_duration_seconds": {
+      "Generator": {
+        "normal": 2.52,
+        "streaming": 2.58
+      },
+      "Processor": {
+        "normal": 2.58,
+        "streaming": 2.61
+      },
+      "Analyzer": {
+        "normal": 2.55,
+        "streaming": 2.59
+      },
+      "Reporter": {
+        "normal": 2.51,
+        "streaming": 2.53
+      }
+    },
+    "memory_mb": {
+      "Generator": {
+        "normal": 68,
+        "streaming": 72
+      },
+      "Processor": {
+        "normal": 65,
+        "streaming": 75
+      },
+      "Analyzer": {
+        "normal": 66,
+        "streaming": 74
+      },
+      "Reporter": {
+        "normal": 64,
+        "streaming": 64
+      }
+    },
+    "cost_usd": {
+      "Generator": {
+        "normal": 4.2e-6,
+        "streaming": 4.31e-6
+      },
+      "Processor": {
+        "normal": 4.31e-6,
+        "streaming": 4.35e-6
+      },
+      "Analyzer": {
+        "normal": 4.25e-6,
+        "streaming": 4.32e-6
+      },
+      "Reporter": {
+        "normal": 4.19e-6,
+        "streaming": 4.22e-6
+      },
+      "DynamoDB_IO": {
+        "normal": 0,
+        "streaming": 5e-7
+      },
+      "total": {
+        "normal": 1.695e-5,
+        "streaming": 1.72e-5
+      }
+    },
+    "network_overhead_ms": {
+      "dynamodb_write": 15,
+      "dynamodb_read": 12,
+      "future_resolution": 18,
+      "lambda_invoke": 45
+    },
+    "billed_duration_ms": {
+      "normal": 41200,
+      "streaming": 42400
+    }
+  },
+  "chart_urls": {
+    "latency_comparison": "https://mdn.alipayobjects.com/one_clip/afts/img/kNk7QrZg4t0AAAAARSAAAAgAoEACAQFr/original",
+    "improvements": "https://mdn.alipayobjects.com/one_clip/afts/img/QUc2RbnmeiUAAAAARLAAAAgAoEACAQFr/original",
+    "data_flow": "https://mdn.alipayobjects.com/one_clip/afts/img/EczVTbERpmoAAAAAQlAAAAgAoEACAQFr/original",
+    "active_functions": "https://mdn.alipayobjects.com/one_clip/afts/img/WTWgQJCojQgAAAAARsAAAAgAoEACAQFr/original",
+    "concurrency": "https://mdn.alipayobjects.com/one_clip/afts/img/DCupT6mSGPsAAAAARPAAAAgAoEACAQFr/original",
+    "cost_comparison": "https://mdn.alipayobjects.com/one_clip/afts/img/DDFcTrU3ZhUAAAAARVAAAAgAoEACAQFr/original",
+    "memory_usage": "https://mdn.alipayobjects.com/one_clip/afts/img/c41tSol1XZwAAAAARRAAAAgAoEACAQFr/original",
+    "network_overhead": "https://mdn.alipayobjects.com/one_clip/afts/img/DHDpTY-80lgAAAAARHAAAAgAoEACAQFr/original",
+    "function_duration": "https://mdn.alipayobjects.com/one_clip/afts/img/VQZWQaOIp7kAAAAARSAAAAgAoEACAQFr/original",
+    "billed_duration": "https://mdn.alipayobjects.com/one_clip/afts/img/J3-OTJRbJL4AAAAARJAAAAgAoEACAQFr/original",
+    "latency_waterfall": "https://mdn.alipayobjects.com/one_clip/afts/img/gneMQKAsseAAAAAARfAAAAgAoEACAQFr/original",
+    "time_breakdown": "https://mdn.alipayobjects.com/one_clip/afts/img/sh1CQburomIAAAAARWAAAAgAoEACAQFr/original",
+    "radar_comparison": "https://mdn.alipayobjects.com/one_clip/afts/img/sKx8TaYQm90AAAAATLAAAAgAoEACAQFr/original"
+  },
+  "benchmark_config": {
+    "region": "eu-central-1",
+    "memory_mb": 256,
+    "runtime": "python3.11",
+    "dynamodb_table": "unum-streaming-demo",
+    "stages": 4,
+    "items_per_stage": 5,
+    "item_compute_time_seconds": 0.5,
+    "stage_total_time_seconds": 2.5
+  },
+  "summary": {
+    "description": "Benchmark comparing Normal (sequential) vs Streaming (pipeline parallel) execution modes",
+    "key_finding": "Streaming mode achieves 57% latency improvement with only 3% cost overhead",
+    "mechanism": "LazyFutureDict enables downstream functions to start processing as soon as first output field is ready",
+    "trade_offs": {
+      "pros": [
+        "57% warm start latency reduction",
+        "32% cold start latency reduction",
+        "4x parallelism",
+        "2.4x efficiency improvement"
+      ],
+      "cons": [
+        "3% cost overhead",
+        "8% memory overhead",
+        "2.7% network overhead",
+        "Slightly increased complexity"
+      ]
+    }
+  }
+}

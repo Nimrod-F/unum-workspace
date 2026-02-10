@@ -183,6 +183,15 @@ def apply_streaming_transform(platform_template):
             print(f'  [{func_name}] No app.py found, skipping')
             continue
         
+        # Check if this function has a Next - if not, skip streaming (it's the last function)
+        unum_config_path = os.path.join(app_dir, 'unum_config.json')
+        if os.path.exists(unum_config_path):
+            with open(unum_config_path, 'r') as f:
+                unum_config = json.load(f)
+            if 'Next' not in unum_config or unum_config.get('Next') is None:
+                print(f'  [{func_name}] Last function (no Next), skipping streaming')
+                continue
+        
         # Analyze the file
         try:
             with open(app_path, 'r') as f:

@@ -1,0 +1,20 @@
+Entry: Generator
+Functions:
+  Generator:
+    Next:
+      - Name: Processor
+        InputType: Scalar
+  Processor:
+    Next:
+      - Name: Analyzer
+        InputType: Scalar
+  Analyzer:
+    Next:
+      - Name: Reporter
+        InputType: Scalar
+  Reporter:
+    Next: null
+Globals:
+  ApplicationName: streaming-demo
+  IntermediaryDataStoreType: dynamodb
+  IntermediaryDataStoreTable: unum-streaming-demo

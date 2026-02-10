@@ -1,9 +1,0 @@
-{
-    "Name": "Consumer",
-    "Next": [
-        {
-            "Name": "Aggregator",
-            "InputType": "Scalar"
-        }
-    ]
-}

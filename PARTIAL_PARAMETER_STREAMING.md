@@ -9,6 +9,7 @@ This differs from "Early Continuation" which only parallelizes side effects with
 ## Status: Implementation Complete ✅
 
 All core components have been implemented:
+
 - ✅ AST Transformer for code injection
 - ✅ Runtime streaming module
 - ✅ Datastore integration
@@ -19,7 +20,9 @@ All core components have been implemented:
 ## Key Concepts
 
 ### Future Reference
+
 A placeholder that tells the receiver where to fetch the actual value:
+
 ```python
 {
     "__unum_future__": True,
@@ -30,13 +33,17 @@ A placeholder that tells the receiver where to fetch the actual value:
 ```
 
 ### Publisher (Sender Side)
+
 The sender function:
+
 1. Computes fields one by one
 2. Publishes each field to the datastore as it's computed
 3. After the first field, invokes the next function with that value + futures for remaining fields
 
 ### Resolver (Receiver Side)
+
 The receiver function:
+
 1. Receives payload with mix of real values and future refs
 2. Uses `LazyFutureDict` to automatically resolve futures when accessed
 3. Can start processing with available data while waiting for futures
@@ -44,7 +51,9 @@ The receiver function:
 ## Implementation Files
 
 ### 1. `unum/unum-cli/streaming_transformer.py`
+
 AST-based source code transformer that:
+
 - Analyzes handler function to find return dict fields
 - Identifies computation points for each field
 - Injects streaming code:
@@ -54,7 +63,9 @@ AST-based source code transformer that:
   - Early invocation after first field
 
 ### 2. `unum/runtime/unum_streaming.py`
+
 Runtime support module with:
+
 - `make_future_ref()` - Creates future reference dicts
 - `is_future()` - Checks if value is a future
 - `publish_field()` - Writes computed field to datastore
@@ -63,12 +74,16 @@ Runtime support module with:
 - `LazyFutureDict` - Dict that resolves futures on access
 
 ### 3. `unum/runtime/ds.py`
+
 Added module-level functions for streaming:
+
 - `write_intermediary(key, value)` - Write streaming field
 - `read_intermediary(key)` - Read streaming field
 
 ### 4. `unum/unum-cli/unum-cli.py`
+
 Updated build process:
+
 - `--streaming` flag enables transformation
 - `apply_streaming_transform()` applies AST transformation
 - `populate_common_directory()` copies `unum_streaming.py` to common
@@ -76,11 +91,13 @@ Updated build process:
 ## Usage
 
 ### Build with Streaming
+
 ```bash
 unum-cli build --streaming
 ```
 
 ### Build without Streaming (Normal)
+
 ```bash
 unum-cli build
 ```
@@ -88,24 +105,26 @@ unum-cli build
 ## Example Transformation
 
 ### Original Code
+
 ```python
 def lambda_handler(event, context):
     data = event.get("data", [])
-    
+
     statistical = compute_statistical_features(data)
     temporal = compute_temporal_features(data)
     entropy = compute_entropy_features(data)
-    
+
     result = {
         "statistical": statistical,
         "temporal": temporal,
         "entropy": entropy
     }
-    
+
     return result
 ```
 
 ### Transformed Code
+
 ```python
 from unum_streaming import StreamingPublisher, publish_field
 
@@ -127,19 +146,19 @@ def lambda_handler(event, context):
         _streaming_payload = _streaming_publisher.get_streaming_payload()
         unum.set_streaming_output(_streaming_payload)
         _streaming_publisher.mark_next_invoked()
-    
+
     temporal = compute_temporal_features(data)
     _streaming_publisher.publish('temporal', temporal)
-    
+
     entropy = compute_entropy_features(data)
     _streaming_publisher.publish('entropy', entropy)
-    
+
     result = {
         "statistical": statistical,
         "temporal": temporal,
         "entropy": entropy
     }
-    
+
     return result
 ```
 
