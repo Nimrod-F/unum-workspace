@@ -153,6 +153,104 @@ def populate_common_directory():
             print(f'\033[33mWarning: Runtime file {filename} not found at {src}\033[0m')
 
 
+def strip_streaming_code(source):
+    """
+    Strip all injected streaming code from a transformed app.py source.
+    
+    Removes:
+    - from unum_streaming import ... lines
+    - # Streaming: ... comment lines
+    - _streaming_session = ... lines
+    - _streaming_publisher = StreamingPublisher(...) multi-line blocks
+    - _streaming_publisher.publish(...) calls
+    - if _streaming_publisher.should_invoke_next(): ... blocks
+    
+    Returns the clean source string.
+    """
+    import re
+    lines = source.split('\n')
+    result = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+
+        # 1. Skip import line
+        if stripped.startswith('from unum_streaming import'):
+            i += 1
+            continue
+
+        # 2. Skip # Streaming: comment lines
+        if stripped.startswith('# Streaming:'):
+            i += 1
+            continue
+
+        # 3. Skip _streaming_session = ...
+        if re.match(r'\s*_streaming_session\s*=', line):
+            i += 1
+            continue
+
+        # 4. Skip _streaming_publisher = StreamingPublisher(...) block (may span multiple lines)
+        if re.match(r'\s*_streaming_publisher\s*=\s*StreamingPublisher\(', line):
+            # Skip until the closing paren
+            while i < len(lines):
+                if ')' in lines[i]:
+                    i += 1
+                    break
+                i += 1
+            continue
+
+        # 5. Skip _streaming_publisher.publish(...)
+        if re.match(r'\s*_streaming_publisher\.publish\(', line):
+            i += 1
+            continue
+
+        # 6. Skip early-invoke block:
+        #    if _streaming_publisher.should_invoke_next():
+        #        _streaming_payload = ...
+        #        # optional comment
+        #        set_streaming_output(...)
+        #        _streaming_publisher.mark_next_invoked()
+        if '_streaming_publisher.should_invoke_next()' in stripped:
+            i += 1  # skip the if line
+            # Skip indented body lines
+            while i < len(lines):
+                inner = lines[i].strip()
+                if inner.startswith('_streaming_payload') or \
+                   inner.startswith('set_streaming_output') or \
+                   inner.startswith('_streaming_publisher.mark_next_invoked') or \
+                   inner.startswith('# Store payload') or \
+                   inner.startswith('# Signal') or \
+                   inner == '':
+                    i += 1
+                    # Stop after blank line (block separator)
+                    if inner == '':
+                        break
+                else:
+                    break
+            continue
+
+        # 7. Skip _streaming_payload = ... (standalone, outside if block)
+        if re.match(r'\s*_streaming_payload\s*=', line):
+            i += 1
+            continue
+
+        # 8. Skip standalone set_streaming_output(...)
+        if re.match(r'\s*set_streaming_output\(', line):
+            i += 1
+            continue
+
+        # 9. Skip standalone _streaming_publisher.mark_next_invoked()
+        if re.match(r'\s*_streaming_publisher\.mark_next_invoked\(', line):
+            i += 1
+            continue
+
+        result.append(line)
+        i += 1
+
+    return '\n'.join(result)
+
+
 def apply_streaming_transform(platform_template):
     """
     Apply AST transformation for Partial Parameter Streaming.
@@ -162,6 +260,9 @@ def apply_streaming_transform(platform_template):
     1. Publish each field to datastore as soon as it's computed
     2. Invoke next function early with futures for pending fields
     3. Allow receiver to resolve futures on-demand
+    
+    If a source file was already manually edited with streaming code,
+    an .original backup is created by stripping the streaming code.
     """
     try:
         from streaming_transformer import StreamingAnalyzer, StreamingTransformer
@@ -194,12 +295,21 @@ def apply_streaming_transform(platform_template):
         
         # Analyze the file
         try:
-            with open(app_path, 'r') as f:
+            with open(app_path, 'r', encoding='utf-8') as f:
                 source = f.read()
+            
+            backup_path = os.path.join(app_dir, 'app.py.original')
             
             # Check if already transformed (has streaming imports)
             if 'from unum_streaming import StreamingPublisher' in source:
-                print(f'  [{func_name}] Already transformed, skipping')
+                # Ensure .original backup exists even for manually-edited files
+                if not os.path.exists(backup_path):
+                    clean_source = strip_streaming_code(source)
+                    with open(backup_path, 'w', encoding='utf-8') as f:
+                        f.write(clean_source)
+                    print(f'  [{func_name}] Already transformed — created .original backup by stripping streaming code')
+                else:
+                    print(f'  [{func_name}] Already transformed, skipping')
                 continue
             
             analyzer = StreamingAnalyzer()
@@ -210,7 +320,6 @@ def apply_streaming_transform(platform_template):
                 continue
             
             # Backup original
-            backup_path = os.path.join(app_dir, 'app.py.original')
             if not os.path.exists(backup_path):
                 shutil.copy2(app_path, backup_path)
             
@@ -219,7 +328,7 @@ def apply_streaming_transform(platform_template):
             new_source, messages = transformer.transform(source)
             
             # Write transformed source
-            with open(app_path, 'w') as f:
+            with open(app_path, 'w', encoding='utf-8') as f:
                 f.write(new_source)
             
             for msg in messages:
