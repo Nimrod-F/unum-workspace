@@ -17,7 +17,6 @@ Each output field depends on exactly ONE input field from the Classifier:
 import json
 import time
 import math
-from unum_streaming import StreamingPublisher, set_streaming_output
 from collections import Counter
 
 
@@ -520,14 +519,6 @@ def compile_report(classification_data):
 
 def lambda_handler(event, context):
     """Stage 4 (final): Summarize — key sentences, keywords, abstract, quality, report."""
-
-    # Streaming: Initialize publisher for incremental parameter streaming
-    _streaming_session = event.get('Session', '') or str(id(event))
-    _streaming_publisher = StreamingPublisher(
-        session_id=_streaming_session,
-        source_function="SummarizerFunction",
-        field_names=["key_sentences", "keywords", "abstract", "citation_graph", "final_report"]
-    )
     start_time = time.time()
     doc_id = event.get('sentiment', {}).get('doc_id', 'unknown')
     print(f'[Summarizer] Starting on doc {doc_id}')
@@ -538,13 +529,6 @@ def lambda_handler(event, context):
     field_1_time = int((time.time() - t0) * 1000)
     print(f'[Summarizer] key_sentences: {key_sentences["n_key_entities"]} key entities in {field_1_time}ms')
     key_sentences_out = {**key_sentences, 'compute_ms': field_1_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('key_sentences', key_sentences_out)
-    # Streaming: Signal to runtime to invoke next function early with futures
-    if _streaming_publisher.should_invoke_next():
-        _streaming_payload = _streaming_publisher.get_streaming_payload()
-        # Store payload for runtime to pick up and invoke continuation
-        set_streaming_output(_streaming_payload)
-        _streaming_publisher.mark_next_invoked()
 
     # ── Field 2: keywords ← tfidf_vectors
     t0 = time.time()
@@ -552,7 +536,6 @@ def lambda_handler(event, context):
     field_2_time = int((time.time() - t0) * 1000)
     print(f'[Summarizer] keywords: {keywords["n_keywords"]} extracted, {keywords["n_term_clusters"]} clusters in {field_2_time}ms')
     keywords_out = {**keywords, 'compute_ms': field_2_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('keywords', keywords_out)
 
     # ── Field 3: abstract ← topics
     t0 = time.time()
@@ -560,7 +543,6 @@ def lambda_handler(event, context):
     field_3_time = int((time.time() - t0) * 1000)
     print(f'[Summarizer] abstract: primary={abstract["primary_topic"]} in {field_3_time}ms')
     abstract_out = {**abstract, 'compute_ms': field_3_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('abstract', abstract_out)
 
     # ── Field 4: citation_graph ← text_features
     t0 = time.time()
@@ -568,7 +550,6 @@ def lambda_handler(event, context):
     field_4_time = int((time.time() - t0) * 1000)
     print(f'[Summarizer] citation_graph: quality={citation["overall_quality"]} in {field_4_time}ms')
     citation_graph = {**citation, 'compute_ms': field_4_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('citation_graph', citation_graph)
 
     # ── Field 5: final_report ← classification
     t0 = time.time()
@@ -576,7 +557,6 @@ def lambda_handler(event, context):
     field_5_time = int((time.time() - t0) * 1000)
     print(f'[Summarizer] final_report: level={report["reading_level"]} in {field_5_time}ms')
     final_report = {**report, 'compute_ms': field_5_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('final_report', final_report)
 
     total_time = int((time.time() - start_time) * 1000)
     print(f'[Summarizer] COMPLETE in {total_time}ms')

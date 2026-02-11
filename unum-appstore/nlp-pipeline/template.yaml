@@ -25,10 +25,10 @@ Resources:
       CodeUri: analyzer/
       Handler: main.lambda_handler
       Policies:
+        - AWSLambdaRole
+        - AmazonS3FullAccess
         - AmazonDynamoDBFullAccess
         - AWSLambdaBasicExecutionRole
-        - AmazonS3FullAccess
-        - AWSLambdaRole
       Runtime: python3.11
     Type: AWS::Serverless::Function
   ClassifierFunction:
@@ -36,10 +36,10 @@ Resources:
       CodeUri: classifier/
       Handler: main.lambda_handler
       Policies:
+        - AWSLambdaRole
+        - AmazonS3FullAccess
         - AmazonDynamoDBFullAccess
         - AWSLambdaBasicExecutionRole
-        - AmazonS3FullAccess
-        - AWSLambdaRole
       Runtime: python3.11
     Type: AWS::Serverless::Function
   SummarizerFunction:
@@ -47,10 +47,10 @@ Resources:
       CodeUri: summarizer/
       Handler: main.lambda_handler
       Policies:
+        - AWSLambdaRole
+        - AmazonS3FullAccess
         - AmazonDynamoDBFullAccess
         - AWSLambdaBasicExecutionRole
-        - AmazonS3FullAccess
-        - AWSLambdaRole
       Runtime: python3.11
     Type: AWS::Serverless::Function
   TokenizerFunction:
@@ -58,10 +58,10 @@ Resources:
       CodeUri: tokenizer/
       Handler: main.lambda_handler
       Policies:
+        - AWSLambdaRole
+        - AmazonS3FullAccess
         - AmazonDynamoDBFullAccess
         - AWSLambdaBasicExecutionRole
-        - AmazonS3FullAccess
-        - AWSLambdaRole
       Runtime: python3.11
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31

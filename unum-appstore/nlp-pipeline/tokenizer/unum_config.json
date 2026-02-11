@@ -1,0 +1,10 @@
+{
+  "Name": "Tokenizer",
+  "Start": true,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Analyzer",
+    "InputType": "Scalar"
+  }
+}

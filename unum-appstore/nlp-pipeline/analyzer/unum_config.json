@@ -1,0 +1,10 @@
+{
+  "Name": "Analyzer",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Classifier",
+    "InputType": "Scalar"
+  }
+}
