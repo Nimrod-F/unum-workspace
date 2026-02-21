@@ -1,0 +1,67 @@
+{
+  "Comment": "Smart Factory IoT Alert Workflow - Asymmetric Race with 3 parallel branches of different depths",
+  "StartAt": "SensorIngest",
+  "States": {
+    "SensorIngest": {
+      "Type": "Task",
+      "Resource": "SensorIngest",
+      "Next": "ParallelBranches"
+    },
+    "ParallelBranches": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "SafetyCheck",
+          "States": {
+            "SafetyCheck": {
+              "Type": "Task",
+              "Resource": "SafetyCheck",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "MachineState",
+          "States": {
+            "MachineState": {
+              "Type": "Task",
+              "Resource": "MachineState",
+              "Next": "ShiftCheck"
+            },
+            "ShiftCheck": {
+              "Type": "Task",
+              "Resource": "ShiftCheck",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "Windowing",
+          "States": {
+            "Windowing": {
+              "Type": "Task",
+              "Resource": "Windowing",
+              "Next": "ComputeFFT"
+            },
+            "ComputeFFT": {
+              "Type": "Task",
+              "Resource": "ComputeFFT",
+              "Next": "FailureModel"
+            },
+            "FailureModel": {
+              "Type": "Task",
+              "Resource": "FailureModel",
+              "End": true
+            }
+          }
+        }
+      ],
+      "Next": "ActionDispatcher"
+    },
+    "ActionDispatcher": {
+      "Type": "Task",
+      "Resource": "ActionDispatcher",
+      "End": true
+    }
+  }
+}

@@ -1,0 +1,71 @@
+Globals:
+  ApplicationName: smart-factory-iot-workflow
+  Region: eu-central-1
+  WorkflowType: step-functions
+  WorkflowDefinition: unum-step-functions.json
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore-iot
+  Checkpoint: true
+  GC: false
+  Eager: true
+
+Functions:
+  SensorIngest:
+    Properties:
+      CodeUri: sensor-ingest/
+      Runtime: python3.13
+      Start: true
+      MemorySize: 256
+      Timeout: 30
+
+  SafetyCheck:
+    Properties:
+      CodeUri: safety-check/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  MachineState:
+    Properties:
+      CodeUri: machine-state/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  ShiftCheck:
+    Properties:
+      CodeUri: shift-check/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  Windowing:
+    Properties:
+      CodeUri: windowing/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  ComputeFFT:
+    Properties:
+      CodeUri: compute-fft/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 60
+
+  FailureModel:
+    Properties:
+      CodeUri: failure-model/
+      Runtime: python3.13
+      MemorySize: 512
+      Timeout: 60
+
+  ActionDispatcher:
+    Properties:
+      CodeUri: action-dispatcher/
+      Runtime: python3.13
+      MemorySize: 512
+      Timeout: 120
+      Environment:
+        UNUM_FUTURE_BASED: "true"

@@ -1,0 +1,6 @@
+{
+  "Name": "ActionDispatcher",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true
+}

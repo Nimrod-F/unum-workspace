@@ -1,6 +1,6 @@
 """
 Fetch Sales Data - Simulates fetching sales data from internal database
-Latency: 100-400ms (fast internal query)
+Fixed Latency: 1.0s (Staircase Benchmark: Step 1/6)
 """
 import time
 import random
@@ -13,16 +13,20 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     """
-    Fetch sales data with simulated latency (100-400ms).
-
-    Returns realistic sales metrics including revenue, transactions, and order values.
+    Fetch sales data with FIXED latency for benchmarking.
     """
     start_time = time.time()
     function_name = "FetchSalesData"
 
-    # Simulate realistic latency (100-400ms for internal DB query)
-    delay = random.uniform(0.1, 0.4)
+    # --- BENCHMARK CONFIGURATION ---
+    # This is Step 1 in the Staircase.
+    # It finishes at T+1s.
+    # CRITICAL: This is the "Trigger". It finishes first, causing the 
+    # Aggregator to start immediately. By the time the Aggregator is ready,
+    # this data will be waiting in DynamoDB.
+    delay = 1.0
     time.sleep(delay)
+    # -------------------------------
 
     # Generate realistic mock data
     result = {
@@ -54,7 +58,8 @@ def lambda_handler(event, context):
         "function": function_name,
         "latency_ms": result["latency_ms"],
         "simulated_delay_ms": delay * 1000,
-        "status": "success"
+        "status": "success",
+        "note": "BENCHMARK_STEP_1_TRIGGER"
     }))
 
     return result

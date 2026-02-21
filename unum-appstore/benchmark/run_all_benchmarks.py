@@ -7,10 +7,11 @@ Future-Based execution benefits with fan-in/fan-out patterns.
 
 Workflows:
 1. progressive-aggregator - Original baseline (FanOut→Source(5)→Aggregator)
-2. ml-training-pipeline - ML ensemble (DataGen→[LR, SVM, RF, GB]→Aggregator)  
+2. ml-training-pipeline - ML ensemble (DataGen→[LR, SVM, RF, GB]→Aggregator)
 3. video-analysis - Video processing (Decoder→Detector(batches)→Accumulator)
 4. image-processing-pipeline - Image ops ([Meta, Thumb, Resize, Filter, Faces]→Agg)
 5. genomics-pipeline - Scientific (Individuals→Merge→Sifting→[Overlap, Freq]→Final)
+6. multi-source-dashboard - Multi-source data aggregation (Trigger→[6 sources]→Merge)
 
 Execution Modes:
 - CLASSIC: Synchronous fan-in (last invoker executes aggregator)
@@ -41,7 +42,7 @@ import subprocess
 # Configuration
 # ============================================================
 
-REGION = os.environ.get('AWS_REGION', 'eu-west-1')
+REGION = os.environ.get('AWS_REGION', 'eu-central-1')
 
 # Workflow configurations
 WORKFLOWS = {
@@ -89,6 +90,26 @@ WORKFLOWS = {
         'fan_in_sizes': [6, 2],  # 6 individuals, then 2 analyses
         'expected_delays': [0.5, 0.4, 1.5, 1.8, 2.5, 3.5],  # Individual processing times
         'description': 'Genomics: 6 individuals (0.4s-3.5s) + 2 analyses (0.4s, 3s)',
+    },
+'multi-source-dashboard': {
+        'stack_name': 'multi-source-dashboard',
+        'entry_function': 'TriggerDashboard',
+        'terminal_function': 'MergeDashboardData',
+        'dynamodb_table': 'unum-intermediary-multi-dashboard',
+        'fan_in_sizes': [6],
+        # Update these to match your new app.py files:
+        'expected_delays': [1.0, 3.0, 5.0, 7.0, 9.0, 12.0], 
+        'description': 'Staircase Benchmark: Sales(1s), Inventory(3s), Marketing(5s), Market(7s), Weather(9s), Competitor(12s)',
+    },
+    'order-processing-workflow': {
+        'stack_name': 'order-processing-workflow',
+        'entry_function': 'TriggerFunction',
+        'terminal_function': 'Aggregator',
+        'dynamodb_table': 'unum-intermediate-datastore-orders',
+        'fan_in_sizes': [6],
+        # Update these to match your new app.py files:
+        'expected_delays': [1.0, 3.0, 5.0, 7.0, 9.0, 12.0], 
+        'description': 'Staircase Benchmark: Sales(1s), Inventory(3s), Marketing(5s), Market(7s), Weather(9s), Competitor(12s)',
     },
 }
 
@@ -271,7 +292,10 @@ class UnifiedBenchmarkRunner:
                     logical_id = resource['LogicalResourceId']
                     physical_id = resource['PhysicalResourceId']
                     # Extract function name from logical ID
-                    func_name = logical_id.replace('Function', '')
+                    if logical_id.endswith('Function'):
+                        func_name = logical_id[:-8]  # Removes last 8 chars ("Function")
+                    else:
+                        func_name = logical_id
                     functions[func_name] = physical_id
             print(f"    Discovered {len(functions)} functions for {workflow}")
         except Exception as e:
@@ -374,6 +398,20 @@ class UnifiedBenchmarkRunner:
                 "Data": {"Source": "http", "Value": {"chromosome": 22, "num_individuals": 6}},
                 "Session": session_id
             }
+        elif workflow == 'order-processing-workflow':
+            payload = {
+                "Data": {
+                    "Source": "http",
+                    "Value": {
+                        "order_id": session_id,
+                        "customer_id": "BENCH-CUSTOMER",
+                        "items": [
+                            {"sku": "ITEM-001", "quantity": 2, "price": 49.99},
+                            {"sku": "ITEM-002", "quantity": 1, "price": 29.99}
+                        ]
+                    }
+                }
+    }
         else:
             payload = {
                 "Data": {"Source": "http", "Value": {}},
@@ -424,6 +462,7 @@ class UnifiedBenchmarkRunner:
             '"COMPLETED"',
             '"pipeline_complete"',
             '"processing_complete"',
+            '"merge_complete"',
             '"aggregation_time_ms"',
         ]
         
@@ -643,10 +682,15 @@ class UnifiedBenchmarkRunner:
             summary.avg_pre_resolved = statistics.mean([r.pre_resolved_count for r in successful])
             
             # Memory metrics computation
-            summary.avg_max_memory_mb = statistics.mean([r.max_memory_used_mb for r in successful])
-            summary.avg_total_memory_mb = statistics.mean([r.total_memory_mb for r in successful])
-            summary.avg_aggregator_memory_mb = statistics.mean([r.aggregator_memory_mb for r in successful if r.aggregator_memory_mb > 0])
-            summary.avg_memory_efficiency = statistics.mean([r.memory_efficiency for r in successful if r.memory_efficiency > 0])
+            max_mem = [r.max_memory_used_mb for r in successful]
+            total_mem = [r.total_memory_mb for r in successful]
+            agg_mem = [r.aggregator_memory_mb for r in successful if r.aggregator_memory_mb > 0]
+            mem_eff = [r.memory_efficiency for r in successful if r.memory_efficiency > 0]
+
+            summary.avg_max_memory_mb = statistics.mean(max_mem) if max_mem else 0
+            summary.avg_total_memory_mb = statistics.mean(total_mem) if total_mem else 0
+            summary.avg_aggregator_memory_mb = statistics.mean(agg_mem) if agg_mem else 0
+            summary.avg_memory_efficiency = statistics.mean(mem_eff) if mem_eff else 0
             
             # Cost estimation
             total_billed = sum(r.total_billed_duration_ms for r in successful)

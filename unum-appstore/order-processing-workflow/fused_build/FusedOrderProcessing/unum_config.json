@@ -1,0 +1,18 @@
+{
+    "Name": "FusedOrderProcessing",
+    "Start": false,
+    "Debug": true,
+    "Checkpoint": true,
+    "Next": {
+        "Name": "Aggregator",
+        "InputType": {
+            "Fan-in": {
+                "Values": [
+                    "FastProcessor-unumIndex-0",
+                    "FusedOrderProcessing-unumIndex-1"
+                ]
+            }
+        },
+        "Fan-in-Group": true
+    }
+}

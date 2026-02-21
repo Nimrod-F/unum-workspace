@@ -1,0 +1,10 @@
+{
+  "Name": "MachineState",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "ShiftCheck",
+    "InputType": "Scalar"
+  }
+}

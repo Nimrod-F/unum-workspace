@@ -1,0 +1,16 @@
+{
+  "Name": "TriggerFunction",
+  "Start": true,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": [
+    {
+      "Name": "FastProcessor",
+      "InputType": "Scalar"
+    },
+    {
+      "Name": "SlowChainStart",
+      "InputType": "Scalar"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 """
-Fetch Marketing Metrics - Simulates fetching data from marketing analytics platform
-Latency: 200-800ms (third-party API with variable latency)
+Fetch Marketing Metrics - Simulates fetching data from marketing analytics
+Fixed Latency: 5.0s (Staircase Benchmark: Step 3/6)
 """
 import time
 import random
@@ -13,16 +13,19 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     """
-    Fetch marketing metrics with simulated latency (200-800ms).
-
-    Returns campaign performance, conversion rates, and channel metrics.
+    Fetch marketing metrics with FIXED latency for benchmarking.
     """
     start_time = time.time()
     function_name = "FetchMarketingMetrics"
 
-    # Simulate realistic latency (200-800ms for marketing analytics API)
-    delay = random.uniform(0.2, 0.8)
+    # --- BENCHMARK CONFIGURATION ---
+    # This is Step 3 in the Staircase.
+    # It finishes at T+5s.
+    # In Future Mode, the Aggregator will pick this up mid-stream,
+    # proving it can handle tasks arriving at varied intervals.
+    delay = 5.0
     time.sleep(delay)
+    # -------------------------------
 
     # Generate realistic mock data
     result = {
@@ -65,7 +68,8 @@ def lambda_handler(event, context):
         "function": function_name,
         "latency_ms": result["latency_ms"],
         "simulated_delay_ms": delay * 1000,
-        "status": "success"
+        "status": "success",
+        "note": "BENCHMARK_STEP_3"
     }))
 
     return result

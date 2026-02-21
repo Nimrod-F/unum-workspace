@@ -21,23 +21,23 @@ Resources:
       CodeUri: hello/
       Handler: main.lambda_handler
       Policies:
-        - AWSLambdaBasicExecutionRole
         - AWSLambdaRole
         - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
         - AmazonS3FullAccess
-      Runtime: python3.11
+      Runtime: python3.13
     Type: AWS::Serverless::Function
   WorldFunction:
     Properties:
       CodeUri: world/
       Handler: main.lambda_handler
       Policies:
-        - AWSLambdaBasicExecutionRole
         - AWSLambdaRole
-        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonSQSFullAccess
         - AmazonSNSFullAccess
         - AmazonDynamoDBFullAccess
-        - AmazonSQSFullAccess
-      Runtime: python3.11
+        - AmazonS3FullAccess
+      Runtime: python3.13
     Type: AWS::Serverless::Function
 Transform: AWS::Serverless-2016-10-31

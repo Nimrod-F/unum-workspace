@@ -1,0 +1,19 @@
+{
+  "Name": "FailureModel",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "ActionDispatcher",
+    "InputType": {
+      "Fan-in": {
+        "Values": [
+          "SafetyCheck-unumIndex-0",
+          "ShiftCheck-unumIndex-1",
+          "FailureModel-unumIndex-2"
+        ]
+      }
+    },
+    "Fan-in-Group": true
+  }
+}

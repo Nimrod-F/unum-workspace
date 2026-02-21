@@ -198,15 +198,12 @@ def sam_build(platform_template, args):
     
 
 def build(args):
-
     if args.clean:
         if args.platform == 'aws':
             sam_build_clean(args)
         elif args.platform == None:
             sam_build_clean(args)
         elif args.platform == 'azure':
-            pass
-        else:
             pass
         return
 
@@ -227,8 +224,30 @@ def build(args):
             args.platform_template = "template.yaml"
 
         try:
-            with open(args.platform_template) as f:
-                platform_template = load_yaml(f.read())
+            # --- FIX: Handle AWS CloudFormation Tags ---
+            import yaml
+            try:
+                from yaml import CLoader as Loader
+            except ImportError:
+                from yaml import Loader
+
+            # Define a generic constructor that ignores the tag and just returns the value
+            def aws_tag_constructor(loader, tag_suffix, node):
+                if isinstance(node, yaml.ScalarNode):
+                    return loader.construct_scalar(node)
+                elif isinstance(node, yaml.SequenceNode):
+                    return loader.construct_sequence(node)
+                elif isinstance(node, yaml.MappingNode):
+                    return loader.construct_mapping(node)
+
+            # Register the constructor for any tag starting with '!'
+            yaml.add_multi_constructor('!', aws_tag_constructor, Loader=Loader)
+
+            # Load the file directly using the Loader that knows about AWS tags
+            with open(args.platform_template, 'r') as f:
+                platform_template = yaml.load(f, Loader=Loader)
+            # -------------------------------------------
+            
         except Exception as e:
             print(f'\033[31m \n Build Failed!\n\n Make sure the platform template file exists\033[0m')
             print(f'\033[31m You can specify a platform template file with -s/--platform_template\033[0m')
@@ -472,10 +491,34 @@ def deploy_sam(args):
         print(f'\033[31m \n Deploy Failed!\n\n Make sure AWS_PROFILE is set\033[0m')
         raise OSError(f'Environment variable $AWS_PROFILE must exist')
 
-    # read unum template file
+    # --- HELPER: Setup YAML Loading with AWS Tags Support ---
+    import yaml
     try:
-        with open(args.template) as f:
-            unum_template = load_yaml(f.read())
+        from yaml import CLoader as Loader
+    except ImportError:
+        from yaml import Loader
+
+    # Handle AWS CloudFormation tags like !GetAtt, !Ref
+    def aws_tag_constructor(loader, tag_suffix, node):
+        if isinstance(node, yaml.ScalarNode):
+            return loader.construct_scalar(node)
+        elif isinstance(node, yaml.SequenceNode):
+            return loader.construct_sequence(node)
+        elif isinstance(node, yaml.MappingNode):
+            return loader.construct_mapping(node)
+
+    # Register the constructor safely
+    try:
+        yaml.add_multi_constructor('!', aws_tag_constructor, Loader=Loader)
+    except:
+        pass 
+    # --------------------------------------------------------
+
+    # 1. Read unum template (Standard YAML)
+    try:
+        with open(args.template, 'r') as f:
+            # FIX: Use safe_load directly on the file object
+            unum_template = yaml.safe_load(f)
             stack_name = unum_template["Globals"]["ApplicationName"]
     except Exception as e:
         print(f'\033[31m \n Deploy Failed!\n\n Failed to find unum template file: {args.template}\033[0m\n')
@@ -484,10 +527,11 @@ def deploy_sam(args):
         print(f'\033[31m See unum-cli deploy -h for more details\033[0m\n')
         raise e
 
-    # read platform template file (i.e., sam template)
+    # 2. Read platform template (AWS SAM YAML with Tags)
     try:
-        with open(args.platform_template) as f:
-            platform_template = load_yaml(f.read())
+        with open(args.platform_template, 'r') as f:
+            # FIX: Use the custom Loader that understands !GetAtt
+            platform_template = yaml.load(f, Loader=Loader)
     except Exception as e:
         print(f'\033[31m \n Deploy Failed!\n\n Failed to find platform template file: {args.platform_template}\033[0m\n')
         print(f'\033[31m Make sure the platform template file exists\033[0m')
@@ -495,21 +539,19 @@ def deploy_sam(args):
         print(f'\033[31m See unum-cli deploy -h for more details\033[0m\n')
         raise e
 
-
-
+    # --- Helper Functions (Keep original logic) ---
     def rollback_first_deployment():
         print(f'\033[31mRemoving function-arn.yaml\033[0m\n')
         if os.path.isfile('function-arn.yaml'):
             try:
-                ret = subprocess.run(["rm", "function-arn.yaml"], check = True, capture_output=True)
+                subprocess.run(["rm", "function-arn.yaml"], check = True, capture_output=True)
             except Exception as e:
                 print(f'Failed to delete function-arn.yaml')
 
-
         # check if the stack is deployed
         ret = subprocess.run(["aws", "cloudformation", "describe-stacks",
-                      "--stack-name", stack_name],
-                      capture_output=True)
+                              "--stack-name", stack_name],
+                              capture_output=True)
 
         if ret.returncode == 0:
             stack_info = json.loads(ret.stdout.decode("utf-8"))
@@ -518,19 +560,14 @@ def deploy_sam(args):
                 # if stack indeed exists on AWS, delete it
                 print(f'\033[31mRolling back trial deployment\033[0m\n')
                 ret = subprocess.run(["aws", "cloudformation", "delete-stack",
-                              "--stack-name", stack_name],
-                              capture_output=True)
+                                      "--stack-name", stack_name],
+                                      capture_output=True)
                 if ret.returncode != 0:
                     print(f'\033[31mFailed to delete AWS stack {stack_name}\033[0m')
 
     first_deploy = False
     if os.path.isfile('function-arn.yaml') == False:
-        # Need to do a trial deployment to create the Lambda resources and get
-        # their arn. With the arns, replace the `Name` field of the
-        # continuation of each unum_config.json with the arn of the deployed
-        # Lambda, and then deploy again. Note that we modify the
-        # unum_config.json in the build artifacts not the source code.
-
+        # Need to do a trial deployment to create the Lambda resources
         first_deploy = True
 
         # trial deployment
@@ -552,30 +589,12 @@ def deploy_sam(args):
     for f in platform_template["Resources"]:
         if platform_template["Resources"][f]["Type"] == 'AWS::Serverless::Function':
             function_artifact_dir = f'{base_dir}/{f}'
+            # Check if dir exists (important for fused builds)
+            if os.path.exists(function_artifact_dir):
+                print(f'[*] Copying function-arn.yaml into {function_artifact_dir}')
+                shutil.copy('function-arn.yaml', function_artifact_dir)
 
-            print(f'[*] Copying function-arn.yaml into {function_artifact_dir}')
-
-            shutil.copy('function-arn.yaml', function_artifact_dir)
-
-
-        # # update the unum_config.json in all functions (in the build artifacts, not source code)
-        # print(f'Updating unum configuration ......')
-        # if update_unum_config_continuation_to_arn(platform_template, function_to_arn_mapping) == False:
-
-        #     # If updating unum configuration fails at this point, rollback
-        #     print(f'\033[31m\nFailed to update unum configuration\033[0m\n')
-        #     rollback_first_deployment()
-        #     print(f'\033[31m\nTrial deployment rolled back\033[0m\n')
-        #     print(f'\033[31m\nDeployment Failed\033[0m\n')
-        #     exit(1)
-
-        # print(f'\033[32m \nAll unum configuration updated\033[0m\n')
-        # time.sleep(5)
-
-    # Validate build artifacts first
-    # User might have run unum-cli build asynchronously.
-    # Additionally, we need to make sure that all unum configurations have
-    # ARNs in their continuations, not function names
+    # Validate build artifacts
     if validate_sam_build_artifacts(platform_template) == False:
         print(f'\033[31m \n Deploy Failed!\n\n Invalid build artifacts\033[0m\n')
 
@@ -585,24 +604,7 @@ def deploy_sam(args):
 
         raise ValueError(f'Invalid build artifacts')
 
-    # if validate_sam_build_artifacts_unum_config() == False:
-    #     if os.path.isfile('function-arn.yaml'):
-    #         with open('function-arn.yaml') as f:
-    #             function_to_arn_mapping = load_yaml(f.read())
-
-            # update_unum_config_continuation_to_arn(platform_template, function_to_arn_mapping)
-
-    #     else:
-    #         print(f'\033[31m \nDeploy Failed!\n\n Invalid build artifacts\033[0m\n')
-    #         print(f'\033[31m unum configurations do not contain ARNs and function-arn.yaml does not exist.\033[0m\n')
-    #         if first_deploy:
-    #             # rollback if this is the first time deploying
-    #             rollback_first_deployment()
-
-    #         raise ValueError(f'Invalid build artifacts')
-
-
-    # deploy
+    # Final deploy
     ret, sam_output = sam_deploy_wrapper(stack_name)
     if ret == False:
         print(f'\033[31m Deploy Failed!\033[0m\n')
@@ -730,6 +732,10 @@ def validate_build_artifacts(platform_template, platform):
 
 
 def deploy(args):
+    # check if AWS_PROFILE is set
+    if os.getenv("AWS_PROFILE") == None:
+        print(f'\033[31m \n Deploy Failed!\n\n Make sure AWS_PROFILE is set\033[0m')
+        raise OSError(f'Environment variable $AWS_PROFILE must exist')
 
     # Make sure args has all names with valid values
     if args.platform_template == None:
@@ -742,15 +748,46 @@ def deploy(args):
         print(f'No unum template file specified.\nDefault to\033[33m\033[1m unum-template.yaml \033[0m\n')
         args.template = 'unum-template.yaml'
 
+    # --- HELPER: AWS YAML Loader (Same as build) ---
+    import yaml
     try:
-        with open(args.platform_template) as f:
-            platform_template = load_yaml(f.read())
+        from yaml import CLoader as Loader
+    except ImportError:
+        from yaml import Loader
+
+    def aws_tag_constructor(loader, tag_suffix, node):
+        if isinstance(node, yaml.ScalarNode):
+            return loader.construct_scalar(node)
+        elif isinstance(node, yaml.SequenceNode):
+            return loader.construct_sequence(node)
+        elif isinstance(node, yaml.MappingNode):
+            return loader.construct_mapping(node)
+
+    # Register the constructor (safe to call multiple times)
+    try:
+        yaml.add_multi_constructor('!', aws_tag_constructor, Loader=Loader)
+    except:
+        pass # Already registered
+    # -----------------------------------------------
+
+    # Read unum template
+    try:
+        with open(args.template, 'r') as f:
+            # Use standard safe_load for unum template (usually standard YAML)
+            unum_template = yaml.safe_load(f)
+            stack_name = unum_template["Globals"]["ApplicationName"]
+    except Exception as e:
+        print(f'\033[31m \n Deploy Failed!\n\n Failed to find unum template file: {args.template}\033[0m\n')
+        print(f'\033[31m Make sure the unum template file exists\033[0m')
+        raise e
+
+    # Read platform template (with AWS tags support)
+    try:
+        with open(args.platform_template, 'r') as f:
+            platform_template = yaml.load(f, Loader=Loader)
     except Exception as e:
         print(f'\033[31m \n Deploy Failed!\n\n Failed to find platform template file: {args.platform_template}\033[0m\n')
         print(f'\033[31m Make sure the platform template file exists\033[0m')
-        print(f'\033[31m You can specify a platform template file with -s/--platform_template\033[0m')
-        print(f'\033[31m Or generate a platform template from your unum template with "unum-cli template" or "unum-cli build -g"\033[0m')
-        print(f'\033[31m See unum-cli -h for more details\033[0m\n')
         raise e
 
     if "AWSTemplateFormatVersion" in platform_template:
@@ -791,7 +828,6 @@ def deploy(args):
         raise OSError(f'AZure deployment not supported yet')
     else:
         raise OSError(f'Other deployment not supported yet')
-
 
 def template(args):
 
@@ -1127,7 +1163,254 @@ def compile_workflow(args):
     print(f'  Total functions: {len(configs)}')
     print()
 
+def load_yaml(path):
+    with open(path, 'r') as f: return yaml.safe_load(f)
 
+def load_json(path):
+    with open(path, 'r') as f: return json.load(f)
+
+def save_json(path, data):
+    with open(path, 'w') as f: json.dump(data, f, indent=4)
+
+def compile_fusion(fusion_config_path='fusion.yaml', unum_template_path='unum-template.yaml'):
+    print(f"\033[33m[Fusion] Starting compilation from {fusion_config_path}...\033[0m")
+    
+    try:
+        fusion_defs = load_yaml(fusion_config_path)
+        unum_template = load_yaml(unum_template_path)
+    except Exception as e:
+        print(f"\033[31m[Error] Could not load config files: {e}\033[0m")
+        return
+
+    build_base = "fused_build"
+    # Clean/Create build directory
+    if os.path.exists(build_base):
+        shutil.rmtree(build_base)
+    os.makedirs(build_base)
+
+    # Track which original functions disappear so we can replace references to them
+    # Map: OldName -> NewFusedName
+    replacements_start = {} # Replaces references to the START of a chain (Next: SlowChainStart)
+    replacements_end = {}   # Replaces references to the END of a chain (Fan-in: SlowChainEnd)
+    
+    functions_to_remove = set()
+    new_template_functions = {}
+
+    # --- PHASE 1: Generate Fused Functions ---
+    for fusion in fusion_defs['fusions']:
+        fused_name = fusion['name']
+        chain = fusion['chain']
+        
+        print(f"  > Fusing: {chain} -> \033[32m{fused_name}\033[0m")
+        functions_to_remove.update(chain)
+
+        # Register replacements
+        replacements_start[chain[0]] = fused_name  # Trigger -> SlowChainStart BECOMES Trigger -> FusedOrderProcessing
+        replacements_end[chain[-1]] = fused_name   # Aggregator -> SlowChainEnd BECOMES Aggregator -> FusedOrderProcessing
+
+        # 1. Setup Directory
+        fused_dir = os.path.join(build_base, fused_name)
+        modules_dir = os.path.join(fused_dir, "modules")
+        os.makedirs(modules_dir)
+        open(os.path.join(modules_dir, "__init__.py"), 'w').close()
+
+        # 2. Copy Source & Build Chain
+        import_lines = []
+        execution_chain = []
+        
+        # We need the runtime info (Runtime, Memory) from the first function
+        first_func_info = unum_template['Functions'][chain[0]]
+        
+        for i, func_name in enumerate(chain):
+            func_info = unum_template['Functions'][func_name]
+            src_uri = func_info['Properties']['CodeUri']
+            dest_path = os.path.join(modules_dir, func_name)
+            
+            # Copy source
+            if os.path.isdir(src_uri):
+                shutil.copytree(src_uri, dest_path, dirs_exist_ok=True)
+            open(os.path.join(dest_path, "__init__.py"), 'w').close()
+
+            import_lines.append(f"import modules.{func_name}.app as step_{i}")
+            
+            if i == 0:
+                execution_chain.append(f"    # Step {i}: {func_name}")
+                execution_chain.append(f"    val_{i} = step_{i}.lambda_handler(event, context)")
+            else:
+                execution_chain.append(f"    # Step {i}: {func_name}")
+                execution_chain.append(f"    val_{i} = step_{i}.lambda_handler(val_{i-1}, context)")
+
+        # 3. Generate Wrapper
+        wrapper_code = f"""import sys
+import os
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+{chr(10).join(import_lines)}
+
+def lambda_handler(event, context):
+{chr(10).join(execution_chain)}
+    return val_{len(chain)-1}
+"""
+        with open(os.path.join(fused_dir, "app.py"), "w") as f:
+            f.write(wrapper_code)
+
+        # 4. Merge Config
+        first_config = load_json(os.path.join(modules_dir, chain[0], "unum_config.json"))
+        last_config = load_json(os.path.join(modules_dir, chain[-1], "unum_config.json"))
+
+        fused_config = {
+            "Name": fused_name,
+            "Start": first_config.get("Start", False),
+            "Debug": first_config.get("Debug", False),
+            "Checkpoint": True
+        }
+        
+        # --- FIX STARTS HERE ---
+        if "Next" in last_config:
+            next_block = last_config["Next"]
+            
+            # If the Next block is a Fan-in, we need to replace the old function name with the new fused name
+            # in the "Values" list so the fused function can find itself.
+            if isinstance(next_block, dict) and "InputType" in next_block:
+                itype = next_block["InputType"]
+                if isinstance(itype, dict) and "Fan-in" in itype:
+                    values = itype["Fan-in"]["Values"]
+                    new_values = []
+                    # The last function in the chain (e.g., SlowChainEnd) is what this config came from.
+                    # We need to replace references to it with the fused_name.
+                    old_end_name = chain[-1] 
+                    
+                    for val in values:
+                        if val.startswith(old_end_name):
+                            # Replace "SlowChainEnd" with "FusedOrderProcessing"
+                            new_val = val.replace(old_end_name, fused_name, 1)
+                            new_values.append(new_val)
+                        else:
+                            new_values.append(val)
+                    itype["Fan-in"]["Values"] = new_values
+            
+            fused_config["Next"] = next_block
+        # --- FIX ENDS HERE ---
+            
+        save_json(os.path.join(fused_dir, "unum_config.json"), fused_config)
+
+        # 5. Update Template Entry
+        new_template_functions[fused_name] = {
+            "Type": "AWS::Serverless::Function",
+            "Properties": {
+                "CodeUri": f"{build_base}/{fused_name}/",
+                "Handler": "main.lambda_handler",
+                "Runtime": first_func_info['Properties']['Runtime'],
+                "Policies": first_func_info['Properties'].get('Policies', [])
+            }
+        }
+
+    # --- PHASE 2: Patch Other Functions (The Linker Pass) ---
+    print(f"  > \033[36mLinking non-fused functions...\033[0m")
+    
+    # Copy of the original functions list to iterate over safely
+    original_functions = list(unum_template['Functions'].keys())
+    
+    for func_name in original_functions:
+        if func_name in functions_to_remove:
+            continue # Skip functions we just fused
+            
+        func_props = unum_template['Functions'][func_name]['Properties']
+        original_uri = func_props['CodeUri']
+        
+        # Load config to check if it needs patching
+        config_path = os.path.join(original_uri, "unum_config.json")
+        if not os.path.exists(config_path):
+            continue
+            
+        config = load_json(config_path)
+        modified = False
+        
+        # 1. Check 'Next' references (Trigger -> SlowChainStart)
+        if "Next" in config:
+            # Helper to patch a single Next entry
+            def patch_next_entry(entry):
+                if entry["Name"] in replacements_start:
+                    old = entry["Name"]
+                    new = replacements_start[old]
+                    print(f"    [Patch] {func_name}: Next '{old}' -> '{new}'")
+                    entry["Name"] = new
+                    return True
+                return False
+
+            if isinstance(config["Next"], dict):
+                if patch_next_entry(config["Next"]): modified = True
+            elif isinstance(config["Next"], list):
+                for entry in config["Next"]:
+                    if patch_next_entry(entry): modified = True
+
+        # 2. Check 'Fan-in' values (Aggregator -> SlowChainEnd)
+        # Note: We must verify recursively if Next is a fan-in type
+        def check_fan_in(next_block):
+            has_change = False
+            if isinstance(next_block, dict) and "InputType" in next_block:
+                itype = next_block["InputType"]
+                if isinstance(itype, dict) and "Fan-in" in itype:
+                    values = itype["Fan-in"]["Values"]
+                    new_values = []
+                    for val in values:
+                        # Value format: "FunctionName-unumIndex-..."
+                        # We need to see if "FunctionName" matches a replaced END function
+                        prefix = val.split('-')[0]
+                        if prefix in replacements_end:
+                            new_prefix = replacements_end[prefix]
+                            # Reconstruct string with new name
+                            new_val = val.replace(prefix, new_prefix, 1)
+                            print(f"    [Patch] {func_name}: Fan-in '{val}' -> '{new_val}'")
+                            new_values.append(new_val)
+                            has_change = True
+                        else:
+                            new_values.append(val)
+                    itype["Fan-in"]["Values"] = new_values
+            return has_change
+
+        if "Next" in config:
+            if isinstance(config["Next"], dict):
+                if check_fan_in(config["Next"]): modified = True
+            elif isinstance(config["Next"], list):
+                for entry in config["Next"]:
+                    if check_fan_in(entry): modified = True
+
+        # 3. If modified, move to build folder and update template
+        if modified:
+            # Create a patched copy in fused_build
+            patched_dir = os.path.join(build_base, func_name)
+            if os.path.exists(patched_dir): shutil.rmtree(patched_dir)
+            
+            # Copy original code
+            shutil.copytree(original_uri, patched_dir, dirs_exist_ok=True)
+            
+            # Save patched config
+            save_json(os.path.join(patched_dir, "unum_config.json"), config)
+            
+            # Update template to point to the patched version
+            new_template_functions[func_name] = unum_template['Functions'][func_name].copy()
+            new_template_functions[func_name]['Properties']['CodeUri'] = f"{patched_dir}/"
+            
+            # Mark this function as "handled" so we don't copy the old one over later
+            functions_to_remove.add(func_name) 
+
+    # --- PHASE 3: Finalize Template ---
+    fused_template = unum_template.copy()
+    
+    # Remove functions that were fused OR patched (because we added new entries for them)
+    for fname in functions_to_remove:
+        if fname in fused_template['Functions']:
+            del fused_template['Functions'][fname]
+            
+    # Add the new/patched functions
+    fused_template['Functions'].update(new_template_functions)
+    
+    save_path = 'unum-template-fused.yaml'
+    with open(save_path, 'w') as f:
+        yaml.dump(fused_template, f)
+        
+    print(f"\n\033[32m[Success] Generated {save_path}\033[0m")
+    print(f"Functions patched and moved to \033[33m{build_base}/\033[0m")
 
 def main():
     parser = argparse.ArgumentParser(description='unum CLI utility for creating, building and deploying unum applications',
@@ -1180,6 +1463,11 @@ def main():
     compile_parser.add_argument('-t', '--template', required=True, help="unum template file")
     compile_parser.add_argument('-o', '--optimize', required=False, choices=['trim'], help="optimizations")
 
+    # fuse command parser
+    fuse_parser = subparsers.add_parser("fuse", description="fuse multiple functions into single lambdas")
+    fuse_parser.add_argument('-c', '--config', default='fusion.yaml', help="path to fusion config file")
+    fuse_parser.add_argument('-t', '--template', default='unum-template.yaml', help="path to unum template")
+
     args = parser.parse_args()
 
     if args.command == 'build':
@@ -1192,6 +1480,8 @@ def main():
         init(args)
     elif args.command == 'compile':
         compile_workflow(args)
+    elif args.command == 'fuse':
+        compile_fusion(args.config, args.template)
     else:
         raise IOError(f'Unknown command: {args.command}')
         

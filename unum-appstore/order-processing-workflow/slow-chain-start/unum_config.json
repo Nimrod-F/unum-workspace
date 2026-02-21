@@ -1,0 +1,10 @@
+{
+  "Name": "SlowChainStart",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "SlowChainMid",
+    "InputType": "Scalar"
+  }
+}

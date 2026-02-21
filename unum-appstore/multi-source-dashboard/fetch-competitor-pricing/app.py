@@ -1,6 +1,6 @@
 """
-Fetch Competitor Pricing - Simulates scraping competitor pricing data
-Latency: 400-2500ms (web scraping with variable latency)
+Fetch Competitor Pricing - Simulates the SLOWEST task (The Straggler)
+Fixed Latency: 12.0s (Staircase Benchmark: Step 6/6)
 """
 import time
 import random
@@ -13,16 +13,18 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     """
-    Fetch competitor pricing with simulated latency (400-2500ms).
-
-    Returns competitor prices, market positioning, and price trends.
+    Fetch competitor pricing with FIXED latency for benchmarking.
     """
     start_time = time.time()
     function_name = "FetchCompetitorPricing"
 
-    # Simulate realistic latency (400-2500ms for web scraping)
-    delay = random.uniform(0.4, 2.5)
+    # --- BENCHMARK CONFIGURATION ---
+    # This is the "Straggler". It takes 12 seconds.
+    # In Future Mode, the aggregator will process the other 5 inputs 
+    # (which finish at 1s, 3s, 5s, 7s, 9s) while waiting for this one.
+    delay = 12.0
     time.sleep(delay)
+    # -------------------------------
 
     # Generate realistic mock data
     competitors = ["Competitor A", "Competitor B", "Competitor C", "Competitor D"]

@@ -1,0 +1,57 @@
+Globals:
+  ApplicationName: order-processing-workflow
+  Region: eu-central-1
+  WorkflowType: step-functions
+  WorkflowDefinition: unum-step-functions.json
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore-orders
+  Checkpoint: true
+  GC: false
+  Eager: true
+
+Functions:
+  TriggerFunction:
+    Properties:
+      CodeUri: trigger-function/
+      Runtime: python3.13
+      Start: true
+      MemorySize: 256
+      Timeout: 30
+
+  FastProcessor:
+    Properties:
+      CodeUri: fast-processor/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  SlowChainStart:
+    Properties:
+      CodeUri: slow-chain-start/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  SlowChainMid:
+    Properties:
+      CodeUri: slow-chain-mid/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  SlowChainEnd:
+    Properties:
+      CodeUri: slow-chain-end/
+      Runtime: python3.13
+      MemorySize: 256
+      Timeout: 30
+
+  Aggregator:
+    Properties:
+      CodeUri: aggregator/
+      Runtime: python3.13
+      MemorySize: 512
+      Timeout: 120
+      Environment:
+        UNUM_FUTURE_BASED: "true"

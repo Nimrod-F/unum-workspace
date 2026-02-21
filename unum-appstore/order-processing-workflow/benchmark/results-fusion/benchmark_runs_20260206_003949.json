@@ -1,0 +1,606 @@
+{
+  "CLASSIC": [
+    {
+      "run_id": 1,
+      "mode": "CLASSIC",
+      "order_id": "BENCH-CLASSIC-001-1770330929",
+      "start_time": 1770330946.2993984,
+      "end_time": 1770330958.238081,
+      "trigger_latency_ms": 1938.1814002990723,
+      "e2e_latency_ms": 8392,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 456.97,
+          "billed_duration_ms": 1571.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 91,
+          "init_duration_ms": 1114.02,
+          "cold_start": true,
+          "invocation_time_ms": 1770330954235
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 578.83,
+          "billed_duration_ms": 1643.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1063.54,
+          "cold_start": true,
+          "invocation_time_ms": 1770330949166
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3680.09,
+          "billed_duration_ms": 4767.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 1086.75,
+          "cold_start": true,
+          "invocation_time_ms": 1770330949206
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 615.26,
+          "billed_duration_ms": 1662.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1046.46,
+          "cold_start": true,
+          "invocation_time_ms": 1770330947250
+        }
+      },
+      "total_duration_ms": 5331.150000000001,
+      "total_billed_ms": 9643.0,
+      "cold_start_count": 4,
+      "total_init_ms": 4310.77,
+      "fast_processor_time_ms": 578.83,
+      "fused_order_processing_time_ms": 3680.09,
+      "aggregator_invocation_delay_ms": 7936,
+      "invoker_branch": "Aggregator",
+      "error": null
+    },
+    {
+      "run_id": 2,
+      "mode": "CLASSIC",
+      "order_id": "BENCH-CLASSIC-002-1770330969",
+      "start_time": 1770330969.8270984,
+      "end_time": 1770330980.0044425,
+      "trigger_latency_ms": 176.6030788421631,
+      "e2e_latency_ms": 3124,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 103.72,
+          "billed_duration_ms": 104.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 91,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770330972848
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 226.53,
+          "billed_duration_ms": 227.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770330969618
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3149.17,
+          "billed_duration_ms": 3150.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770330969697
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 123.95,
+          "billed_duration_ms": 124.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770330969510
+        }
+      },
+      "total_duration_ms": 3603.37,
+      "total_billed_ms": 3605.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 226.53,
+      "fused_order_processing_time_ms": 3149.17,
+      "aggregator_invocation_delay_ms": 3021,
+      "invoker_branch": "Aggregator",
+      "error": null
+    },
+    {
+      "run_id": 3,
+      "mode": "CLASSIC",
+      "order_id": "BENCH-CLASSIC-003-1770330992",
+      "start_time": 1770330992.1239686,
+      "end_time": 1770331002.2880926,
+      "trigger_latency_ms": 163.42973709106445,
+      "e2e_latency_ms": 3049,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 86.58,
+          "billed_duration_ms": 87.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 91,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770330995086
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 224.19,
+          "billed_duration_ms": 225.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770330991900
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3159.36,
+          "billed_duration_ms": 3160.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770330991927
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 127.94,
+          "billed_duration_ms": 128.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770330991806
+        }
+      },
+      "total_duration_ms": 3598.07,
+      "total_billed_ms": 3600.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 224.19,
+      "fused_order_processing_time_ms": 3159.36,
+      "aggregator_invocation_delay_ms": 2963,
+      "invoker_branch": "Aggregator",
+      "error": null
+    },
+    {
+      "run_id": 4,
+      "mode": "CLASSIC",
+      "order_id": "BENCH-CLASSIC-004-1770331013",
+      "start_time": 1770331013.3987203,
+      "end_time": 1770331023.5979524,
+      "trigger_latency_ms": 198.41885566711426,
+      "e2e_latency_ms": 3193,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 146.51,
+          "billed_duration_ms": 147.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 91,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331016445
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 241.41,
+          "billed_duration_ms": 242.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331013244
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3166.8,
+          "billed_duration_ms": 3167.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331013260
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 145.07,
+          "billed_duration_ms": 146.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331013078
+        }
+      },
+      "total_duration_ms": 3699.79,
+      "total_billed_ms": 3702.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 241.41,
+      "fused_order_processing_time_ms": 3166.8,
+      "aggregator_invocation_delay_ms": 3047,
+      "invoker_branch": "Aggregator",
+      "error": null
+    },
+    {
+      "run_id": 5,
+      "mode": "CLASSIC",
+      "order_id": "BENCH-CLASSIC-005-1770331034",
+      "start_time": 1770331034.7574158,
+      "end_time": 1770331044.9288838,
+      "trigger_latency_ms": 170.53818702697754,
+      "e2e_latency_ms": 3114,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 112.97,
+          "billed_duration_ms": 113.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 91,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331037759
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 222.95,
+          "billed_duration_ms": 223.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331034543
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3153.3,
+          "billed_duration_ms": 3154.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331034594
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 137.58,
+          "billed_duration_ms": 138.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331034436
+        }
+      },
+      "total_duration_ms": 3626.8,
+      "total_billed_ms": 3628.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 222.95,
+      "fused_order_processing_time_ms": 3153.3,
+      "aggregator_invocation_delay_ms": 3002,
+      "invoker_branch": "Aggregator",
+      "error": null
+    }
+  ],
+  "FUTURE_BASED": [
+    {
+      "run_id": 1,
+      "mode": "FUTURE_BASED",
+      "order_id": "BENCH-FUTURE_BASED-001-1770331087",
+      "start_time": 1770331104.2134213,
+      "end_time": 1770331116.175036,
+      "trigger_latency_ms": 1960.555076599121,
+      "e2e_latency_ms": 6430,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 1607.66,
+          "billed_duration_ms": 2588.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 88,
+          "init_duration_ms": 980.06,
+          "cold_start": true,
+          "invocation_time_ms": 1770331109036
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 822.58,
+          "billed_duration_ms": 1839.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1015.94,
+          "cold_start": true,
+          "invocation_time_ms": 1770331107070
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3514.29,
+          "billed_duration_ms": 4577.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1061.83,
+          "cold_start": true,
+          "invocation_time_ms": 1770331107123
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 645.73,
+          "billed_duration_ms": 1678.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1031.68,
+          "cold_start": true,
+          "invocation_time_ms": 1770331105172
+        }
+      },
+      "total_duration_ms": 6590.26,
+      "total_billed_ms": 10682.0,
+      "cold_start_count": 4,
+      "total_init_ms": 4089.51,
+      "fast_processor_time_ms": 822.58,
+      "fused_order_processing_time_ms": 3514.29,
+      "aggregator_invocation_delay_ms": 4823,
+      "invoker_branch": "FusedOrderProcessing",
+      "error": null
+    },
+    {
+      "run_id": 2,
+      "mode": "FUTURE_BASED",
+      "order_id": "BENCH-FUTURE_BASED-002-1770331128",
+      "start_time": 1770331128.4859378,
+      "end_time": 1770331138.675815,
+      "trigger_latency_ms": 188.95840644836426,
+      "e2e_latency_ms": 2978,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 2922.9,
+          "billed_duration_ms": 2923.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 88,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331128541
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 308.04,
+          "billed_duration_ms": 309.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331128284
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3161.57,
+          "billed_duration_ms": 3162.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331128316
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 150.6,
+          "billed_duration_ms": 151.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331128167
+        }
+      },
+      "total_duration_ms": 6543.110000000001,
+      "total_billed_ms": 6545.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 308.04,
+      "fused_order_processing_time_ms": 3161.57,
+      "aggregator_invocation_delay_ms": 56,
+      "invoker_branch": "FusedOrderProcessing",
+      "error": null
+    },
+    {
+      "run_id": 3,
+      "mode": "FUTURE_BASED",
+      "order_id": "BENCH-FUTURE_BASED-003-1770331144",
+      "start_time": 1770331144.6343944,
+      "end_time": 1770331154.8157513,
+      "trigger_latency_ms": 179.94976043701172,
+      "e2e_latency_ms": 2989,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 2970.21,
+          "billed_duration_ms": 2971.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 88,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331144653
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 307.04,
+          "billed_duration_ms": 308.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331144406
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3151.69,
+          "billed_duration_ms": 3152.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331144446
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 145.09,
+          "billed_duration_ms": 146.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331144312
+        }
+      },
+      "total_duration_ms": 6574.03,
+      "total_billed_ms": 6577.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 307.04,
+      "fused_order_processing_time_ms": 3151.69,
+      "aggregator_invocation_delay_ms": 19,
+      "invoker_branch": "FusedOrderProcessing",
+      "error": null
+    },
+    {
+      "run_id": 4,
+      "mode": "FUTURE_BASED",
+      "order_id": "BENCH-FUTURE_BASED-004-1770331161",
+      "start_time": 1770331161.2417567,
+      "end_time": 1770331171.435116,
+      "trigger_latency_ms": 192.5954818725586,
+      "e2e_latency_ms": 3002,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 2938.88,
+          "billed_duration_ms": 2939.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 88,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331161305
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 308.04,
+          "billed_duration_ms": 309.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331161045
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3135.23,
+          "billed_duration_ms": 3136.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331161084
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 138.52,
+          "billed_duration_ms": 139.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331160920
+        }
+      },
+      "total_duration_ms": 6520.67,
+      "total_billed_ms": 6523.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 308.04,
+      "fused_order_processing_time_ms": 3135.23,
+      "aggregator_invocation_delay_ms": 64,
+      "invoker_branch": "FusedOrderProcessing",
+      "error": null
+    },
+    {
+      "run_id": 5,
+      "mode": "FUTURE_BASED",
+      "order_id": "BENCH-FUTURE_BASED-005-1770331178",
+      "start_time": 1770331178.1248612,
+      "end_time": 1770331188.335033,
+      "trigger_latency_ms": 209.27786827087402,
+      "e2e_latency_ms": 3039,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 2933.85,
+          "billed_duration_ms": 2934.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 88,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331178230
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 330.25,
+          "billed_duration_ms": 331.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331177944
+        },
+        "FusedOrderProcessing": {
+          "function_name": "FusedOrderProcessing",
+          "duration_ms": 3167.48,
+          "billed_duration_ms": 3168.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331177971
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 176.68,
+          "billed_duration_ms": 177.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770331177801
+        }
+      },
+      "total_duration_ms": 6608.26,
+      "total_billed_ms": 6610.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 330.25,
+      "fused_order_processing_time_ms": 3167.48,
+      "aggregator_invocation_delay_ms": 106,
+      "invoker_branch": "FusedOrderProcessing",
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: true
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore-orders
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  AggregatorFunction:
+    Value: !GetAtt AggregatorFunction.Arn
+  FastProcessorFunction:
+    Value: !GetAtt FastProcessorFunction.Arn
+  FusedOrderProcessingFunction:
+    Value: !GetAtt FusedOrderProcessingFunction.Arn
+  TriggerFunctionFunction:
+    Value: !GetAtt TriggerFunctionFunction.Arn
+Resources:
+  AggregatorFunction:
+    Properties:
+      CodeUri: aggregator/
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: 'true'
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FastProcessorFunction:
+    Properties:
+      CodeUri: fused_build\FastProcessor/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FusedOrderProcessingFunction:
+    Properties:
+      CodeUri: fused_build/FusedOrderProcessing/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  TriggerFunctionFunction:
+    Properties:
+      CodeUri: fused_build\TriggerFunction/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

@@ -1,0 +1,826 @@
+{
+  "CLASSIC": [
+    {
+      "run_id": 1,
+      "mode": "CLASSIC",
+      "order_id": "NOSTOCK-CLASSIC-001-1770324506",
+      "start_time": 1770324523.495287,
+      "end_time": 1770324535.4924874,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 1996.5722560882568,
+      "e2e_latency_ms": 12471,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 454.46,
+          "billed_duration_ms": 1589.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 89,
+          "init_duration_ms": 1134.45,
+          "cold_start": true,
+          "invocation_time_ms": 1770324535512
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 514.42,
+          "billed_duration_ms": 1489.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 974.07,
+          "cold_start": true,
+          "invocation_time_ms": 1770324526434
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 2201.96,
+          "billed_duration_ms": 3307.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 1104.8,
+          "cold_start": true,
+          "invocation_time_ms": 1770324531848
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1561.09,
+          "billed_duration_ms": 2593.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1031.08,
+          "cold_start": true,
+          "invocation_time_ms": 1770324528935
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 1098.34,
+          "billed_duration_ms": 2155.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1056.38,
+          "cold_start": true,
+          "invocation_time_ms": 1770324526558
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 646.61,
+          "billed_duration_ms": 1664.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 1016.95,
+          "cold_start": true,
+          "invocation_time_ms": 1770324524586
+        }
+      },
+      "total_duration_ms": 6476.88,
+      "total_billed_ms": 12797.0,
+      "cold_start_count": 6,
+      "total_init_ms": 6317.7300000000005,
+      "fast_processor_time_ms": 514.42,
+      "slow_chain_total_ms": 4861.389999999999,
+      "aggregator_invocation_delay_ms": 12017,
+      "short_circuited": false,
+      "time_saved_ms": 0.0,
+      "error": null
+    },
+    {
+      "run_id": 2,
+      "mode": "CLASSIC",
+      "order_id": "NOSTOCK-CLASSIC-002-1770324551",
+      "start_time": 1770324551.1699433,
+      "end_time": 1770324561.351702,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 180.93037605285645,
+      "e2e_latency_ms": 3477,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 118.03,
+          "billed_duration_ms": 119.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 89,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324554528
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 213.3,
+          "billed_duration_ms": 214.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324551095
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 1659.02,
+          "billed_duration_ms": 1660.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324552850
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1088.19,
+          "billed_duration_ms": 1089.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324551747
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 587.38,
+          "billed_duration_ms": 588.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324551129
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 136.19,
+          "billed_duration_ms": 137.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324550974
+        }
+      },
+      "total_duration_ms": 3802.11,
+      "total_billed_ms": 3807.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 213.3,
+      "slow_chain_total_ms": 3334.59,
+      "aggregator_invocation_delay_ms": 3359,
+      "short_circuited": false,
+      "time_saved_ms": 0.0,
+      "error": null
+    },
+    {
+      "run_id": 3,
+      "mode": "CLASSIC",
+      "order_id": "NOSTOCK-CLASSIC-003-1770324571",
+      "start_time": 1770324571.02597,
+      "end_time": 1770324581.1921523,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 165.27581214904785,
+      "e2e_latency_ms": 3461,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 101.98,
+          "billed_duration_ms": 102.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 89,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324574385
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 197.43,
+          "billed_duration_ms": 198.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324570972
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 1650.45,
+          "billed_duration_ms": 1651.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324572739
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1092.19,
+          "billed_duration_ms": 1093.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324571623
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 584.18,
+          "billed_duration_ms": 585.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324571032
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 132.03,
+          "billed_duration_ms": 133.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324570818
+        }
+      },
+      "total_duration_ms": 3758.26,
+      "total_billed_ms": 3762.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 197.43,
+      "slow_chain_total_ms": 3326.82,
+      "aggregator_invocation_delay_ms": 3360,
+      "short_circuited": false,
+      "time_saved_ms": 0.0,
+      "error": null
+    },
+    {
+      "run_id": 4,
+      "mode": "CLASSIC",
+      "order_id": "NOSTOCK-CLASSIC-004-1770324591",
+      "start_time": 1770324591.8222084,
+      "end_time": 1770324602.0116162,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 188.60793113708496,
+      "e2e_latency_ms": 3505,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 142.12,
+          "billed_duration_ms": 143.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 89,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324595185
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 236.96,
+          "billed_duration_ms": 237.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324591731
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 1681.21,
+          "billed_duration_ms": 1682.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324593488
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1118.37,
+          "billed_duration_ms": 1119.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324592377
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 577.83,
+          "billed_duration_ms": 578.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324591761
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 148.14,
+          "billed_duration_ms": 149.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324591603
+        }
+      },
+      "total_duration_ms": 3904.63,
+      "total_billed_ms": 3908.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 236.96,
+      "slow_chain_total_ms": 3377.41,
+      "aggregator_invocation_delay_ms": 3363,
+      "short_circuited": false,
+      "time_saved_ms": 0.0,
+      "error": null
+    },
+    {
+      "run_id": 5,
+      "mode": "CLASSIC",
+      "order_id": "NOSTOCK-CLASSIC-005-1770324611",
+      "start_time": 1770324611.754746,
+      "end_time": 1770324621.9153383,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 159.69252586364746,
+      "e2e_latency_ms": 3373,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 83.84,
+          "billed_duration_ms": 84.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 89,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324615044
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 205.93,
+          "billed_duration_ms": 206.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324611662
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 1644.78,
+          "billed_duration_ms": 1645.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324613385
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1099.56,
+          "billed_duration_ms": 1100.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324612276
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 583.65,
+          "billed_duration_ms": 584.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324611694
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 131.97,
+          "billed_duration_ms": 132.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324611539
+        }
+      },
+      "total_duration_ms": 3749.73,
+      "total_billed_ms": 3751.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 205.93,
+      "slow_chain_total_ms": 3327.99,
+      "aggregator_invocation_delay_ms": 3290,
+      "short_circuited": false,
+      "time_saved_ms": 0.0,
+      "error": null
+    }
+  ],
+  "FUTURE_BASED": [
+    {
+      "run_id": 1,
+      "mode": "FUTURE_BASED",
+      "order_id": "NOSTOCK-FUTURE_BASED-001-1770324655",
+      "start_time": 1770324672.6860292,
+      "end_time": 1770324679.6297858,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 1942.5952434539795,
+      "e2e_latency_ms": 5549,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 476.81,
+          "billed_duration_ms": 1510.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 1032.31,
+          "cold_start": true,
+          "invocation_time_ms": 1770324677759
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 879.03,
+          "billed_duration_ms": 1943.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 1063.01,
+          "cold_start": true,
+          "invocation_time_ms": 1770324675649
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 0.0,
+          "billed_duration_ms": 0.0,
+          "memory_size_mb": 0,
+          "memory_used_mb": 0,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 0
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1558.21,
+          "billed_duration_ms": 2665.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1105.9,
+          "cold_start": true,
+          "invocation_time_ms": 1770324678201
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 1088.04,
+          "billed_duration_ms": 2243.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 1154.07,
+          "cold_start": true,
+          "invocation_time_ms": 1770324675761
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 622.93,
+          "billed_duration_ms": 1668.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 1044.66,
+          "cold_start": true,
+          "invocation_time_ms": 1770324673744
+        }
+      },
+      "total_duration_ms": 4625.0199999999995,
+      "total_billed_ms": 10029.0,
+      "cold_start_count": 5,
+      "total_init_ms": 5399.95,
+      "fast_processor_time_ms": 879.03,
+      "slow_chain_total_ms": 2646.25,
+      "aggregator_invocation_delay_ms": 5073,
+      "short_circuited": true,
+      "time_saved_ms": 3000,
+      "error": null
+    },
+    {
+      "run_id": 2,
+      "mode": "FUTURE_BASED",
+      "order_id": "NOSTOCK-FUTURE_BASED-002-1770324689",
+      "start_time": 1770324689.218506,
+      "end_time": 1770324694.3710248,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 151.3512134552002,
+      "e2e_latency_ms": 277,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 130.04,
+          "billed_duration_ms": 131.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324689365
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 310.65,
+          "billed_duration_ms": 311.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324689118
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 1652.39,
+          "billed_duration_ms": 1653.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324690823
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1085.59,
+          "billed_duration_ms": 1086.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324689734
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 581.93,
+          "billed_duration_ms": 582.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324689147
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 123.78,
+          "billed_duration_ms": 124.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324689003
+        }
+      },
+      "total_duration_ms": 3884.38,
+      "total_billed_ms": 3887.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 310.65,
+      "slow_chain_total_ms": 3319.91,
+      "aggregator_invocation_delay_ms": 147,
+      "short_circuited": true,
+      "time_saved_ms": 2980,
+      "error": null
+    },
+    {
+      "run_id": 3,
+      "mode": "FUTURE_BASED",
+      "order_id": "NOSTOCK-FUTURE_BASED-003-1770324704",
+      "start_time": 1770324704.2356756,
+      "end_time": 1770324709.3703818,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 133.5742473602295,
+      "e2e_latency_ms": 260,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 138.96,
+          "billed_duration_ms": 139.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324704357
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 303.1,
+          "billed_duration_ms": 304.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324704105
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 1647.16,
+          "billed_duration_ms": 1648.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324705808
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1071.16,
+          "billed_duration_ms": 1072.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324704728
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 567.37,
+          "billed_duration_ms": 568.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324704142
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 112.25,
+          "billed_duration_ms": 113.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324704014
+        }
+      },
+      "total_duration_ms": 3840.0,
+      "total_billed_ms": 3844.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 303.1,
+      "slow_chain_total_ms": 3285.69,
+      "aggregator_invocation_delay_ms": 122,
+      "short_circuited": true,
+      "time_saved_ms": 2960,
+      "error": null
+    },
+    {
+      "run_id": 4,
+      "mode": "FUTURE_BASED",
+      "order_id": "NOSTOCK-FUTURE_BASED-004-1770324719",
+      "start_time": 1770324719.0646358,
+      "end_time": 1770324724.2286236,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 163.19918632507324,
+      "e2e_latency_ms": 310,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 130.78,
+          "billed_duration_ms": 131.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324719244
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 331.12,
+          "billed_duration_ms": 332.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324718957
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 1653.78,
+          "billed_duration_ms": 1654.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324720722
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1075.06,
+          "billed_duration_ms": 1076.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324719624
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 589.94,
+          "billed_duration_ms": 590.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324719001
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 121.66,
+          "billed_duration_ms": 122.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324718845
+        }
+      },
+      "total_duration_ms": 3902.34,
+      "total_billed_ms": 3905.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 331.12,
+      "slow_chain_total_ms": 3318.7799999999997,
+      "aggregator_invocation_delay_ms": 180,
+      "short_circuited": true,
+      "time_saved_ms": 3001,
+      "error": null
+    },
+    {
+      "run_id": 5,
+      "mode": "FUTURE_BASED",
+      "order_id": "NOSTOCK-FUTURE_BASED-005-1770324733",
+      "start_time": 1770324733.985526,
+      "end_time": 1770324739.1902065,
+      "scenario": "no_stock",
+      "trigger_latency_ms": 203.90748977661133,
+      "e2e_latency_ms": 330,
+      "function_metrics": {
+        "Aggregator": {
+          "function_name": "Aggregator",
+          "duration_ms": 158.03,
+          "billed_duration_ms": 159.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324734157
+        },
+        "FastProcessor": {
+          "function_name": "FastProcessor",
+          "duration_ms": 329.08,
+          "billed_duration_ms": 330.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 92,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324733899
+        },
+        "SlowChainEnd": {
+          "function_name": "SlowChainEnd",
+          "duration_ms": 1649.76,
+          "billed_duration_ms": 1650.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 90,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324735627
+        },
+        "SlowChainMid": {
+          "function_name": "SlowChainMid",
+          "duration_ms": 1074.13,
+          "billed_duration_ms": 1075.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324734525
+        },
+        "SlowChainStart": {
+          "function_name": "SlowChainStart",
+          "duration_ms": 590.29,
+          "billed_duration_ms": 591.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 94,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324733938
+        },
+        "TriggerFunction": {
+          "function_name": "TriggerFunction",
+          "duration_ms": 161.8,
+          "billed_duration_ms": 162.0,
+          "memory_size_mb": 128,
+          "memory_used_mb": 93,
+          "init_duration_ms": 0.0,
+          "cold_start": false,
+          "invocation_time_ms": 1770324733767
+        }
+      },
+      "total_duration_ms": 3963.09,
+      "total_billed_ms": 3967.0,
+      "cold_start_count": 0,
+      "total_init_ms": 0.0,
+      "fast_processor_time_ms": 329.08,
+      "slow_chain_total_ms": 3314.1800000000003,
+      "aggregator_invocation_delay_ms": 172,
+      "short_circuited": true,
+      "time_saved_ms": 2961,
+      "error": null
+    }
+  ]
+}

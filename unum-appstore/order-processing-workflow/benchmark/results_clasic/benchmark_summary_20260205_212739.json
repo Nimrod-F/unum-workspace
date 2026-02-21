@@ -1,0 +1,69 @@
+{
+  "CLASSIC": {
+    "mode": "CLASSIC",
+    "total_runs": 5,
+    "successful_runs": 5,
+    "failed_runs": 0,
+    "timestamp": "2026-02-05T21:27:39.547401",
+    "e2e_mean_ms": 5337.4,
+    "e2e_median_ms": 3562,
+    "e2e_min_ms": 3478,
+    "e2e_max_ms": 12444,
+    "e2e_std_ms": 3973.7438015050743,
+    "aggregator_invocation_mean_ms": 5160.4,
+    "aggregator_invocation_median_ms": 3469,
+    "aggregator_invocation_min_ms": 3385,
+    "aggregator_invocation_max_ms": 12007,
+    "avg_trigger_ms": 247.472,
+    "avg_fast_processor_ms": 288.30600000000004,
+    "avg_slow_chain_start_ms": 680.828,
+    "avg_slow_chain_mid_ms": 1190.916,
+    "avg_slow_chain_end_ms": 1762.608,
+    "avg_aggregator_ms": 177.53199999999998,
+    "avg_slow_chain_total_ms": 3634.352,
+    "total_cold_starts": 6,
+    "avg_init_duration_ms": 6512.54,
+    "invoker_distribution": {
+      "SlowChainEnd": 4,
+      "FastProcessor": 1
+    },
+    "total_billed_ms": 28263.0,
+    "estimated_cost_usd": 0.000123762735525
+  },
+  "FUTURE_BASED": {
+    "mode": "FUTURE_BASED",
+    "total_runs": 5,
+    "successful_runs": 5,
+    "failed_runs": 0,
+    "timestamp": "2026-02-05T21:27:39.550647",
+    "e2e_mean_ms": 4796.8,
+    "e2e_median_ms": 3491,
+    "e2e_min_ms": 3360,
+    "e2e_max_ms": 10218,
+    "e2e_std_ms": 3031.6600568005642,
+    "aggregator_invocation_mean_ms": 1246.4,
+    "aggregator_invocation_median_ms": 349,
+    "aggregator_invocation_min_ms": 258,
+    "aggregator_invocation_max_ms": 4926,
+    "avg_trigger_ms": 253.042,
+    "avg_fast_processor_ms": 432.576,
+    "avg_slow_chain_start_ms": 701.126,
+    "avg_slow_chain_mid_ms": 1191.512,
+    "avg_slow_chain_end_ms": 2079.77,
+    "avg_aggregator_ms": 3550.9880000000003,
+    "avg_slow_chain_total_ms": 2308.592,
+    "total_cold_starts": 6,
+    "avg_init_duration_ms": 6136.58,
+    "invoker_distribution": {
+      "FastProcessor": 5
+    },
+    "total_billed_ms": 38874.0,
+    "estimated_cost_usd": 0.00016797532395000002
+  },
+  "improvement": {
+    "e2e_latency_ms": 540.5999999999995,
+    "e2e_latency_pct": 10.12852699816389,
+    "aggregator_invocation_ms": 3913.9999999999995,
+    "aggregator_invocation_pct": 75.84683357879234
+  }
+}

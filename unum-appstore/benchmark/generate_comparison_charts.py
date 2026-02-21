@@ -43,6 +43,7 @@ WORKFLOW_LABELS = {
     'video-analysis': 'Video\nAnalysis',
     'image-processing-pipeline': 'Image\nProcessing',
     'genomics-pipeline': 'Genomics\nPipeline',
+    'multi-source-dashboard': 'Multi-Source\nDashboard',
 }
 
 
@@ -245,6 +246,7 @@ def create_pre_resolved_chart(results: Dict, output_dir: str):
         'video-analysis': 6,
         'image-processing-pipeline': 5,
         'genomics-pipeline': 6,  # First fan-in
+        'multi-source-dashboard': 6,  # 6 parallel data sources
     }
     
     for workflow in results.keys():
@@ -540,6 +542,10 @@ def create_workflow_profile_chart(results: Dict, output_dir: str):
         'genomics-pipeline': {
             'tasks': ['HG00096', 'HG00097', 'NA12891', 'NA12892', 'HG00099', 'NA12878'],
             'durations': [0.5, 0.4, 1.5, 1.8, 2.5, 3.5],
+        },
+        'multi-source-dashboard': {
+            'tasks': ['Sales', 'Inventory', 'Marketing', 'Market', 'Weather', 'Competitor'],
+            'durations': [0.25, 0.325, 0.5, 1.75, 0.9, 1.45],
         },
     }
     

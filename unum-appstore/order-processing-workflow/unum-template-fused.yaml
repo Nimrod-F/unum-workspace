@@ -1,0 +1,40 @@
+Functions:
+  Aggregator:
+    Properties:
+      CodeUri: aggregator/
+      Environment:
+        UNUM_FUTURE_BASED: 'true'
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 120
+  FastProcessor:
+    Properties:
+      CodeUri: fused_build\FastProcessor/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  FusedOrderProcessing:
+    Properties:
+      CodeUri: fused_build/FusedOrderProcessing/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  TriggerFunction:
+    Properties:
+      CodeUri: fused_build\TriggerFunction/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+Globals:
+  ApplicationName: order-processing-workflow
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore-orders
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowDefinition: unum-step-functions.json
+  WorkflowType: step-functions

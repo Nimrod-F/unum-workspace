@@ -1,6 +1,6 @@
 """
-Fetch Weather Data - Simulates fetching weather data for regional operations planning
-Latency: 300-1500ms (external weather API with moderate latency)
+Fetch Weather Data - Simulates fetching weather for regional operations
+Fixed Latency: 9.0s (Staircase Benchmark: Step 5/6)
 """
 import time
 import random
@@ -13,16 +13,19 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     """
-    Fetch weather data with simulated latency (300-1500ms).
-
-    Returns weather conditions, forecasts, and alerts for operational regions.
+    Fetch weather data with FIXED latency for benchmarking.
     """
     start_time = time.time()
     function_name = "FetchWeatherData"
 
-    # Simulate realistic latency (300-1500ms for weather API)
-    delay = random.uniform(0.3, 1.5)
+    # --- BENCHMARK CONFIGURATION ---
+    # This is Step 5 in the Staircase.
+    # It finishes at T+9s.
+    # In Future Mode, the Aggregator processes this immediately after 
+    # Market Data (7s) and before waiting for the final Straggler (12s).
+    delay = 9.0
     time.sleep(delay)
+    # -------------------------------
 
     # Generate realistic mock data
     regions = ["north", "south", "east", "west", "central"]
@@ -75,7 +78,8 @@ def lambda_handler(event, context):
         "function": function_name,
         "latency_ms": result["latency_ms"],
         "simulated_delay_ms": delay * 1000,
-        "status": "success"
+        "status": "success",
+        "note": "BENCHMARK_STEP_5"
     }))
 
     return result

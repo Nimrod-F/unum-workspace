@@ -1,0 +1,8 @@
+# fusion.yaml
+fusions:
+  - name: FusedOrderProcessing
+    # The new merged function will be named 'FusedOrderProcessing'
+    chain:
+      - SlowChainStart # Step 1
+      - SlowChainMid # Step 2
+      - SlowChainEnd # Step 3

@@ -1,7 +1,6 @@
 """
-Fetch External Market Data - Simulates fetching data from slow external market data provider
-Latency: 500-3000ms (SLOWEST - external API with high latency)
-This is the critical path function that demonstrates the benefit of futures
+Fetch External Market Data - Simulates fetching data from slow external provider
+Fixed Latency: 7.0s (Staircase Benchmark: Step 4/6)
 """
 import time
 import random
@@ -14,22 +13,22 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     """
-    Fetch external market data with simulated latency (500-3000ms).
-
-    This is intentionally the SLOWEST function to demonstrate the benefit
-    of Future-Based execution where other faster branches complete first.
-
-    Returns market indices, commodity prices, and forex rates.
+    Fetch external market data with FIXED latency for benchmarking.
     """
     start_time = time.time()
     function_name = "FetchExternalMarketData"
 
-    # Simulate realistic latency (500-3000ms for slow external market data API)
-    # This is the critical slow path that benefits most from future-based execution
-    delay = random.uniform(0.5, 3.0)
+    # --- BENCHMARK CONFIGURATION ---
+    # This is Step 4 in the Staircase.
+    # It finishes at T+7s.
+    # In Future Mode, the Aggregator (started at T+1s) will have processed 
+    # Sales (1s) and Inventory (3s), and is currently processing Marketing (5s).
+    # It will pick this up immediately after Marketing is done.
+    delay = 7.0
     time.sleep(delay)
+    # -------------------------------
 
-    # Generate realistic mock data with some computational overhead
+    # Generate realistic mock data
     indices = {}
     for index in ["S&P500", "NASDAQ", "DOW", "FTSE", "DAX", "NIKKEI"]:
         indices[index] = {
@@ -62,14 +61,14 @@ def lambda_handler(event, context):
         "latency_ms": (time.time() - start_time) * 1000
     }
 
-    # Log for metrics collection - this is the slowest branch
+    # Log for metrics collection
     logger.info(json.dumps({
         "event": "function_complete",
         "function": function_name,
         "latency_ms": result["latency_ms"],
         "simulated_delay_ms": delay * 1000,
         "status": "success",
-        "note": "SLOWEST_BRANCH - demonstrates future-based benefit"
+        "note": "BENCHMARK_STEP_4"
     }))
 
     return result

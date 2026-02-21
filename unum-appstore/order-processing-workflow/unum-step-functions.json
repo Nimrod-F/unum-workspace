@@ -1,0 +1,52 @@
+{
+  "Comment": "Order Processing Workflow - Fan-out with sequential chain for benchmarking Future-Based execution",
+  "StartAt": "TriggerFunction",
+  "States": {
+    "TriggerFunction": {
+      "Type": "Task",
+      "Resource": "TriggerFunction",
+      "Next": "ParallelProcessing"
+    },
+    "ParallelProcessing": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "FastProcessor",
+          "States": {
+            "FastProcessor": {
+              "Type": "Task",
+              "Resource": "FastProcessor",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "SlowChainStart",
+          "States": {
+            "SlowChainStart": {
+              "Type": "Task",
+              "Resource": "SlowChainStart",
+              "Next": "SlowChainMid"
+            },
+            "SlowChainMid": {
+              "Type": "Task",
+              "Resource": "SlowChainMid",
+              "Next": "SlowChainEnd"
+            },
+            "SlowChainEnd": {
+              "Type": "Task",
+              "Resource": "SlowChainEnd",
+              "End": true
+            }
+          }
+        }
+      ],
+      "Next": "Aggregator"
+    },
+    "Aggregator": {
+      "Type": "Task",
+      "Resource": "Aggregator",
+      "End": true
+    }
+  }
+}

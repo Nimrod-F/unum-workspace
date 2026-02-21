@@ -1,6 +1,6 @@
 """
-Fetch Inventory Data - Simulates fetching inventory data from warehouse system
-Latency: 150-500ms (internal system with moderate latency)
+Fetch Inventory Data - Simulates fetching inventory from warehouse
+Fixed Latency: 3.0s (Staircase Benchmark: Step 2/6)
 """
 import time
 import random
@@ -13,16 +13,19 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     """
-    Fetch inventory data with simulated latency (150-500ms).
-
-    Returns stock levels, warehouse status, and reorder alerts.
+    Fetch inventory data with FIXED latency for benchmarking.
     """
     start_time = time.time()
     function_name = "FetchInventoryData"
 
-    # Simulate realistic latency (150-500ms for warehouse system)
-    delay = random.uniform(0.15, 0.5)
+    # --- BENCHMARK CONFIGURATION ---
+    # This is Step 2 in the Staircase.
+    # It finishes at T+3s.
+    # By the time the Aggregator (triggered at T+1s) finishes its cold start (~1s),
+    # it will barely have to wait for this function. 
+    delay = 3.0
     time.sleep(delay)
+    # -------------------------------
 
     # Generate realistic mock data
     result = {
@@ -47,7 +50,11 @@ def lambda_handler(event, context):
                 }
             },
             "reorder_alerts": [
-                {"sku": f"SKU{i:04d}", "current_stock": random.randint(1, 20), "reorder_point": 50}
+                {
+                    "sku": f"SKU{i:04d}", 
+                    "current_stock": random.randint(1, 20), 
+                    "reorder_point": 50
+                }
                 for i in range(random.randint(3, 8))
             ]
         },
@@ -61,7 +68,8 @@ def lambda_handler(event, context):
         "function": function_name,
         "latency_ms": result["latency_ms"],
         "simulated_delay_ms": delay * 1000,
-        "status": "success"
+        "status": "success",
+        "note": "BENCHMARK_STEP_2"
     }))
 
     return result
