@@ -1,0 +1,634 @@
+{
+  "pipeline": "nlp-pipeline",
+  "region": "eu-central-1",
+  "text_length": 12735,
+  "stages": 4,
+  "fields_per_stage": 5,
+  "warm_runs": 3,
+  "cold_runs": 3,
+  "generated": "2026-02-10T23:16:38.195402",
+  "normal": {
+    "mode": "normal",
+    "timestamp": "2026-02-10T23:12:38.435347",
+    "cold_summary": {
+      "count": 3,
+      "avg_latency_s": 14.252,
+      "min_latency_s": 14.099,
+      "max_latency_s": 14.341,
+      "std_dev_s": 0.133,
+      "avg_billed_ms": 13725.7,
+      "avg_cost_usd": 2.859519607916667e-05
+    },
+    "warm_summary": {
+      "count": 3,
+      "avg_latency_s": 7.036,
+      "min_latency_s": 3.247,
+      "max_latency_s": 8.977,
+      "std_dev_s": 3.282,
+      "avg_billed_ms": 9130,
+      "avg_cost_usd": 1.9020871375000002e-05
+    },
+    "per_function": {
+      "Tokenizer": {
+        "avg_duration_ms": 601.8,
+        "avg_memory_mb": 97,
+        "avg_app_duration_ms": 193.7
+      },
+      "Analyzer": {
+        "avg_duration_ms": 1102.5,
+        "avg_memory_mb": 97,
+        "avg_app_duration_ms": 446.3
+      },
+      "Classifier": {
+        "avg_duration_ms": 3750.5,
+        "avg_memory_mb": 98,
+        "avg_app_duration_ms": 3215.3
+      },
+      "Summarizer": {
+        "avg_duration_ms": 3673.0,
+        "avg_memory_mb": 94,
+        "avg_app_duration_ms": 3468.3
+      }
+    },
+    "cold_runs": [
+      {
+        "run_id": 1,
+        "cold": true,
+        "e2e_latency_s": 14.341,
+        "wall_clock_s": 1.927,
+        "total_billed_ms": 13713,
+        "total_cost_usd": 2.8568807137500003e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770757808027,
+            "duration_ms": 1044.02,
+            "billed_duration_ms": 1671,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 626.97,
+            "app_duration_ms": 222
+          },
+          "Analyzer": {
+            "timestamp": 1770757810511,
+            "duration_ms": 1637.34,
+            "billed_duration_ms": 2327,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 688.79,
+            "app_duration_ms": 499
+          },
+          "Classifier": {
+            "timestamp": 1770757815412,
+            "duration_ms": 4134.87,
+            "billed_duration_ms": 4839,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 703.25,
+            "app_duration_ms": 3202
+          },
+          "Summarizer": {
+            "timestamp": 1770757820492,
+            "duration_ms": 4261.99,
+            "billed_duration_ms": 4876,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "init_duration_ms": 613.8,
+            "app_duration_ms": 3402
+          }
+        }
+      },
+      {
+        "run_id": 2,
+        "cold": true,
+        "e2e_latency_s": 14.099,
+        "wall_clock_s": 1.902,
+        "total_billed_ms": 13637,
+        "total_cost_usd": 2.8410473487500002e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770757838804,
+            "duration_ms": 1035.31,
+            "billed_duration_ms": 1705,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 669.48,
+            "app_duration_ms": 227
+          },
+          "Analyzer": {
+            "timestamp": 1770757841155,
+            "duration_ms": 1600.26,
+            "billed_duration_ms": 2265,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 664.07,
+            "app_duration_ms": 479
+          },
+          "Classifier": {
+            "timestamp": 1770757845916,
+            "duration_ms": 4063.8,
+            "billed_duration_ms": 4696,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 631.23,
+            "app_duration_ms": 3224
+          },
+          "Summarizer": {
+            "timestamp": 1770757851038,
+            "duration_ms": 4370.31,
+            "billed_duration_ms": 4971,
+            "memory_size_mb": 128,
+            "max_memory_mb": 93,
+            "init_duration_ms": 600.22,
+            "app_duration_ms": 3482
+          }
+        }
+      },
+      {
+        "run_id": 3,
+        "cold": true,
+        "e2e_latency_s": 14.316,
+        "wall_clock_s": 1.874,
+        "total_billed_ms": 13827,
+        "total_cost_usd": 2.8806307612500002e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770757869207,
+            "duration_ms": 1028.55,
+            "billed_duration_ms": 1657,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 628.28,
+            "app_duration_ms": 222
+          },
+          "Analyzer": {
+            "timestamp": 1770757871523,
+            "duration_ms": 1585.67,
+            "billed_duration_ms": 2217,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 630.93,
+            "app_duration_ms": 479
+          },
+          "Classifier": {
+            "timestamp": 1770757876445,
+            "duration_ms": 4157.17,
+            "billed_duration_ms": 4894,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 736.09,
+            "app_duration_ms": 3299
+          },
+          "Summarizer": {
+            "timestamp": 1770757881665,
+            "duration_ms": 4367.66,
+            "billed_duration_ms": 5059,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "init_duration_ms": 690.93,
+            "app_duration_ms": 3482
+          }
+        }
+      }
+    ],
+    "warm_runs": [
+      {
+        "run_id": 1,
+        "cold": false,
+        "e2e_latency_s": 3.247,
+        "wall_clock_s": 0.647,
+        "total_billed_ms": 9087,
+        "total_cost_usd": 1.8931287862500003e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770757900588,
+            "duration_ms": 601.59,
+            "billed_duration_ms": 602,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 162
+          },
+          "Analyzer": {
+            "timestamp": 1770757901626,
+            "duration_ms": 1104.37,
+            "billed_duration_ms": 1105,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 440
+          },
+          "Classifier": {
+            "timestamp": 1770757905265,
+            "duration_ms": 3735.84,
+            "billed_duration_ms": 3736,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 3203
+          },
+          "Summarizer": {
+            "timestamp": 1770757903224,
+            "duration_ms": 3643.85,
+            "billed_duration_ms": 3644,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "app_duration_ms": 3462
+          }
+        }
+      },
+      {
+        "run_id": 2,
+        "cold": false,
+        "e2e_latency_s": 8.885,
+        "wall_clock_s": 0.637,
+        "total_billed_ms": 9109,
+        "total_cost_usd": 1.89771212875e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770757915948,
+            "duration_ms": 593.25,
+            "billed_duration_ms": 594,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 200
+          },
+          "Analyzer": {
+            "timestamp": 1770757916946,
+            "duration_ms": 1098.27,
+            "billed_duration_ms": 1099,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 440
+          },
+          "Classifier": {
+            "timestamp": 1770757920565,
+            "duration_ms": 3716.01,
+            "billed_duration_ms": 3717,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 3201
+          },
+          "Summarizer": {
+            "timestamp": 1770757924244,
+            "duration_ms": 3698.29,
+            "billed_duration_ms": 3699,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "app_duration_ms": 3462
+          }
+        }
+      },
+      {
+        "run_id": 3,
+        "cold": false,
+        "e2e_latency_s": 8.977,
+        "wall_clock_s": 0.634,
+        "total_billed_ms": 9194,
+        "total_cost_usd": 1.9154204975e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770757937308,
+            "duration_ms": 610.61,
+            "billed_duration_ms": 611,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 219
+          },
+          "Analyzer": {
+            "timestamp": 1770757938326,
+            "duration_ms": 1104.81,
+            "billed_duration_ms": 1105,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 459
+          },
+          "Classifier": {
+            "timestamp": 1770757942025,
+            "duration_ms": 3799.63,
+            "billed_duration_ms": 3800,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 3242
+          },
+          "Summarizer": {
+            "timestamp": 1770757945665,
+            "duration_ms": 3677.0,
+            "billed_duration_ms": 3678,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "app_duration_ms": 3481
+          }
+        }
+      }
+    ]
+  },
+  "streaming": {
+    "mode": "streaming",
+    "timestamp": "2026-02-10T23:16:38.195402",
+    "cold_summary": {
+      "count": 3,
+      "avg_latency_s": 10.424,
+      "min_latency_s": 10.337,
+      "max_latency_s": 10.564,
+      "std_dev_s": 0.122,
+      "avg_billed_ms": 15253,
+      "avg_cost_usd": 3.1777146887500004e-05
+    },
+    "warm_summary": {
+      "count": 3,
+      "avg_latency_s": 5.73,
+      "min_latency_s": 5.685,
+      "max_latency_s": 5.755,
+      "std_dev_s": 0.039,
+      "avg_billed_ms": 11013.7,
+      "avg_cost_usd": 2.2945184779166667e-05
+    },
+    "per_function": {
+      "Tokenizer": {
+        "avg_duration_ms": 773.7,
+        "avg_memory_mb": 97,
+        "avg_app_duration_ms": 515
+      },
+      "Analyzer": {
+        "avg_duration_ms": 1206.6,
+        "avg_memory_mb": 98,
+        "avg_app_duration_ms": 918
+      },
+      "Classifier": {
+        "avg_duration_ms": 3873.4,
+        "avg_memory_mb": 98,
+        "avg_app_duration_ms": 3752.3
+      },
+      "Summarizer": {
+        "avg_duration_ms": 5158.1,
+        "avg_memory_mb": 95,
+        "avg_app_duration_ms": 5053.3
+      }
+    },
+    "cold_runs": [
+      {
+        "run_id": 1,
+        "cold": true,
+        "e2e_latency_s": 10.337,
+        "wall_clock_s": 2.353,
+        "total_billed_ms": 15110,
+        "total_cost_usd": 3.1479229625000005e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770758050811,
+            "duration_ms": 1504.32,
+            "billed_duration_ms": 2144,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 639.34,
+            "app_duration_ms": 1019
+          },
+          "Analyzer": {
+            "timestamp": 1770758053013,
+            "duration_ms": 2018.03,
+            "billed_duration_ms": 2725,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 705.99,
+            "app_duration_ms": 1479
+          },
+          "Classifier": {
+            "timestamp": 1770758057233,
+            "duration_ms": 4449.08,
+            "billed_duration_ms": 5102,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 652.81,
+            "app_duration_ms": 4099
+          },
+          "Summarizer": {
+            "timestamp": 1770758058840,
+            "duration_ms": 4559.33,
+            "billed_duration_ms": 5139,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "init_duration_ms": 579.64,
+            "app_duration_ms": 4204
+          }
+        }
+      },
+      {
+        "run_id": 2,
+        "cold": true,
+        "e2e_latency_s": 10.371,
+        "wall_clock_s": 2.311,
+        "total_billed_ms": 15138,
+        "total_cost_usd": 3.1537563075000004e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770758079737,
+            "duration_ms": 1501.1,
+            "billed_duration_ms": 2124,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 622.71,
+            "app_duration_ms": 999
+          },
+          "Analyzer": {
+            "timestamp": 1770758081833,
+            "duration_ms": 1970.11,
+            "billed_duration_ms": 2639,
+            "memory_size_mb": 128,
+            "max_memory_mb": 96,
+            "init_duration_ms": 667.94,
+            "app_duration_ms": 1459
+          },
+          "Classifier": {
+            "timestamp": 1770758086007,
+            "duration_ms": 4414.59,
+            "billed_duration_ms": 5074,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 658.95,
+            "app_duration_ms": 4059
+          },
+          "Summarizer": {
+            "timestamp": 1770758087851,
+            "duration_ms": 4683.14,
+            "billed_duration_ms": 5301,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "init_duration_ms": 617.47,
+            "app_duration_ms": 4304
+          }
+        }
+      },
+      {
+        "run_id": 3,
+        "cold": true,
+        "e2e_latency_s": 10.564,
+        "wall_clock_s": 2.406,
+        "total_billed_ms": 15511,
+        "total_cost_usd": 3.2314647962500003e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770758101908,
+            "duration_ms": 1575.0,
+            "billed_duration_ms": 2242,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 666.43,
+            "app_duration_ms": 1079
+          },
+          "Analyzer": {
+            "timestamp": 1770758103951,
+            "duration_ms": 2000.76,
+            "billed_duration_ms": 2643,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 641.26,
+            "app_duration_ms": 1486
+          },
+          "Classifier": {
+            "timestamp": 1770758108198,
+            "duration_ms": 4513.45,
+            "billed_duration_ms": 5149,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 634.68,
+            "app_duration_ms": 4182
+          },
+          "Summarizer": {
+            "timestamp": 1770758110117,
+            "duration_ms": 4817.75,
+            "billed_duration_ms": 5477,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "init_duration_ms": 659.05,
+            "app_duration_ms": 4420
+          }
+        }
+      }
+    ],
+    "warm_runs": [
+      {
+        "run_id": 1,
+        "cold": false,
+        "e2e_latency_s": 5.685,
+        "wall_clock_s": 0.778,
+        "total_billed_ms": 11001,
+        "total_cost_usd": 2.29187958375e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770758131747,
+            "duration_ms": 759.83,
+            "billed_duration_ms": 760,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 499
+          },
+          "Analyzer": {
+            "timestamp": 1770758132331,
+            "duration_ms": 1194.34,
+            "billed_duration_ms": 1195,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 919
+          },
+          "Classifier": {
+            "timestamp": 1770758135298,
+            "duration_ms": 3891.55,
+            "billed_duration_ms": 3892,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 3779
+          },
+          "Summarizer": {
+            "timestamp": 1770758136677,
+            "duration_ms": 5153.95,
+            "billed_duration_ms": 5154,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "app_duration_ms": 5041
+          }
+        }
+      },
+      {
+        "run_id": 2,
+        "cold": false,
+        "e2e_latency_s": 5.751,
+        "wall_clock_s": 0.852,
+        "total_billed_ms": 11065,
+        "total_cost_usd": 2.30521294375e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770758153628,
+            "duration_ms": 803.25,
+            "billed_duration_ms": 804,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 524
+          },
+          "Analyzer": {
+            "timestamp": 1770758154211,
+            "duration_ms": 1203.46,
+            "billed_duration_ms": 1204,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 916
+          },
+          "Classifier": {
+            "timestamp": 1770758157158,
+            "duration_ms": 3880.45,
+            "billed_duration_ms": 3881,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 3759
+          },
+          "Summarizer": {
+            "timestamp": 1770758158578,
+            "duration_ms": 5175.43,
+            "billed_duration_ms": 5176,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "app_duration_ms": 5059
+          }
+        }
+      },
+      {
+        "run_id": 3,
+        "cold": false,
+        "e2e_latency_s": 5.755,
+        "wall_clock_s": 0.825,
+        "total_billed_ms": 10975,
+        "total_cost_usd": 2.2864629062500004e-05,
+        "functions": {
+          "Tokenizer": {
+            "timestamp": 1770758180725,
+            "duration_ms": 757.93,
+            "billed_duration_ms": 758,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 522
+          },
+          "Analyzer": {
+            "timestamp": 1770758181332,
+            "duration_ms": 1222.06,
+            "billed_duration_ms": 1223,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 919
+          },
+          "Classifier": {
+            "timestamp": 1770758184218,
+            "duration_ms": 3848.16,
+            "billed_duration_ms": 3849,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 3719
+          },
+          "Summarizer": {
+            "timestamp": 1770758185696,
+            "duration_ms": 5144.92,
+            "billed_duration_ms": 5145,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "app_duration_ms": 5060
+          }
+        }
+      }
+    ]
+  }
+}

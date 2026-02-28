@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: false
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-dna-analysis
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  ComparatorFunction:
+    Value: !GetAtt ComparatorFunction.Arn
+  DnaAnalyzerFunction:
+    Value: !GetAtt DnaAnalyzerFunction.Arn
+  ReaderFunction:
+    Value: !GetAtt ReaderFunction.Arn
+  ReporterFunction:
+    Value: !GetAtt ReporterFunction.Arn
+Resources:
+  ComparatorFunction:
+    Properties:
+      CodeUri: comparator/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  DnaAnalyzerFunction:
+    Properties:
+      CodeUri: dna_analyzer/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  ReaderFunction:
+    Properties:
+      CodeUri: reader/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  ReporterFunction:
+    Properties:
+      CodeUri: reporter/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

@@ -1,0 +1,10 @@
+{
+  "Name": "Generator",
+  "Start": true,
+  "Next": [
+    {
+      "Name": "Processor",
+      "InputType": "Scalar"
+    }
+  ]
+}

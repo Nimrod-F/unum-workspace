@@ -1,0 +1,29 @@
+Globals:
+  ApplicationName: unum-nlp-pipeline
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-nlp-pipeline
+  GC: false
+  Checkpoint: true
+  Eager: false
+  WorkflowDefinition: unum-step-functions.json
+  WorkflowType: step-functions
+
+Functions:
+  Tokenizer:
+    Properties:
+      CodeUri: tokenizer/
+      Runtime: python3.11
+      Start: true
+  Analyzer:
+    Properties:
+      CodeUri: analyzer/
+      Runtime: python3.11
+  Classifier:
+    Properties:
+      CodeUri: classifier/
+      Runtime: python3.11
+  Summarizer:
+    Properties:
+      CodeUri: summarizer/
+      Runtime: python3.11

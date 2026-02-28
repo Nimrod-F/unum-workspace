@@ -1,0 +1,356 @@
+"""
+Reader - Stage 1 of DNA Sequence Analysis Pipeline
+
+Parses DNA sequences and performs foundational analysis:
+k-mer extraction, base composition, open reading frame detection,
+nucleotide frequency, and sequence segmentation.
+
+All computation is genuine — no artificial delays.
+Inspired by SeBS 504.dna-visualisation and bioinformatics pipelines.
+
+Produces 5 independent output fields consumed one-to-one by the Analyzer.
+"""
+import json
+import time
+import math
+import random
+from unum_streaming import StreamingPublisher, set_streaming_output
+from collections import Counter
+
+
+# ─── DNA Sequence Generator ─────────────────────────────────────────────
+
+def generate_dna_sequence(length, gc_content=0.5, seed=42):
+    """Generate a realistic DNA sequence with specified GC content."""
+    rng = random.Random(seed)
+    gc_prob = gc_content / 2
+    at_prob = (1 - gc_content) / 2
+    bases = []
+    weights = [at_prob, gc_prob, gc_prob, at_prob]  # A, C, G, T
+    alphabet = 'ACGT'
+    for _ in range(length):
+        r = rng.random()
+        cumulative = 0
+        for i, w in enumerate(weights):
+            cumulative += w
+            if r <= cumulative:
+                bases.append(alphabet[i])
+                break
+    return ''.join(bases)
+
+
+def parse_fasta(sequence, seq_id='seq_001'):
+    """Parse a sequence into FASTA-like records."""
+    records = []
+    chunk_size = 1000  # Smaller chunks for more segments → heavier downstream computation
+    for i in range(0, len(sequence), chunk_size):
+        chunk = sequence[i:i + chunk_size]
+        records.append({
+            'id': f'{seq_id}_chunk_{i // chunk_size}',
+            'sequence': chunk,
+            'length': len(chunk),
+            'offset': i
+        })
+    return records
+
+
+# ─── K-mer extraction ───────────────────────────────────────────────────
+
+def extract_kmers(sequence, k):
+    """Extract all k-mers from a sequence and count frequencies."""
+    kmers = Counter()
+    for i in range(len(sequence) - k + 1):
+        kmer = sequence[i:i + k]
+        kmers[kmer] += 1
+    return kmers
+
+
+# ─── Open Reading Frame detection ───────────────────────────────────────
+
+CODON_TABLE = {
+    'ATG': 'M', 'TAA': '*', 'TAG': '*', 'TGA': '*',
+    'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L',
+    'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
+    'ATT': 'I', 'ATC': 'I', 'ATA': 'I',
+    'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
+    'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S',
+    'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
+    'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T',
+    'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
+    'TAT': 'Y', 'TAC': 'Y',
+    'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
+    'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K',
+    'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
+    'TGT': 'C', 'TGC': 'C', 'TGG': 'W',
+    'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
+    'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
+    'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G',
+}
+
+
+def find_orfs(sequence, min_length=100):
+    """Find open reading frames (start codon to stop codon)."""
+    orfs = []
+    for frame in range(3):
+        i = frame
+        while i < len(sequence) - 2:
+            codon = sequence[i:i + 3]
+            if codon == 'ATG':
+                # Found start codon, look for stop
+                start = i
+                j = i + 3
+                protein = ['M']
+                while j < len(sequence) - 2:
+                    c = sequence[j:j + 3]
+                    aa = CODON_TABLE.get(c, '?')
+                    if aa == '*':
+                        if j - start >= min_length:
+                            orfs.append({
+                                'start': start,
+                                'end': j + 3,
+                                'length': j + 3 - start,
+                                'frame': frame,
+                                'protein_length': len(protein),
+                                'protein_preview': ''.join(protein[:20])
+                            })
+                        break
+                    protein.append(aa)
+                    j += 3
+                i = j + 3
+            else:
+                i += 3
+    return orfs
+
+
+def lambda_handler(event, context):
+    """
+    Stage 1: Parse DNA sequence and produce 5 independent analysis fields.
+
+    Input: { "sequence_length": 50000, "gc_content": 0.5, "seq_id": "..." }
+    Output: { "kmers", "base_composition", "open_reading_frames", "segments", "nucleotide_freq" }
+    """
+
+
+    # Streaming: Initialize publisher for incremental parameter streaming
+    _streaming_session = event.get('Session', '') or str(id(event))
+    _streaming_publisher = StreamingPublisher(
+        session_id=_streaming_session,
+        source_function="ReaderFunction",
+        field_names=["kmers", "base_composition", "open_reading_frames", "segments", "nucleotide_freq"]
+    )
+    start_time = time.time()
+
+    seq_length = event.get('sequence_length', 50000)
+    gc_content = event.get('gc_content', 0.5)
+    seq_id = event.get('seq_id', 'benchmark_seq')
+
+    print(f'[Reader] Starting: length={seq_length}, GC={gc_content}')
+
+    # Generate sequence
+    sequence = generate_dna_sequence(seq_length, gc_content)
+
+    # ── Field 1: kmers ─────────────────────────────────────────────────
+    t0 = time.time()
+    kmer_3 = extract_kmers(sequence, 3)
+    kmer_4 = extract_kmers(sequence, 4)
+    kmer_5 = extract_kmers(sequence, 5)
+    kmer_6 = extract_kmers(sequence, 6)
+
+    # K-mer diversity
+    possible_3 = 4 ** 3
+    possible_4 = 4 ** 4
+    diversity_3 = len(kmer_3) / possible_3
+    diversity_4 = len(kmer_4) / possible_4
+
+    # K-mer entropy
+    total_3 = sum(kmer_3.values())
+    entropy_3 = -sum(
+        (c / total_3) * math.log2(c / total_3) for c in kmer_3.values()
+    )
+
+    field_1_time = int((time.time() - t0) * 1000)
+    print(f'[Reader] kmers: {len(kmer_3)}x3 + {len(kmer_4)}x4 + {len(kmer_5)}x5 in {field_1_time}ms')
+
+    kmers = {
+        'kmer_3_all': dict(kmer_3),
+        'kmer_4_all': dict(kmer_4),
+        'kmer_5_top': kmer_5.most_common(500),
+        'kmer_6_top': kmer_6.most_common(500),
+        'diversity_3': round(diversity_3, 4),
+        'diversity_4': round(diversity_4, 4),
+        'entropy_3': round(entropy_3, 4),
+        'compute_ms': field_1_time,
+        'seq_id': seq_id
+    }
+    _streaming_publisher.publish('kmers', kmers)
+    # Streaming: Signal to runtime to invoke next function early with futures
+    if _streaming_publisher.should_invoke_next():
+        _streaming_payload = _streaming_publisher.get_streaming_payload()
+        # Store payload for runtime to pick up and invoke continuation
+        set_streaming_output(_streaming_payload)
+        _streaming_publisher.mark_next_invoked()
+    # ── Field 2: base_composition ──────────────────────────────────────
+    t0 = time.time()
+    base_counts = Counter(sequence)
+    total_bases = len(sequence)
+    base_freqs = {b: c / total_bases for b, c in base_counts.items()}
+
+    # Sliding window base composition (window=500)
+    window = 500
+    windows = []
+    for i in range(0, len(sequence) - window, window // 2):
+        chunk = sequence[i:i + window]
+        chunk_counts = Counter(chunk)
+        windows.append({
+            'position': i,
+            'gc': (chunk_counts.get('G', 0) + chunk_counts.get('C', 0)) / window,
+            'at': (chunk_counts.get('A', 0) + chunk_counts.get('T', 0)) / window,
+        })
+
+    # Dinucleotide frequencies
+    dinucs = Counter()
+    for i in range(len(sequence) - 1):
+        dinucs[sequence[i:i + 2]] += 1
+    dinuc_freqs = {k: v / max(sum(dinucs.values()), 1) for k, v in dinucs.items()}
+
+    field_2_time = int((time.time() - t0) * 1000)
+    print(f'[Reader] base_composition: {len(windows)} windows in {field_2_time}ms')
+
+    base_composition = {
+        'base_freqs': {k: round(v, 6) for k, v in base_freqs.items()},
+        'gc_windows': windows,
+        'dinuc_freqs': {k: round(v, 6) for k, v in dinuc_freqs.items()},
+        'total_bases': total_bases,
+        'compute_ms': field_2_time,
+        'seq_id': seq_id
+    }
+    _streaming_publisher.publish('base_composition', base_composition)
+
+    # ── Field 3: open_reading_frames ───────────────────────────────────
+    t0 = time.time()
+    orfs = find_orfs(sequence, min_length=75)
+
+    # ORF statistics
+    orf_lengths = [o['length'] for o in orfs]
+    avg_orf = sum(orf_lengths) / max(len(orf_lengths), 1)
+    max_orf = max(orf_lengths) if orf_lengths else 0
+
+    # Coding density
+    coding_bases = sum(orf_lengths)
+    coding_density = coding_bases / max(total_bases, 1)
+
+    field_3_time = int((time.time() - t0) * 1000)
+    print(f'[Reader] ORFs: {len(orfs)} found, max={max_orf}bp in {field_3_time}ms')
+
+    open_reading_frames = {
+        'orfs': orfs,
+        'total_orfs': len(orfs),
+        'avg_length': round(avg_orf, 1),
+        'max_length': max_orf,
+        'coding_density': round(coding_density, 4),
+        'compute_ms': field_3_time,
+        'seq_id': seq_id
+    }
+    _streaming_publisher.publish('open_reading_frames', open_reading_frames)
+
+    # ── Field 4: segments ──────────────────────────────────────────────
+    t0 = time.time()
+    records = parse_fasta(sequence, seq_id)
+
+    # Per-segment statistics
+    segment_stats = []
+    for rec in records:
+        seg = rec['sequence']
+        seg_counts = Counter(seg)
+        seg_gc = (seg_counts.get('G', 0) + seg_counts.get('C', 0)) / max(len(seg), 1)
+
+        # Complexity measure: linguistic complexity
+        observed_tri = len(set(seg[i:i + 3] for i in range(len(seg) - 2)))
+        max_tri = min(len(seg) - 2, 64)
+        complexity = observed_tri / max(max_tri, 1)
+
+        segment_stats.append({
+            'id': rec['id'],
+            'offset': rec['offset'],
+            'length': rec['length'],
+            'gc_content': round(seg_gc, 4),
+            'complexity': round(complexity, 4)
+        })
+
+    field_4_time = int((time.time() - t0) * 1000)
+    print(f'[Reader] segments: {len(segment_stats)} segments in {field_4_time}ms')
+
+    segments = {
+        'segment_stats': segment_stats,
+        'n_segments': len(segment_stats),
+        'total_length': total_bases,
+        'compute_ms': field_4_time,
+        'seq_id': seq_id
+    }
+    _streaming_publisher.publish('segments', segments)
+
+    # ── Field 5: nucleotide_freq ───────────────────────────────────────
+    t0 = time.time()
+
+    # Positional nucleotide frequency (per-position bias)
+    position_freq = []
+    chunk_positions = min(1000, len(sequence))
+    for pos in range(0, chunk_positions):
+        # Sample bases at this relative position across sequence
+        samples = []
+        step = len(sequence) // chunk_positions
+        for offset in range(0, len(sequence) - pos, step):
+            if offset + pos < len(sequence):
+                samples.append(sequence[offset + pos])
+        if samples:
+            counts = Counter(samples)
+            total_s = len(samples)
+            position_freq.append({
+                'position': pos,
+                'A': counts.get('A', 0) / total_s,
+                'C': counts.get('C', 0) / total_s,
+                'G': counts.get('G', 0) / total_s,
+                'T': counts.get('T', 0) / total_s,
+            })
+
+    # Trinucleotide context analysis
+    trinuc_context = Counter()
+    for i in range(1, len(sequence) - 1):
+        context = sequence[i - 1] + sequence[i] + sequence[i + 1]
+        trinuc_context[context] += 1
+
+    # Top trinucleotide contexts
+    top_contexts = trinuc_context.most_common(64)
+
+    field_5_time = int((time.time() - t0) * 1000)
+    print(f'[Reader] nucleotide_freq: {len(position_freq)} positions in {field_5_time}ms')
+
+    nucleotide_freq = {
+        'position_freq': position_freq,
+        'trinuc_contexts': dict(trinuc_context),
+        'compute_ms': field_5_time,
+        'seq_id': seq_id
+    }
+    _streaming_publisher.publish('nucleotide_freq', nucleotide_freq)
+
+    total_time = int((time.time() - start_time) * 1000)
+    print(f'[Reader] COMPLETE in {total_time}ms')
+
+    return {
+        'kmers': kmers,
+        'base_composition': base_composition,
+        'open_reading_frames': open_reading_frames,
+        'segments': segments,
+        'nucleotide_freq': nucleotide_freq
+    }
+
+
+if __name__ == '__main__':
+    result = lambda_handler({
+        'sequence_length': 50000,
+        'gc_content': 0.5,
+        'seq_id': 'test_seq'
+    }, None)
+    for field, data in result.items():
+        ms = data.get('compute_ms', '?')
+        print(f'  {field}: {ms}ms')

@@ -1,0 +1,10 @@
+{
+  "Name": "Reader",
+  "Start": true,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "DnaAnalyzer",
+    "InputType": "Scalar"
+  }
+}

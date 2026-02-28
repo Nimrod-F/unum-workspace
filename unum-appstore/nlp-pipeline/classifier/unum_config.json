@@ -1,0 +1,10 @@
+{
+  "Name": "Classifier",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Summarizer",
+    "InputType": "Scalar"
+  }
+}

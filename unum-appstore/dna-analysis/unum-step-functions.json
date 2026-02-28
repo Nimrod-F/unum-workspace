@@ -1,0 +1,26 @@
+{
+  "Comment": "DNA Sequence Analysis Pipeline - 4-stage chain for benchmarking partial parameter streaming",
+  "StartAt": "Reader",
+  "States": {
+    "Reader": {
+      "Type": "Task",
+      "Resource": "Reader",
+      "Next": "DnaAnalyzer"
+    },
+    "DnaAnalyzer": {
+      "Type": "Task",
+      "Resource": "DnaAnalyzer",
+      "Next": "Comparator"
+    },
+    "Comparator": {
+      "Type": "Task",
+      "Resource": "Comparator",
+      "Next": "Reporter"
+    },
+    "Reporter": {
+      "Type": "Task",
+      "Resource": "Reporter",
+      "End": true
+    }
+  }
+}

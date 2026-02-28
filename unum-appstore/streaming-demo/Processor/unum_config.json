@@ -1,0 +1,9 @@
+{
+  "Name": "Processor",
+  "Next": [
+    {
+      "Name": "Analyzer",
+      "InputType": "Scalar"
+    }
+  ]
+}

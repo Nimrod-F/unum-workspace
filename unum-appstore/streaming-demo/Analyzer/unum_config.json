@@ -1,0 +1,9 @@
+{
+  "Name": "Analyzer",
+  "Next": [
+    {
+      "Name": "Reporter",
+      "InputType": "Scalar"
+    }
+  ]
+}

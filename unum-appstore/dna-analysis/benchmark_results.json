@@ -1,0 +1,626 @@
+{
+  "pipeline": "dna-analysis",
+  "region": "eu-central-1",
+  "sequence_length": 50000,
+  "stages": 4,
+  "fields_per_stage": 5,
+  "warm_runs": 3,
+  "cold_runs": 3,
+  "generated": "2026-02-10T22:37:18.150204",
+  "normal": {
+    "mode": "normal",
+    "timestamp": "2026-02-10T22:32:50.585451",
+    "cold_summary": {
+      "count": 3,
+      "avg_latency_s": 23.83,
+      "min_latency_s": 23.554,
+      "max_latency_s": 24.144,
+      "std_dev_s": 0.297,
+      "avg_billed_ms": 23347.7,
+      "avg_cost_usd": 4.864106950416667e-05
+    },
+    "warm_summary": {
+      "count": 3,
+      "avg_latency_s": 14.95,
+      "min_latency_s": 7.534,
+      "max_latency_s": 18.696,
+      "std_dev_s": 6.423,
+      "avg_billed_ms": 17188,
+      "avg_cost_usd": 3.580840495e-05
+    },
+    "per_function": {
+      "Reader": {
+        "avg_duration_ms": 5562.0,
+        "avg_memory_mb": 97,
+        "avg_app_duration_ms": 4987.3
+      },
+      "DnaAnalyzer": {
+        "avg_duration_ms": 4871.2,
+        "avg_memory_mb": 97,
+        "avg_app_duration_ms": 4130
+      },
+      "Comparator": {
+        "avg_duration_ms": 2773.4,
+        "avg_memory_mb": 96,
+        "avg_app_duration_ms": 2321.7
+      },
+      "Reporter": {
+        "avg_duration_ms": 5603.2,
+        "avg_memory_mb": 94,
+        "avg_app_duration_ms": 5381
+      }
+    },
+    "cold_runs": [
+      {
+        "run_id": 1,
+        "cold": true,
+        "e2e_latency_s": 23.792,
+        "wall_clock_s": 6.98,
+        "total_billed_ms": 23189,
+        "total_cost_usd": 4.8310513287500004e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755365670,
+            "duration_ms": 6120.18,
+            "billed_duration_ms": 6751,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 630.19,
+            "app_duration_ms": 5102
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755371432,
+            "duration_ms": 5022.23,
+            "billed_duration_ms": 5676,
+            "memory_size_mb": 128,
+            "max_memory_mb": 96,
+            "init_duration_ms": 653.51,
+            "app_duration_ms": 3821
+          },
+          "Comparator": {
+            "timestamp": 1770755375450,
+            "duration_ms": 3194.14,
+            "billed_duration_ms": 3879,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 684.56,
+            "app_duration_ms": 2400
+          },
+          "Reporter": {
+            "timestamp": 1770755382505,
+            "duration_ms": 6226.59,
+            "billed_duration_ms": 6883,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "init_duration_ms": 655.72,
+            "app_duration_ms": 5307
+          }
+        }
+      },
+      {
+        "run_id": 2,
+        "cold": true,
+        "e2e_latency_s": 24.144,
+        "wall_clock_s": 7.153,
+        "total_billed_ms": 23714,
+        "total_cost_usd": 4.9404265475000005e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755408731,
+            "duration_ms": 6201.54,
+            "billed_duration_ms": 6898,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 696.18,
+            "app_duration_ms": 5219
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755414674,
+            "duration_ms": 5247.49,
+            "billed_duration_ms": 5912,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 664.15,
+            "app_duration_ms": 4045
+          },
+          "Comparator": {
+            "timestamp": 1770755418687,
+            "duration_ms": 3216.0,
+            "billed_duration_ms": 3899,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 682.39,
+            "app_duration_ms": 2400
+          },
+          "Reporter": {
+            "timestamp": 1770755425823,
+            "duration_ms": 6328.14,
+            "billed_duration_ms": 7005,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "init_duration_ms": 676.48,
+            "app_duration_ms": 5401
+          }
+        }
+      },
+      {
+        "run_id": 3,
+        "cold": true,
+        "e2e_latency_s": 23.554,
+        "wall_clock_s": 6.851,
+        "total_billed_ms": 23140,
+        "total_cost_usd": 4.8208429749999994e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755450251,
+            "duration_ms": 6065.44,
+            "billed_duration_ms": 6676,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 609.78,
+            "app_duration_ms": 5082
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755456026,
+            "duration_ms": 5243.76,
+            "billed_duration_ms": 5762,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 518.13,
+            "app_duration_ms": 4102
+          },
+          "Comparator": {
+            "timestamp": 1770755459983,
+            "duration_ms": 3186.03,
+            "billed_duration_ms": 3836,
+            "memory_size_mb": 128,
+            "max_memory_mb": 96,
+            "init_duration_ms": 649.49,
+            "app_duration_ms": 2342
+          },
+          "Reporter": {
+            "timestamp": 1770755466985,
+            "duration_ms": 6234.62,
+            "billed_duration_ms": 6866,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "init_duration_ms": 630.77,
+            "app_duration_ms": 5398
+          }
+        }
+      }
+    ],
+    "warm_runs": [
+      {
+        "run_id": 1,
+        "cold": false,
+        "e2e_latency_s": 7.534,
+        "wall_clock_s": 5.758,
+        "total_billed_ms": 13955,
+        "total_cost_usd": 2.9072974812500003e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755499230,
+            "duration_ms": 5617.19,
+            "billed_duration_ms": 5618,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 5021
+          },
+          "Comparator": {
+            "timestamp": 1770755495563,
+            "duration_ms": 2758.94,
+            "billed_duration_ms": 2759,
+            "memory_size_mb": 128,
+            "max_memory_mb": 96,
+            "app_duration_ms": 2302
+          },
+          "Reporter": {
+            "timestamp": 1770755501126,
+            "duration_ms": 5577.44,
+            "billed_duration_ms": 5578,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "app_duration_ms": 5361
+          }
+        }
+      },
+      {
+        "run_id": 2,
+        "cold": false,
+        "e2e_latency_s": 18.696,
+        "wall_clock_s": 5.501,
+        "total_billed_ms": 18853,
+        "total_cost_usd": 3.92771618875e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755518050,
+            "duration_ms": 5524.72,
+            "billed_duration_ms": 5525,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 4961
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755522826,
+            "duration_ms": 4888.65,
+            "billed_duration_ms": 4889,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 4140
+          },
+          "Comparator": {
+            "timestamp": 1770755525584,
+            "duration_ms": 2801.14,
+            "billed_duration_ms": 2802,
+            "memory_size_mb": 128,
+            "max_memory_mb": 96,
+            "app_duration_ms": 2341
+          },
+          "Reporter": {
+            "timestamp": 1770755531207,
+            "duration_ms": 5636.97,
+            "billed_duration_ms": 5637,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "app_duration_ms": 5400
+          }
+        }
+      },
+      {
+        "run_id": 3,
+        "cold": false,
+        "e2e_latency_s": 18.62,
+        "wall_clock_s": 5.697,
+        "total_billed_ms": 18756,
+        "total_cost_usd": 3.907507815e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755547350,
+            "duration_ms": 5544.01,
+            "billed_duration_ms": 5545,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 4980
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755552086,
+            "duration_ms": 4853.7,
+            "billed_duration_ms": 4854,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 4120
+          },
+          "Comparator": {
+            "timestamp": 1770755554824,
+            "duration_ms": 2760.13,
+            "billed_duration_ms": 2761,
+            "memory_size_mb": 128,
+            "max_memory_mb": 96,
+            "app_duration_ms": 2322
+          },
+          "Reporter": {
+            "timestamp": 1770755560407,
+            "duration_ms": 5595.2,
+            "billed_duration_ms": 5596,
+            "memory_size_mb": 128,
+            "max_memory_mb": 94,
+            "app_duration_ms": 5382
+          }
+        }
+      }
+    ]
+  },
+  "streaming": {
+    "mode": "streaming",
+    "timestamp": "2026-02-10T22:37:18.137585",
+    "cold_summary": {
+      "count": 3,
+      "avg_latency_s": 15.287,
+      "min_latency_s": 15.167,
+      "max_latency_s": 15.417,
+      "std_dev_s": 0.125,
+      "avg_billed_ms": 25817.7,
+      "avg_cost_usd": 5.378691312916667e-05
+    },
+    "warm_summary": {
+      "count": 3,
+      "avg_latency_s": 10.486,
+      "min_latency_s": 10.457,
+      "max_latency_s": 10.513,
+      "std_dev_s": 0.028,
+      "avg_billed_ms": 22729.7,
+      "avg_cost_usd": 4.735356692916667e-05
+    },
+    "per_function": {
+      "Reader": {
+        "avg_duration_ms": 5675.8,
+        "avg_memory_mb": 97,
+        "avg_app_duration_ms": 5338.3
+      },
+      "DnaAnalyzer": {
+        "avg_duration_ms": 4678.4,
+        "avg_memory_mb": 97,
+        "avg_app_duration_ms": 4445.7
+      },
+      "Comparator": {
+        "avg_duration_ms": 5018.5,
+        "avg_memory_mb": 98,
+        "avg_app_duration_ms": 4884.7
+      },
+      "Reporter": {
+        "avg_duration_ms": 7355.0,
+        "avg_memory_mb": 95,
+        "avg_app_duration_ms": 7213
+      }
+    },
+    "cold_runs": [
+      {
+        "run_id": 1,
+        "cold": true,
+        "e2e_latency_s": 15.417,
+        "wall_clock_s": 7.634,
+        "total_billed_ms": 25867,
+        "total_cost_usd": 5.3889691112500004e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755677176,
+            "duration_ms": 6583.33,
+            "billed_duration_ms": 7436,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 852.65,
+            "app_duration_ms": 6024
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755679250,
+            "duration_ms": 5508.55,
+            "billed_duration_ms": 6167,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 658.02,
+            "app_duration_ms": 5059
+          },
+          "Comparator": {
+            "timestamp": 1770755680009,
+            "duration_ms": 4194.91,
+            "billed_duration_ms": 4826,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 630.37,
+            "app_duration_ms": 3818
+          },
+          "Reporter": {
+            "timestamp": 1770755684981,
+            "duration_ms": 6821.64,
+            "billed_duration_ms": 7438,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "init_duration_ms": 616.24,
+            "app_duration_ms": 6419
+          }
+        }
+      },
+      {
+        "run_id": 2,
+        "cold": true,
+        "e2e_latency_s": 15.167,
+        "wall_clock_s": 7.619,
+        "total_billed_ms": 25809,
+        "total_cost_usd": 5.3768857537500005e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755711509,
+            "duration_ms": 6749.49,
+            "billed_duration_ms": 7422,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 672.13,
+            "app_duration_ms": 6159
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755713468,
+            "duration_ms": 5537.47,
+            "billed_duration_ms": 6239,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 700.62,
+            "app_duration_ms": 5059
+          },
+          "Comparator": {
+            "timestamp": 1770755714164,
+            "duration_ms": 4128.71,
+            "billed_duration_ms": 4806,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 676.51,
+            "app_duration_ms": 3759
+          },
+          "Reporter": {
+            "timestamp": 1770755719071,
+            "duration_ms": 6629.39,
+            "billed_duration_ms": 7342,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "init_duration_ms": 712.59,
+            "app_duration_ms": 6205
+          }
+        }
+      },
+      {
+        "run_id": 3,
+        "cold": true,
+        "e2e_latency_s": 15.278,
+        "wall_clock_s": 7.579,
+        "total_billed_ms": 25777,
+        "total_cost_usd": 5.370219073750001e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755746007,
+            "duration_ms": 6580.4,
+            "billed_duration_ms": 7298,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 717.42,
+            "app_duration_ms": 5986
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755748022,
+            "duration_ms": 5445.79,
+            "billed_duration_ms": 6141,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "init_duration_ms": 694.28,
+            "app_duration_ms": 4939
+          },
+          "Comparator": {
+            "timestamp": 1770755748676,
+            "duration_ms": 4083.47,
+            "billed_duration_ms": 4733,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "init_duration_ms": 649.08,
+            "app_duration_ms": 3739
+          },
+          "Reporter": {
+            "timestamp": 1770755753832,
+            "duration_ms": 6970.14,
+            "billed_duration_ms": 7605,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "init_duration_ms": 634.27,
+            "app_duration_ms": 6559
+          }
+        }
+      }
+    ],
+    "warm_runs": [
+      {
+        "run_id": 1,
+        "cold": false,
+        "e2e_latency_s": 10.513,
+        "wall_clock_s": 5.783,
+        "total_billed_ms": 22695,
+        "total_cost_usd": 4.72813445625e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755786167,
+            "duration_ms": 5648.42,
+            "billed_duration_ms": 5649,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 5321
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755786822,
+            "duration_ms": 4680.71,
+            "billed_duration_ms": 4681,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 4439
+          },
+          "Comparator": {
+            "timestamp": 1770755787797,
+            "duration_ms": 5033.31,
+            "billed_duration_ms": 5034,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 4896
+          },
+          "Reporter": {
+            "timestamp": 1770755791011,
+            "duration_ms": 7330.53,
+            "billed_duration_ms": 7331,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "app_duration_ms": 7200
+          }
+        }
+      },
+      {
+        "run_id": 2,
+        "cold": false,
+        "e2e_latency_s": 10.457,
+        "wall_clock_s": 5.868,
+        "total_billed_ms": 22781,
+        "total_cost_usd": 4.746051158749999e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755804768,
+            "duration_ms": 5691.69,
+            "billed_duration_ms": 5692,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 5337
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755805383,
+            "duration_ms": 4677.04,
+            "billed_duration_ms": 4678,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 4459
+          },
+          "Comparator": {
+            "timestamp": 1770755806296,
+            "duration_ms": 5035.56,
+            "billed_duration_ms": 5036,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 4899
+          },
+          "Reporter": {
+            "timestamp": 1770755809513,
+            "duration_ms": 7374.91,
+            "billed_duration_ms": 7375,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "app_duration_ms": 7240
+          }
+        }
+      },
+      {
+        "run_id": 3,
+        "cold": false,
+        "e2e_latency_s": 10.487,
+        "wall_clock_s": 5.776,
+        "total_billed_ms": 22713,
+        "total_cost_usd": 4.731884463750001e-05,
+        "functions": {
+          "Reader": {
+            "timestamp": 1770755823388,
+            "duration_ms": 5687.4,
+            "billed_duration_ms": 5688,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 5357
+          },
+          "DnaAnalyzer": {
+            "timestamp": 1770755824022,
+            "duration_ms": 4677.4,
+            "billed_duration_ms": 4678,
+            "memory_size_mb": 128,
+            "max_memory_mb": 97,
+            "app_duration_ms": 4439
+          },
+          "Comparator": {
+            "timestamp": 1770755824916,
+            "duration_ms": 4986.72,
+            "billed_duration_ms": 4987,
+            "memory_size_mb": 128,
+            "max_memory_mb": 98,
+            "app_duration_ms": 4859
+          },
+          "Reporter": {
+            "timestamp": 1770755828171,
+            "duration_ms": 7359.47,
+            "billed_duration_ms": 7360,
+            "memory_size_mb": 128,
+            "max_memory_mb": 95,
+            "app_duration_ms": 7199
+          }
+        }
+      }
+    ]
+  }
+}
