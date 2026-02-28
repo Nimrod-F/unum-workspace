@@ -1,0 +1,10 @@
+{
+    "Name": "FusedEF",
+    "Start": false,
+    "Debug": true,
+    "Checkpoint": true,
+    "Next": {
+        "Name": "G",
+        "InputType": "Scalar"
+    }
+}

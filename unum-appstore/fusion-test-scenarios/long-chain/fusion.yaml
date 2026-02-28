@@ -1,0 +1,9 @@
+fusions:
+- chain:
+  - B
+  - C
+  - D
+  - E
+  - F
+  - G
+  name: FusedBCDEFG

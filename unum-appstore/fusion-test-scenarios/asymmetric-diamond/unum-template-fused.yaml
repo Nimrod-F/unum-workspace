@@ -1,0 +1,48 @@
+Functions:
+  A:
+    Properties:
+      CodeUri: fused_build\A/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+  D:
+    Properties:
+      CodeUri: fused_build\D/
+      MemorySize: 128
+      Runtime: python3.13
+      Timeout: 10
+  E:
+    Properties:
+      CodeUri: e/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 60
+  F:
+    Properties:
+      CodeUri: fused_build\F/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 30
+  FusedBC:
+    Properties:
+      CodeUri: fused_build/FusedBC/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  G:
+    Properties:
+      CodeUri: g/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 60
+Globals:
+  ApplicationName: asymmetric-diamond
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-asymmetric-diamond
+  UnumIntermediaryDataStoreType: dynamodb

@@ -1,0 +1,9 @@
+fusions:
+- chain:
+  - B
+  - C
+  name: FusedBC
+- chain:
+  - E
+  - F
+  name: FusedEF

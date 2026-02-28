@@ -1,0 +1,6 @@
+fusions:
+- chain:
+  - D
+  - E
+  - F
+  name: FusedDEF

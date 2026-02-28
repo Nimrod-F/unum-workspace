@@ -1,0 +1,10 @@
+{
+  "Name": "Windowing",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "ComputeFFT",
+    "InputType": "Scalar"
+  }
+}

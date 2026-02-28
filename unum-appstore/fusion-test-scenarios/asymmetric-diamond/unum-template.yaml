@@ -1,0 +1,53 @@
+Functions:
+  A:
+    Properties:
+      CodeUri: a/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+  B:
+    Properties:
+      CodeUri: b/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  C:
+    Properties:
+      CodeUri: c/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  D:
+    Properties:
+      CodeUri: d/
+      MemorySize: 128
+      Runtime: python3.13
+      Timeout: 10
+  E:
+    Properties:
+      CodeUri: e/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 60
+  F:
+    Properties:
+      CodeUri: f/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 30
+  G:
+    Properties:
+      CodeUri: g/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 60
+Globals:
+  ApplicationName: asymmetric-diamond
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-asymmetric-diamond
+  UnumIntermediaryDataStoreType: dynamodb

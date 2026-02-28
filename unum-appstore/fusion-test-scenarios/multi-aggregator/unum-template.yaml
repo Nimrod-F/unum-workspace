@@ -1,0 +1,47 @@
+Functions:
+  A:
+    Properties:
+      CodeUri: a/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+  B:
+    Properties:
+      CodeUri: b/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  C:
+    Properties:
+      CodeUri: c/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  D:
+    Properties:
+      CodeUri: d/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  E:
+    Properties:
+      CodeUri: e/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  F:
+    Properties:
+      CodeUri: f/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+Globals:
+  ApplicationName: multi-aggregator
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-multi-aggregator
+  UnumIntermediaryDataStoreType: dynamodb

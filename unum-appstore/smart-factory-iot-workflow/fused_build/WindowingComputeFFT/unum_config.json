@@ -1,0 +1,10 @@
+{
+    "Name": "WindowingComputeFFT",
+    "Start": false,
+    "Debug": true,
+    "Checkpoint": true,
+    "Next": {
+        "Name": "FailureModel",
+        "InputType": "Scalar"
+    }
+}

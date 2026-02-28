@@ -1,0 +1,5 @@
+fusions:
+- chain:
+  - B
+  - C
+  name: FusedBC

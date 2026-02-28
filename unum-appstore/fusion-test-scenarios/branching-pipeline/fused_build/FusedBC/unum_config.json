@@ -1,0 +1,18 @@
+{
+    "Name": "FusedBC",
+    "Start": false,
+    "Debug": true,
+    "Checkpoint": true,
+    "Next": {
+        "Name": "F",
+        "InputType": {
+            "Fan-in": {
+                "Values": [
+                    "FusedBC-unumIndex-0",
+                    "E-unumIndex-1"
+                ]
+            }
+        },
+        "Fan-in-Group": true
+    }
+}

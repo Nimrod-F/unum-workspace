@@ -1,0 +1,10 @@
+{
+    "Name": "FusedBC",
+    "Start": false,
+    "Debug": true,
+    "Checkpoint": true,
+    "Next": {
+        "Name": "D",
+        "InputType": "Scalar"
+    }
+}

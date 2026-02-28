@@ -1,0 +1,24 @@
+Functions:
+  A:
+    Properties:
+      CodeUri: fused_build\A/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+  FusedBCDEFG:
+    Properties:
+      CodeUri: fused_build/FusedBCDEFG/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Globals:
+  ApplicationName: long-chain
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-long-chain
+  UnumIntermediaryDataStoreType: dynamodb

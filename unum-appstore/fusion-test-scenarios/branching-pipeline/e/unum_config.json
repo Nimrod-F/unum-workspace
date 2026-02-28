@@ -1,0 +1,18 @@
+{
+  "Name": "E",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "F",
+    "InputType": {
+      "Fan-in": {
+        "Values": [
+          "C-unumIndex-0",
+          "E-unumIndex-1"
+        ]
+      }
+    },
+    "Fan-in-Group": true
+  }
+}

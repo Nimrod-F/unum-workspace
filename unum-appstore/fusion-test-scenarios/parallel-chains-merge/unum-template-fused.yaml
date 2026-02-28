@@ -1,0 +1,55 @@
+Functions:
+  A:
+    Properties:
+      CodeUri: fused_build\A/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+  D:
+    Properties:
+      CodeUri: d/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  FusedBC:
+    Properties:
+      CodeUri: fused_build/FusedBC/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FusedEF:
+    Properties:
+      CodeUri: fused_build/FusedEF/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  G:
+    Properties:
+      CodeUri: g/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  H:
+    Properties:
+      CodeUri: h/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 60
+  I:
+    Properties:
+      CodeUri: i/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+Globals:
+  ApplicationName: parallel-chains-merge
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-parallel-chains-merge
+  UnumIntermediaryDataStoreType: dynamodb

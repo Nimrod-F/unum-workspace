@@ -3,6 +3,8 @@ import json, os, sys, subprocess, time
 import argparse
 import shutil
 import yaml
+import threading
+import itertools
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
 except ImportError:
@@ -1412,6 +1414,398 @@ def lambda_handler(event, context):
     print(f"\n\033[32m[Success] Generated {save_path}\033[0m")
     print(f"Functions patched and moved to \033[33m{build_base}/\033[0m")
 
+# ─────────────────────────────────────────────────────────────────────────────
+# AI-Powered Fusion Analysis
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _load_fusion_system_prompt():
+    """Load the fusion system prompt from the external file."""
+    prompt_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fusion_system_prompt.txt')
+    with open(prompt_path, 'r', encoding='utf-8') as f:
+        return f.read()
+
+def _collect_workflow_context(unum_template_path):
+    """Collect all workflow information for LLM analysis."""
+    unum_template = load_yaml(unum_template_path)
+
+    functions_info = {}
+    for func_name, func_def in unum_template.get('Functions', {}).items():
+        code_uri = func_def.get('Properties', {}).get('CodeUri', '')
+        config_path = os.path.join(code_uri.rstrip('/'), 'unum_config.json')
+
+        config = None
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+
+        # Try reading app.py to understand function logic
+        app_code = None
+        app_path = os.path.join(code_uri.rstrip('/'), 'app.py')
+        if os.path.exists(app_path):
+            with open(app_path, 'r') as f:
+                app_code = f.read()
+
+        functions_info[func_name] = {
+            'properties': func_def.get('Properties', {}),
+            'unum_config': config,
+            'app_code': app_code
+        }
+
+    return unum_template, functions_info
+
+
+def _build_user_prompt(unum_template, functions_info):
+    """Build the user message with all workflow context."""
+    lines = []
+    lines.append("## unum-template.yaml (Globals)")
+    globals_info = {k: v for k, v in unum_template.get('Globals', {}).items()}
+    lines.append(yaml.dump(globals_info, default_flow_style=False))
+
+    lines.append("## Functions Overview")
+    for name, info in functions_info.items():
+        props = info['properties']
+        lines.append(f"### {name}")
+        lines.append(f"  Runtime: {props.get('Runtime', 'N/A')}")
+        lines.append(f"  MemorySize: {props.get('MemorySize', 'N/A')} MB")
+        lines.append(f"  Timeout: {props.get('Timeout', 'N/A')}s")
+        lines.append(f"  CodeUri: {props.get('CodeUri', 'N/A')}")
+        if props.get('Start'):
+            lines.append(f"  Start: true  (entry-point function)")
+
+        if info['unum_config']:
+            lines.append(f"  unum_config.json: {json.dumps(info['unum_config'], indent=4)}")
+
+        if info['app_code']:
+            # Truncate very long code
+            code = info['app_code']
+            if len(code) > 2000:
+                code = code[:2000] + "\n... (truncated)"
+            lines.append(f"  app.py:\n```python\n{code}\n```")
+        lines.append("")
+
+    return "\n".join(lines)
+
+
+class _Spinner:
+    """Animated spinner for terminal output."""
+    def __init__(self, message="Thinking"):
+        self._message = message
+        self._running = False
+        self._thread = None
+
+    def start(self):
+        self._running = True
+        self._thread = threading.Thread(target=self._spin, daemon=True)
+        self._thread.start()
+
+    def _spin(self):
+        frames = ["   ", ".  ", ".. ", "..."]
+        idx = 0
+        while self._running:
+            sys.stderr.write(f"\r\033[36m{self._message}{frames[idx % len(frames)]}\033[0m")
+            sys.stderr.flush()
+            idx += 1
+            time.sleep(0.4)
+
+    def stop(self):
+        self._running = False
+        if self._thread:
+            self._thread.join(timeout=1)
+        sys.stderr.write("\r" + " " * 60 + "\r")
+        sys.stderr.flush()
+
+
+def _stream_styled_output(text):
+    """Stream text to terminal character by character with styling."""
+    CYAN = "\033[36m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    WHITE = "\033[37m"
+    BOLD = "\033[1m"
+    DIM = "\033[2m"
+    RESET = "\033[0m"
+
+    section_colors = {
+        "ANALYSIS:": CYAN,
+        "WORKFLOW GRAPH:": WHITE,
+        "FUSION CANDIDATES:": GREEN,
+        "REJECTED CANDIDATES:": YELLOW,
+        "RECOMMENDATION:": f"{BOLD}{GREEN}",
+        "EXPECTED IMPROVEMENTS:": f"{BOLD}{CYAN}",
+    }
+
+    current_color = WHITE
+    buffer = ""
+
+    for char in text:
+        buffer += char
+
+        # Check if buffer ends with a section header
+        for header, color in section_colors.items():
+            if buffer.endswith(header):
+                current_color = color
+                # Re-print the header in color
+                sys.stdout.write(f"\r{' ' * len(header)}\r")  # clear
+                sys.stdout.write(f"{BOLD}{color}{header}{RESET}\n")
+                sys.stdout.flush()
+                buffer = ""
+                time.sleep(0.05)
+                break
+        else:
+            if char == '\n':
+                sys.stdout.write(f"{current_color}{char}{RESET}")
+                sys.stdout.flush()
+                buffer = ""
+                time.sleep(0.01)
+            else:
+                sys.stdout.write(f"{current_color}{char}{RESET}")
+                sys.stdout.flush()
+                time.sleep(0.008)
+
+
+def _parse_fusion_yaml_from_response(response_text):
+    """Extract the fusion YAML from the LLM response."""
+    lines = response_text.split('\n')
+
+    # Find the RECOMMENDATION: section
+    rec_start = None
+    for i, line in enumerate(lines):
+        if line.strip().startswith('RECOMMENDATION:'):
+            rec_start = i + 1
+            break
+
+    if rec_start is None:
+        return None
+
+    # Check for "No fusions recommended"
+    for i in range(rec_start, min(rec_start + 3, len(lines))):
+        if 'no fusion' in lines[i].lower() or 'remain separate' in lines[i].lower():
+            return None
+
+    # Collect YAML lines until next section or end
+    yaml_lines = []
+    for i in range(rec_start, len(lines)):
+        line = lines[i]
+        # Stop at next section header
+        if line.strip() and line.strip().endswith(':') and not line.startswith(' ') and not line.startswith('\t'):
+            if line.strip() not in ('fusions:', 'chain:'):
+                break
+        yaml_lines.append(line)
+
+    yaml_text = '\n'.join(yaml_lines)
+
+    try:
+        parsed = yaml.safe_load(yaml_text)
+        if parsed and 'fusions' in parsed:
+            return parsed
+    except:
+        pass
+
+    return None
+
+
+def ai_fuse(args):
+    """AI-powered fusion analysis and application."""
+    try:
+        from openai import OpenAI
+    except ImportError:
+        print(f"\033[31m[Error] openai package not installed. Run: pip install openai\033[0m")
+        sys.exit(1)
+
+    # Load .env file (walks up parent directories to find it)
+    try:
+        from dotenv import load_dotenv, find_dotenv
+        load_dotenv(find_dotenv(usecwd=True))
+    except ImportError:
+        pass  # dotenv not installed, rely on system env vars
+
+    unum_template_path = args.template
+
+    # Ensure UTF-8 output on Windows
+    if sys.platform == 'win32':
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
+    # ── Header ──
+    print()
+    print(f"\033[1m\033[36m{'='*60}\033[0m")
+    print(f"\033[1m\033[36m  Unum AI Fusion Advisor\033[0m")
+    print(f"\033[1m\033[36m{'='*60}\033[0m")
+    print()
+
+    # ── Step 1: Collect workflow context ──
+    spinner = _Spinner("Scanning workflow")
+    spinner.start()
+
+    try:
+        unum_template, functions_info = _collect_workflow_context(unum_template_path)
+    except Exception as e:
+        spinner.stop()
+        print(f"\033[31m[Error] Failed to read workflow: {e}\033[0m")
+        sys.exit(1)
+
+    spinner.stop()
+
+    func_count = len(functions_info)
+    app_name = unum_template.get('Globals', {}).get('ApplicationName', 'unknown')
+
+    print(f"  \033[2mWorkflow:\033[0m  \033[1m{app_name}\033[0m")
+    print(f"  \033[2mFunctions:\033[0m \033[1m{func_count}\033[0m")
+    print(f"  \033[2mTemplate:\033[0m  {unum_template_path}")
+    print()
+
+    for fname in functions_info:
+        props = functions_info[fname]['properties']
+        start_marker = " \033[33m(start)\033[0m" if props.get('Start') else ""
+        print(f"  \033[36m>\033[0m {fname}{start_marker}")
+    print()
+
+    # ── Step 2: Call OpenAI ──
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        print(f"\033[31m[Error] OPENAI_API_KEY environment variable not set.\033[0m")
+        print(f"\033[33m  Set it with: export OPENAI_API_KEY=sk-...\033[0m")
+        sys.exit(1)
+
+    client = OpenAI(api_key=api_key)
+    user_prompt = _build_user_prompt(unum_template, functions_info)
+
+    model = args.model if hasattr(args, 'model') and args.model else "gpt-4o-mini"
+
+    print(f"  \033[2mModel:\033[0m     {model}")
+    print()
+
+    spinner = _Spinner("Analyzing workflow")
+    spinner.start()
+
+    try:
+        # Use streaming for animated output
+        stream = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": _load_fusion_system_prompt()},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.2,
+            max_tokens=3000,
+            stream=True
+        )
+    except Exception as e:
+        spinner.stop()
+        print(f"\033[31m[Error] OpenAI API call failed: {e}\033[0m")
+        sys.exit(1)
+
+    spinner.stop()
+
+    print(f"\033[1m{'-'*60}\033[0m")
+    print()
+
+    # ── Step 3: Stream the response ──
+    full_response = ""
+
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+    CYAN = "\033[36m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    WHITE = "\033[37m"
+    DIM = "\033[2m"
+
+    section_styles = {
+        "ANALYSIS:": f"{BOLD}{CYAN}",
+        "WORKFLOW GRAPH:": f"{BOLD}{WHITE}",
+        "FUSION CANDIDATES:": f"{BOLD}{GREEN}",
+        "REJECTED CANDIDATES:": f"{BOLD}{YELLOW}",
+        "RECOMMENDATION:": f"{BOLD}{GREEN}",
+        "EXPECTED IMPROVEMENTS:": f"{BOLD}{CYAN}",
+    }
+
+    current_line = ""
+
+    for chunk in stream:
+        delta = chunk.choices[0].delta
+        if delta.content:
+            token = delta.content
+            full_response += token
+
+            # Accumulate into current_line to detect section headers
+            for ch in token:
+                if ch == '\n':
+                    stripped = current_line.strip()
+                    styled = False
+                    for header, style in section_styles.items():
+                        if stripped == header.rstrip(':') + ':' or stripped == header:
+                            sys.stdout.write(f"\n{style}{stripped}{RESET}\n")
+                            styled = True
+                            break
+                    if not styled:
+                        sys.stdout.write(current_line + '\n')
+                    sys.stdout.flush()
+                    current_line = ""
+                else:
+                    current_line += ch
+
+    # Flush remaining
+    if current_line.strip():
+        sys.stdout.write(current_line + '\n')
+    sys.stdout.flush()
+
+    print()
+    print(f"\033[1m{'-'*60}\033[0m")
+    print()
+
+    # ── Step 4: Parse recommendation ──
+    fusion_config = _parse_fusion_yaml_from_response(full_response)
+
+    if fusion_config is None:
+        print(f"  \033[33mNo fusions recommended for this workflow.\033[0m")
+        print(f"  \033[2mAll functions should remain separate.\033[0m")
+        return
+
+    # Display the proposed fusion.yaml
+    print(f"  \033[1m\033[32mProposed fusion.yaml:\033[0m")
+    print()
+    proposed_yaml = yaml.dump(fusion_config, default_flow_style=False)
+    for line in proposed_yaml.split('\n'):
+        if line.strip():
+            print(f"  \033[36m{line}\033[0m")
+    print()
+
+    # ── Step 5: Ask for confirmation ──
+    if hasattr(args, 'yes') and args.yes:
+        confirmed = True
+    else:
+        try:
+            answer = input(f"  \033[1mApply this fusion? [Y/n] \033[0m").strip().lower()
+            confirmed = answer in ('', 'y', 'yes')
+        except (EOFError, KeyboardInterrupt):
+            print(f"\n  \033[33mAborted.\033[0m")
+            return
+
+    if not confirmed:
+        print(f"  \033[33mFusion cancelled.\033[0m")
+        return
+
+    # ── Step 6: Write fusion.yaml and apply ──
+    fusion_path = args.fusion_output if hasattr(args, 'fusion_output') and args.fusion_output else 'fusion.yaml'
+
+    with open(fusion_path, 'w') as f:
+        yaml.dump(fusion_config, f, default_flow_style=False)
+
+    print(f"\n  \033[32m[Saved] {fusion_path}\033[0m")
+    print()
+
+    # Apply the fusion using existing compile_fusion
+    spinner = _Spinner("Applying fusion")
+    spinner.start()
+    compile_fusion(fusion_path, unum_template_path)
+    spinner.stop()
+
+    print()
+    print(f"  \033[1m\033[32mFusion complete!\033[0m")
+    print()
+
+
 def main():
     parser = argparse.ArgumentParser(description='unum CLI utility for creating, building and deploying unum applications',
         # usage = "unum-cli [options] <command> <subcommand> [<subcommand> ...] [parameters]",
@@ -1464,9 +1858,13 @@ def main():
     compile_parser.add_argument('-o', '--optimize', required=False, choices=['trim'], help="optimizations")
 
     # fuse command parser
-    fuse_parser = subparsers.add_parser("fuse", description="fuse multiple functions into single lambdas")
-    fuse_parser.add_argument('-c', '--config', default='fusion.yaml', help="path to fusion config file")
+    fuse_parser = subparsers.add_parser("fuse", description="fuse multiple functions into single lambdas (use --ai for LLM-powered analysis)")
+    fuse_parser.add_argument('-c', '--config', default='fusion.yaml', help="path to fusion config file (ignored with --ai)")
     fuse_parser.add_argument('-t', '--template', default='unum-template.yaml', help="path to unum template")
+    fuse_parser.add_argument('--ai', action='store_true', help="use AI to analyze workflow and suggest fusions")
+    fuse_parser.add_argument('--model', default='gpt-4o', help="OpenAI model to use (default: gpt-4o)")
+    fuse_parser.add_argument('-y', '--yes', action='store_true', help="auto-confirm AI suggestions without prompting")
+    fuse_parser.add_argument('-o', '--fusion_output', default='fusion.yaml', help="output path for generated fusion.yaml (with --ai)")
 
     args = parser.parse_args()
 
@@ -1481,7 +1879,10 @@ def main():
     elif args.command == 'compile':
         compile_workflow(args)
     elif args.command == 'fuse':
-        compile_fusion(args.config, args.template)
+        if args.ai:
+            ai_fuse(args)
+        else:
+            compile_fusion(args.config, args.template)
     else:
         raise IOError(f'Unknown command: {args.command}')
         

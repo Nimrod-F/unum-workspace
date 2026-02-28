@@ -1,0 +1,9 @@
+fusions:
+- chain:
+  - MachineState
+  - ShiftCheck
+  name: MachineStateShiftCheck
+- chain:
+  - Windowing
+  - ComputeFFT
+  name: WindowingComputeFFT

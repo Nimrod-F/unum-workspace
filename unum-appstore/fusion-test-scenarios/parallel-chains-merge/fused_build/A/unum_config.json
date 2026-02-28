@@ -1,0 +1,16 @@
+{
+    "Name": "A",
+    "Start": true,
+    "Checkpoint": true,
+    "Debug": true,
+    "Next": [
+        {
+            "Name": "FusedBC",
+            "InputType": "Scalar"
+        },
+        {
+            "Name": "FusedEF",
+            "InputType": "Scalar"
+        }
+    ]
+}

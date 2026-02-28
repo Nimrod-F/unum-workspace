@@ -1,0 +1,53 @@
+Functions:
+  ActionDispatcher:
+    Properties:
+      CodeUri: action-dispatcher/
+      Environment:
+        UNUM_FUTURE_BASED: 'true'
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 120
+  FailureModel:
+    Properties:
+      CodeUri: fused_build\FailureModel/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 60
+  MachineStateShiftCheck:
+    Properties:
+      CodeUri: fused_build/MachineStateShiftCheck/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  SafetyCheck:
+    Properties:
+      CodeUri: fused_build\SafetyCheck/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  SensorIngest:
+    Properties:
+      CodeUri: fused_build\SensorIngest/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+  WindowingComputeFFT:
+    Properties:
+      CodeUri: fused_build/WindowingComputeFFT/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Globals:
+  ApplicationName: smart-factory-iot-workflow
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore-iot
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowDefinition: unum-step-functions.json
+  WorkflowType: step-functions

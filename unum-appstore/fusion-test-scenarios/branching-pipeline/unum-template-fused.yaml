@@ -1,0 +1,37 @@
+Functions:
+  A:
+    Properties:
+      CodeUri: fused_build\A/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+  F:
+    Properties:
+      CodeUri: f/
+      MemorySize: 512
+      Runtime: python3.13
+      Timeout: 60
+  FusedBC:
+    Properties:
+      CodeUri: fused_build/FusedBC/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FusedDE:
+    Properties:
+      CodeUri: fused_build/FusedDE/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Globals:
+  ApplicationName: branching-pipeline
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-branching-pipeline
+  UnumIntermediaryDataStoreType: dynamodb

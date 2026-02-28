@@ -1,0 +1,10 @@
+{
+  "Name": "ComputeFFT",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "FailureModel",
+    "InputType": "Scalar"
+  }
+}

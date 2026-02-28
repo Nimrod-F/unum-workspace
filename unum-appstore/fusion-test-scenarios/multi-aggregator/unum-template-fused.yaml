@@ -1,0 +1,36 @@
+Functions:
+  A:
+    Properties:
+      CodeUri: a/
+      MemorySize: 256
+      Runtime: python3.13
+      Start: true
+      Timeout: 30
+  B:
+    Properties:
+      CodeUri: fused_build\B/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  C:
+    Properties:
+      CodeUri: fused_build\C/
+      MemorySize: 256
+      Runtime: python3.13
+      Timeout: 30
+  FusedDEF:
+    Properties:
+      CodeUri: fused_build/FusedDEF/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Globals:
+  ApplicationName: multi-aggregator
+  Checkpoint: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  Region: eu-central-1
+  UnumIntermediaryDataStoreName: unum-multi-aggregator
+  UnumIntermediaryDataStoreType: dynamodb

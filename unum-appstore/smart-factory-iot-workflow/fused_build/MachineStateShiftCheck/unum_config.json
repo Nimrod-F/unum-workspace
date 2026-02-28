@@ -1,0 +1,19 @@
+{
+    "Name": "MachineStateShiftCheck",
+    "Start": false,
+    "Debug": true,
+    "Checkpoint": true,
+    "Next": {
+        "Name": "ActionDispatcher",
+        "InputType": {
+            "Fan-in": {
+                "Values": [
+                    "SafetyCheck-unumIndex-0",
+                    "MachineStateShiftCheck-unumIndex-1",
+                    "FailureModel-unumIndex-2"
+                ]
+            }
+        },
+        "Fan-in-Group": true
+    }
+}

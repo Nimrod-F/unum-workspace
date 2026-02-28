@@ -1,0 +1,18 @@
+{
+    "Name": "FusedDE",
+    "Start": false,
+    "Debug": true,
+    "Checkpoint": true,
+    "Next": {
+        "Name": "F",
+        "InputType": {
+            "Fan-in": {
+                "Values": [
+                    "C-unumIndex-0",
+                    "FusedDE-unumIndex-1"
+                ]
+            }
+        },
+        "Fan-in-Group": true
+    }
+}

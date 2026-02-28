@@ -1,3 +1,5 @@
 cfn-flip
 coloredlogs
 PyGithub
+openai
+python-dotenv
