@@ -1,0 +1,56 @@
+{
+  "StartAt": "DataGenerator",
+  "States": {
+    "DataGenerator": {
+      "Type": "Task",
+      "Resource": "DataGenerator",
+      "Next": "Parallel"
+    },
+    "Parallel": {
+      "Type": "Parallel",
+      "Next": "Aggregator",
+      "Branches": [
+        {
+          "StartAt": "Transform",
+          "States": {
+            "Transform": {
+              "Type": "Task",
+              "Resource": "Transform",
+              "Next": "Estimate"
+            },
+            "Estimate": {
+              "Type": "Task",
+              "Resource": "Estimate",
+              "Next": "Validate"
+            },
+            "Validate": {
+              "Type": "Task",
+              "Resource": "Validate",
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "Simulate",
+          "States": {
+            "Simulate": {
+              "Type": "Task",
+              "Resource": "Simulate",
+              "End": true
+            }
+          }
+        }
+      ]
+    },
+    "Aggregator": {
+      "Type": "Task",
+      "Resource": "Aggregator",
+      "Next": "Reporter"
+    },
+    "Reporter": {
+      "Type": "Task",
+      "Resource": "Reporter",
+      "End": true
+    }
+  }
+}

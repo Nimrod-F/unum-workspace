@@ -6,6 +6,7 @@ Generates a random Barabási-Albert scale-free graph and prepares it for paralle
 """
 import datetime
 import json
+from unum_streaming import StreamingPublisher, set_streaming_output
 import random
 
 
@@ -90,6 +91,14 @@ def lambda_handler(event, context):
     Output: Graph data structure for downstream functions
     """
     # Default values
+
+    # Streaming: Initialize publisher for incremental parameter streaming
+    _streaming_session = (event.get('Session', '') if isinstance(event, dict) else '') or str(id(event))
+    _streaming_publisher = StreamingPublisher(
+        session_id=_streaming_session,
+        source_function="GraphGeneratorFunction",
+        field_names=["graph", "metadata"]
+    )
     size = 100
     seed = None
     
@@ -105,9 +114,18 @@ def lambda_handler(event, context):
     
     # Generate the graph
     graph = generate_graph(size, seed)
+    _streaming_publisher.publish('graph', graph)
+    # Streaming: Signal to runtime to invoke next function early with futures
+    if _streaming_publisher.should_invoke_next():
+        _streaming_payload = _streaming_publisher.get_streaming_payload()
+        # Store payload for runtime to pick up and invoke continuation
+        set_streaming_output(_streaming_payload)
+        _streaming_publisher.mark_next_invoked()
     
     end_time = datetime.datetime.now()
     generation_time = (end_time - start_time) / datetime.timedelta(microseconds=1)
+    _stream_metadata = {'generation_time_us': generation_time, 'requested_size': size, 'seed': seed}
+    _streaming_publisher.publish('metadata', _stream_metadata)
     
     # Return graph data for parallel processing
     result = {

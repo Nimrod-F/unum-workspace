@@ -1,0 +1,46 @@
+Functions:
+  Aggregator:
+    Properties:
+      CodeUri: aggregator/
+      Environment:
+        UNUM_FUTURE_BASED: 'true'
+      MemorySize: 256
+      Runtime: python3.11
+      Timeout: 60
+  DataGenerator:
+    Properties:
+      CodeUri: fused_build\DataGenerator/
+      MemorySize: 512
+      Runtime: python3.11
+      Start: true
+      Timeout: 120
+  FusedAnalysisChain:
+    Properties:
+      CodeUri: fused_build/FusedAnalysisChain/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  Reporter:
+    Properties:
+      CodeUri: reporter/
+      MemorySize: 256
+      Runtime: python3.11
+      Timeout: 30
+  Simulate:
+    Properties:
+      CodeUri: fused_build\Simulate/
+      MemorySize: 512
+      Runtime: python3.11
+      Timeout: 120
+Globals:
+  ApplicationName: montecarlo-pipeline
+  Checkpoint: true
+  Debug: true
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowDefinition: unum-step-functions.json
+  WorkflowType: step-functions

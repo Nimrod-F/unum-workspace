@@ -1,0 +1,6 @@
+{
+  "Name": "Reporter",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true
+}

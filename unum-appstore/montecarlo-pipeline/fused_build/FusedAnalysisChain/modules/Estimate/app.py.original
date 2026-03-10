@@ -1,0 +1,218 @@
+"""
+Estimate Function — Eigenvalue decomposition and regression
+
+Part of the analysis chain: Transform → Estimate → Validate
+Performs power iteration for dominant eigenvalues of the covariance matrix,
+and ordinary least-squares regression. No artificial delays.
+"""
+import datetime
+import math
+import random
+
+
+def power_iteration(matrix, size, num_eigenvalues=5, max_iter=200, tol=1e-8):
+    """
+    Compute the top-k eigenvalues and eigenvectors using deflated power iteration.
+
+    Args:
+        matrix: Square symmetric matrix (covariance)
+        size: Matrix dimension
+        num_eigenvalues: Number of dominant eigenvalues to compute
+        max_iter: Maximum iterations per eigenvalue
+        tol: Convergence tolerance
+
+    Returns:
+        List of (eigenvalue, eigenvector) tuples
+    """
+    results = []
+    # Work on a copy for deflation
+    A = [row[:] for row in matrix]
+
+    for _ in range(min(num_eigenvalues, size)):
+        # Random initial vector
+        v = [random.gauss(0, 1) for _ in range(size)]
+        norm = math.sqrt(sum(x * x for x in v))
+        v = [x / norm for x in v]
+
+        eigenvalue = 0.0
+        for iteration in range(max_iter):
+            # Matrix-vector product: A × v
+            Av = [0.0] * size
+            for i in range(size):
+                s = 0.0
+                for j in range(size):
+                    s += A[i][j] * v[j]
+                Av[i] = s
+
+            # New eigenvalue estimate (Rayleigh quotient)
+            new_eigenvalue = sum(Av[i] * v[i] for i in range(size))
+
+            # Normalise
+            norm = math.sqrt(sum(x * x for x in Av))
+            if norm < 1e-15:
+                break
+            v_new = [x / norm for x in Av]
+
+            # Check convergence
+            if abs(new_eigenvalue - eigenvalue) < tol:
+                eigenvalue = new_eigenvalue
+                v = v_new
+                break
+            eigenvalue = new_eigenvalue
+            v = v_new
+
+        results.append({
+            "eigenvalue": eigenvalue,
+            "eigenvector_norm": math.sqrt(sum(x * x for x in v)),
+            "converged": iteration < max_iter - 1,
+            "iterations": iteration + 1,
+        })
+
+        # Deflate: A = A - λ v v^T
+        for i in range(size):
+            for j in range(size):
+                A[i][j] -= eigenvalue * v[i] * v[j]
+
+    return results
+
+
+def ordinary_least_squares(X, y, rows, cols):
+    """
+    Compute OLS regression coefficients: β = (X^T X)^{-1} X^T y
+
+    Uses simplified approach: solve normal equations via Gauss elimination.
+
+    Args:
+        X: Design matrix (rows × cols)
+        y: Response vector (rows,)
+        rows, cols: Dimensions
+
+    Returns:
+        Coefficients, R², residuals summary
+    """
+    # Compute X^T X (cols × cols)
+    XtX = [[0.0] * cols for _ in range(cols)]
+    for i in range(cols):
+        for j in range(cols):
+            s = 0.0
+            for k in range(rows):
+                s += X[k][i] * X[k][j]
+            XtX[i][j] = s
+
+    # Compute X^T y (cols,)
+    Xty = [0.0] * cols
+    for i in range(cols):
+        s = 0.0
+        for k in range(rows):
+            s += X[k][i] * y[k]
+        Xty[i] = s
+
+    # Solve via Gaussian elimination with partial pivoting
+    augmented = [XtX[i][:] + [Xty[i]] for i in range(cols)]
+
+    for i in range(cols):
+        # Partial pivoting
+        max_row = i
+        max_val = abs(augmented[i][i])
+        for k in range(i + 1, cols):
+            if abs(augmented[k][i]) > max_val:
+                max_val = abs(augmented[k][i])
+                max_row = k
+        augmented[i], augmented[max_row] = augmented[max_row], augmented[i]
+
+        pivot = augmented[i][i]
+        if abs(pivot) < 1e-12:
+            continue
+
+        for k in range(i + 1, cols):
+            factor = augmented[k][i] / pivot
+            for j in range(i, cols + 1):
+                augmented[k][j] -= factor * augmented[i][j]
+
+    # Back substitution
+    beta = [0.0] * cols
+    for i in range(cols - 1, -1, -1):
+        if abs(augmented[i][i]) < 1e-12:
+            beta[i] = 0.0
+            continue
+        s = augmented[i][cols]
+        for j in range(i + 1, cols):
+            s -= augmented[i][j] * beta[j]
+        beta[i] = s / augmented[i][i]
+
+    # Compute predictions and R²
+    y_mean = sum(y) / rows
+    ss_tot = sum((yi - y_mean) ** 2 for yi in y)
+    ss_res = 0.0
+    residuals = []
+    for k in range(rows):
+        y_pred = sum(X[k][j] * beta[j] for j in range(cols))
+        resid = y[k] - y_pred
+        ss_res += resid * resid
+        residuals.append(resid)
+
+    r_squared = 1.0 - (ss_res / max(ss_tot, 1e-15))
+
+    # Residual statistics
+    resid_mean = sum(residuals) / rows
+    resid_std = math.sqrt(
+        sum((r - resid_mean) ** 2 for r in residuals) / max(rows - 1, 1)
+    )
+
+    return {
+        "coefficients": beta[:20],  # Truncate for payload
+        "r_squared": r_squared,
+        "residual_mean": resid_mean,
+        "residual_std": resid_std,
+        "ss_residual": ss_res,
+        "ss_total": ss_tot,
+    }
+
+
+def lambda_handler(event, context):
+    """
+    Perform eigenvalue decomposition and regression on the normalised data.
+
+    Input: Normalised matrix + covariance from Transform
+    Output: Eigenvalues, regression coefficients, R² for Validate
+    """
+    start_time = datetime.datetime.now()
+
+    data = event if isinstance(event, dict) else {}
+    normalised = data.get("normalised_matrix", [])
+    covariance = data.get("covariance_matrix", [])
+    dims = data.get("dimensions", [len(normalised), len(normalised[0]) if normalised else 0])
+    rows, cols = dims[0], dims[1]
+
+    # Step 1: Power iteration on covariance matrix for eigenvalues
+    eigenvalues = power_iteration(covariance, cols, num_eigenvalues=min(5, cols))
+
+    # Step 2: OLS regression — use first column as response, rest as predictors
+    if cols >= 2 and rows > 0:
+        y = [normalised[k][0] for k in range(rows)]
+        X = [normalised[k][1:] for k in range(rows)]
+        regression = ordinary_least_squares(X, y, rows, cols - 1)
+    else:
+        regression = {"coefficients": [], "r_squared": 0.0}
+
+    # Explained variance ratio from eigenvalues
+    total_var = sum(ev["eigenvalue"] for ev in eigenvalues if ev["eigenvalue"] > 0)
+    explained_ratios = [
+        ev["eigenvalue"] / max(total_var, 1e-15)
+        for ev in eigenvalues
+        if ev["eigenvalue"] > 0
+    ]
+
+    end_time = datetime.datetime.now()
+    compute_time_us = (end_time - start_time) / datetime.timedelta(
+        microseconds=1
+    )
+
+    return {
+        "eigenvalues": eigenvalues,
+        "explained_variance_ratios": explained_ratios,
+        "regression": regression,
+        "dimensions": [rows, cols],
+        "compute_time_us": compute_time_us,
+        "simulation_params": data.get("simulation_params", {}),
+    }

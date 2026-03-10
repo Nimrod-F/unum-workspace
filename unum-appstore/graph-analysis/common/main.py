@@ -2,11 +2,35 @@ import json
 import os
 import time
 import sys
+import threading
+import concurrent.futures
+
 if os.environ['FAAS_PLATFORM'] == 'gcloud':
     import base64
 
 from unum import Unum
 from app import lambda_handler as user_lambda
+
+# Streaming support - conditionally imported
+try:
+    from unum_streaming import (
+        get_streaming_output,
+        clear_streaming_output,
+        is_future,
+        resolve_all_futures,
+        LazyFutureDict,
+        register_unum_context,
+        unregister_unum_context,
+        was_streaming_invoked
+    )
+    STREAMING_AVAILABLE = True
+except ImportError:
+    STREAMING_AVAILABLE = False
+    def get_streaming_output(): return None
+    def clear_streaming_output(): pass
+    def register_unum_context(u, e): pass
+    def unregister_unum_context(): pass
+    def was_streaming_invoked(): return False
 
 '''Create the unum runtime context from this function's unum configuration and
 the workflow's intermediary data store information.
@@ -131,7 +155,26 @@ def ingress(event):
             if unum.gc == True:
                 unum.my_gc_tasks = event['GC']
 
-        return event["Data"]["Value"]
+        input_value = event["Data"]["Value"]
+        
+        # STREAMING SUPPORT: Check if input contains future references
+        # If so, wrap with LazyFutureDict for transparent lazy resolution
+        if STREAMING_AVAILABLE and isinstance(input_value, dict):
+            # Check if this is a streaming payload (contains __streaming__ marker or futures)
+            is_streaming = input_value.get('__streaming__', False)
+            has_futures = any(
+                isinstance(v, dict) and v.get('__unum_future__') 
+                for v in input_value.values()
+            )
+            
+            if is_streaming or has_futures:
+                print(f'[STREAMING] Input contains futures, wrapping with LazyFutureDict')
+                # Remove streaming marker before passing to user function
+                if '__streaming__' in input_value:
+                    del input_value['__streaming__']
+                return LazyFutureDict(input_value)
+        
+        return input_value
     else:
         # Check if this is an eager fan-in invocation
         eager_fanin = event["Data"].get("EagerFanIn", {})
@@ -223,6 +266,19 @@ def egress(user_function_output, event):
     whether the user function ran before. To guarantee at-least-once
     execution, unum would have to run the user function even if it ran
     previously.
+    
+    OPTIMIZATION: Early Invocation for Scalar Continuations
+    ========================================================
+    When EARLY_INVOKE is enabled and the continuation is Scalar (not fan-in),
+    we invoke the continuation IMMEDIATELY after user function completes,
+    in parallel with the checkpoint write.
+    
+    This works because Scalar continuations receive data in the payload
+    (Source: "http"), not from the datastore. So the next function doesn't
+    need to wait for our checkpoint.
+    
+    For Fan-in continuations, we must still checkpoint first because the
+    aggregator needs to read our data from the datastore.
     '''
     
     # Handle GC tasks from lazy inputs (eager fan-in)
@@ -236,6 +292,42 @@ def egress(user_function_output, event):
             unum.my_gc_tasks = {}
         finally:
             unum._lazy_inputs = None  # Clean up
+
+    # =========================================================================
+    # STREAMING CHECK: If user function set streaming output, it means
+    # the continuation was already invoked mid-execution with partial data.
+    # We just need to ensure all fields are published and cleanup.
+    # =========================================================================
+    streaming_output = get_streaming_output() if STREAMING_AVAILABLE else None
+    streaming_invoked = was_streaming_invoked() if STREAMING_AVAILABLE else False
+    
+    if streaming_output is not None or streaming_invoked:
+        print('[STREAMING] Detected streaming output - continuation was invoked mid-execution')
+        clear_streaming_output()
+        
+        # Still need to checkpoint for durability (with the FINAL output)
+        if unum.gc == True:
+            gc = {
+                unum.get_my_instance_name(event): unum.get_my_outgoing_edges(event, user_function_output)
+            }
+            checkpoint_data = {
+                'GC': gc,
+                "User": json.dumps(user_function_output)
+            }
+        else:
+            checkpoint_data = {
+                "User": json.dumps(user_function_output)
+            }
+        
+        unum.run_checkpoint(event, checkpoint_data)
+        
+        # GC if enabled
+        if unum.gc == True:
+            unum.run_gc()
+        
+        unum.cleanup()
+        
+        return unum.curr_session, None
 
     # Compute all the outgoing edges for this execution.
     #
@@ -260,56 +352,82 @@ def egress(user_function_output, event):
             "User": json.dumps(user_function_output)
         }
 
-
-    # Checkpoint first, before invoking continuations
-    #
-    # The data written into the checkpoint file is the user code result
-    # (user_function_output) and the outgoing edges of this function.
-    #
-    # The outgoing edges are needed for GC and it must be written to the
-    # checkpoint file for patterns like fan-in, because the aggregation
-    # function will be invoked by only one of the branches and the invoker
-    # branch cannot have complete knowledge on the outgoing branches of its sibling
-    # branches.
-
-    ret = unum.run_checkpoint(event, checkpoint_data)
-
+    # Check if early invocation is enabled
+    early_invoke = os.environ.get('EARLY_INVOKE', 'false').lower() == 'true'
+    
+    # Check if we have ONLY scalar continuations (no fan-in)
+    # Scalar continuations can be invoked early because they receive data in payload
+    has_only_scalar_continuations = unum.has_only_scalar_continuations() if hasattr(unum, 'has_only_scalar_continuations') else False
+    
+    # Log the early invoke decision (always, for debugging)
+    print(f'[EARLY_INVOKE] enabled={early_invoke}, has_only_scalar={has_only_scalar_continuations}, will_use={early_invoke and has_only_scalar_continuations}')
+    
     next_payload_metadata = None
-
-    if ret == 0:
-        # checkpoint on and checkpoint succeeded
-
-        # invoke continuation with my user function results
-        # t3 = time.perf_counter_ns()
-        session, next_payload_vmetadata = unum.run_continuation(event, user_function_output)
-        # t4 = time.perf_counter_ns()
-    elif ret == -1:
-        # checkpoint on and checkpoint failed due to concurrent instance beat
-        # me to checkpoint.
-        # Do not invoke continuations. 
-        pass
-    elif ret == -2:
-        # checkpoint on and a checkpoint already exists before running the
-        # user function, i.e., I'm a non-concurrent duplicate
-
-        # user_function_output should have been set to the data from the
-        # existing checkpoint already and I need to invoke my continuations
-        # again because there's no way for me to tell whether the previous
-        # instance has done that or not.
-        # t3 = time.perf_counter_ns()
-        session, next_payload_metadata = unum.run_continuation(event, user_function_output)
-        # t4 = time.perf_counter_ns()
-    elif ret == None:
-        # checkpoint off
-
-        # I have to always invoke the continuations because there's no way for
-        # me to tell if there was a previous instance or if there's concurrent
-        # instances.
-        # t3 = time.perf_counter_ns()
-        session, next_payload_metadata = unum.run_continuation(event, user_function_output)
-        # t4 = time.perf_counter_ns()
+    session = None
+    egress_start = time.time()
+    
+    if early_invoke and has_only_scalar_continuations:
+        # OPTIMIZATION: Invoke continuation in parallel with checkpoint
+        # This saves the checkpoint write latency from the critical path
+        
+        # Use ThreadPoolExecutor for parallel execution
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            # Submit checkpoint as background task
+            ckpt_start = time.time()
+            checkpoint_future = executor.submit(unum.run_checkpoint, event, checkpoint_data)
+            
+            # Invoke continuation immediately (don't wait for checkpoint)
+            invoke_start = time.time()
+            session, next_payload_metadata = unum.run_continuation(event, user_function_output)
+            invoke_end = time.time()
+            
+            # Wait for checkpoint to complete (for correctness on retries)
+            ret = checkpoint_future.result()
+            ckpt_end = time.time()
+            
+            egress_end = time.time()
+            print(f'[EARLY_INVOKE_TIMING] parallel_egress={int((egress_end-egress_start)*1000)}ms, '
+                  f'checkpoint={int((ckpt_end-ckpt_start)*1000)}ms, '
+                  f'invoke={int((invoke_end-invoke_start)*1000)}ms, '
+                  f'saved~={max(0, int((ckpt_end-ckpt_start)*1000) - int((invoke_end-invoke_start)*1000))}ms')
+            
+            if ret == -1:
+                # Checkpoint failed due to concurrent instance - but we already invoked
+                # This is acceptable because Lambda invocations are idempotent with Event type
+                if unum.debug:
+                    print(f'[DEBUG] Concurrent checkpoint detected after early invocation')
     else:
-        print(f'[ERROR] Unknown run_checkpoint() return value: {ret}')
+        # Standard flow: Checkpoint first, then invoke continuation
+        # This is required for fan-in patterns where data must be in datastore
+        
+        ckpt_start = time.time()
+        ret = unum.run_checkpoint(event, checkpoint_data)
+        ckpt_end = time.time()
+        
+        invoke_start = time.time()
+        if ret == 0:
+            # checkpoint on and checkpoint succeeded
+            session, next_payload_metadata = unum.run_continuation(event, user_function_output)
+        elif ret == -1:
+            # checkpoint on and checkpoint failed due to concurrent instance beat
+            # me to checkpoint.
+            # Do not invoke continuations. 
+            pass
+        elif ret == -2:
+            # checkpoint on and a checkpoint already exists before running the
+            # user function, i.e., I'm a non-concurrent duplicate
+            session, next_payload_metadata = unum.run_continuation(event, user_function_output)
+        elif ret == None:
+            # checkpoint off
+            session, next_payload_metadata = unum.run_continuation(event, user_function_output)
+        else:
+            print(f'[ERROR] Unknown run_checkpoint() return value: {ret}')
+        invoke_end = time.time()
+        
+        egress_end = time.time()
+        print(f'[SEQUENTIAL_TIMING] sequential_egress={int((egress_end-egress_start)*1000)}ms, '
+              f'checkpoint={int((ckpt_end-ckpt_start)*1000)}ms, '
+              f'invoke={int((invoke_end-invoke_start)*1000)}ms')
 
     session = unum.curr_session
 
@@ -355,6 +473,10 @@ def lambda_handler(event, context):
 
     unum.cleanup()
 
+    # Reset DynamoDB metrics counters for this invocation
+    if hasattr(unum, 'ds') and unum.ds is not None and hasattr(unum.ds, 'reset_metrics'):
+        unum.ds.reset_metrics()
+
     if os.environ['FAAS_PLATFORM'] == 'gcloud':
         if 'data' in event:
             input_data = base64.b64decode(event['data']).decode('utf-8')
@@ -369,7 +491,31 @@ def lambda_handler(event, context):
     ckpt_ret = unum.get_checkpoint(input_data)
     if ckpt_ret == None:
         user_function_input = ingress(input_data)
-        user_function_output = user_lambda(user_function_input, context)
+        
+        # Initialize early continuation support
+        # This allows user functions to call signal_output_ready() to trigger
+        # continuation before the function fully completes
+        def build_checkpoint_data(output):
+            if unum.gc:
+                gc = {
+                    unum.get_my_instance_name(input_data): unum.get_my_outgoing_edges(input_data, output)
+                }
+                return {'GC': gc, 'User': json.dumps(output)}
+            else:
+                return {'User': json.dumps(output)}
+        
+        # Register unum context for streaming support
+        # This allows transformed user code to invoke continuation during execution
+        if STREAMING_AVAILABLE:
+            register_unum_context(unum, input_data)
+        
+        try:
+            user_function_output = user_lambda(user_function_input, context)
+        finally:
+            # Unregister streaming context
+            if STREAMING_AVAILABLE:
+                unregister_unum_context()
+        
         if unum.debug:
             print(f'[DEBUG] User function input: {user_function_input}')
             print(f'[DEBUG] User function output: {user_function_output}')
@@ -380,5 +526,9 @@ def lambda_handler(event, context):
             print(f'[DEBUG] User function output from a prior checkpoint: {user_function_output}')
 
     session, next_payload_metadata = egress(user_function_output, input_data)
+
+    # Log DynamoDB metrics for this invocation (parsed by MetricsCollector)
+    if hasattr(unum, 'ds') and unum.ds is not None and hasattr(unum.ds, 'log_metrics'):
+        unum.ds.log_metrics()
 
     return user_function_output, session, next_payload_metadata

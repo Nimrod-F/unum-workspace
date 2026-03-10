@@ -1,0 +1,18 @@
+{
+    "Name": "FusedAnalysisChain",
+    "Start": false,
+    "Debug": true,
+    "Checkpoint": true,
+    "Next": {
+        "Name": "Aggregator",
+        "InputType": {
+            "Fan-in": {
+                "Values": [
+                    "FusedAnalysisChain-unumIndex-0",
+                    "Simulate-unumIndex-1"
+                ]
+            }
+        },
+        "Fan-in-Group": true
+    }
+}

@@ -1,0 +1,109 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: true
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  AggregatorFunction:
+    Value: !GetAtt AggregatorFunction.Arn
+  DataGeneratorFunction:
+    Value: !GetAtt DataGeneratorFunction.Arn
+  EstimateFunction:
+    Value: !GetAtt EstimateFunction.Arn
+  ReporterFunction:
+    Value: !GetAtt ReporterFunction.Arn
+  SimulateFunction:
+    Value: !GetAtt SimulateFunction.Arn
+  TransformFunction:
+    Value: !GetAtt TransformFunction.Arn
+  ValidateFunction:
+    Value: !GetAtt ValidateFunction.Arn
+Resources:
+  AggregatorFunction:
+    Properties:
+      CodeUri: aggregator/
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: 'true'
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  DataGeneratorFunction:
+    Properties:
+      CodeUri: data_generator/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  EstimateFunction:
+    Properties:
+      CodeUri: estimate/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  ReporterFunction:
+    Properties:
+      CodeUri: reporter/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  SimulateFunction:
+    Properties:
+      CodeUri: simulate/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  TransformFunction:
+    Properties:
+      CodeUri: transform/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  ValidateFunction:
+    Properties:
+      CodeUri: validate/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

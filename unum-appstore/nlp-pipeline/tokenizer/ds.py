@@ -1275,6 +1275,27 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
         self.client = boto3.client('dynamodb')
         self.resource = boto3.resource('dynamodb')
         self.table = self.resource.Table(self.name)
+        # Metrics counters for benchmark instrumentation
+        self._metrics_reads = 0
+        self._metrics_writes = 0
+        self._metrics_deletes = 0
+        self._metrics_wcu = 0.0
+        self._metrics_rcu = 0.0
+
+    def reset_metrics(self):
+        """Reset I/O metrics counters (called at start of each invocation)."""
+        self._metrics_reads = 0
+        self._metrics_writes = 0
+        self._metrics_deletes = 0
+        self._metrics_wcu = 0.0
+        self._metrics_rcu = 0.0
+
+    def log_metrics(self):
+        """Emit [METRICS] line for CloudWatch log collection."""
+        print(f"[METRICS] dynamo_reads={self._metrics_reads} "
+              f"dynamo_writes={self._metrics_writes} "
+              f"dynamo_deletes={self._metrics_deletes} "
+              f"wcu={self._metrics_wcu:.1f} rcu={self._metrics_rcu:.1f}")
 
 
     def read_input(self, session, values):
@@ -1381,7 +1402,15 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                         'Keys': this_batch,
                         'ConsistentRead': True,
                     }
-                })
+                },
+                ReturnConsumedCapacity='TOTAL'
+            )
+
+            # Track metrics
+            self._metrics_reads += len(this_batch)
+            if 'ConsumedCapacity' in this_batch_items:
+                for cap in this_batch_items['ConsumedCapacity']:
+                    self._metrics_rcu += cap.get('CapacityUnits', 0)
 
             try:
                 ret = this_batch_items['Responses'][self.name]
@@ -1446,13 +1475,16 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     "Claimed": True
                 },
                 ConditionExpression='attribute_not_exists(#N)',
-                ExpressionAttributeNames={"#N": "Name"}
+                ExpressionAttributeNames={"#N": "Name"},
+                ReturnConsumedCapacity='TOTAL'
             )
+            self._metrics_writes += 1
             if self.debug:
                 print(f'[DEBUG] Successfully claimed eager fan-in for {aggregation_function_instance_name}')
             return True
         except ClientError as e:
             if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                self._metrics_writes += 1  # Still consumed WCU even on condition fail
                 if self.debug:
                     print(f'[DEBUG] Eager fan-in already claimed for {aggregation_function_instance_name}')
                 return False
@@ -1486,7 +1518,14 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                             'ProjectionExpression': '#N',
                             'ExpressionAttributeNames': {'#N': 'Name'}
                         }
-                    })
+                    },
+                    ReturnConsumedCapacity='TOTAL'
+                )
+                
+                self._metrics_reads += len(this_batch)
+                if 'ConsumedCapacity' in response:
+                    for cap in response['ConsumedCapacity']:
+                        self._metrics_rcu += cap.get('CapacityUnits', 0)
                 
                 found_names = {item['Name'] for item in response.get('Responses', {}).get(self.name, [])}
                 
@@ -1673,11 +1712,16 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                 Key={
                     'Name': self.checkpoint_name(session, instance_name)
                 },
-                ConsistentRead=True
+                ConsistentRead=True,
+                ReturnConsumedCapacity='TOTAL'
             )
         except Exception as e:
             print(f"[WARN] get_checkpoint() Error Code: {e.response['Error']['Code']}")
             raise e
+
+        self._metrics_reads += 1
+        if 'ConsumedCapacity' in ret:
+            self._metrics_rcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
 
         if "Item" in ret:
             item = ret["Item"]
@@ -1713,12 +1757,17 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                 Key={
                     'Name': self.checkpoint_name(session, instance_name)
                 },
-                ConsistentRead=True
+                ConsistentRead=True,
+                ReturnConsumedCapacity='TOTAL'
             )
         except Exception as e:
             if self.debug:
                 print(f"[DEBUG] get_checkpoint_full() error: {e}")
             return None
+
+        self._metrics_reads += 1
+        if 'ConsumedCapacity' in ret:
+            self._metrics_rcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
 
         if "Item" not in ret:
             return None
@@ -1756,14 +1805,21 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     ReturnConsumedCapacity='TOTAL'
                 )
 
-                return int(rsp['ConsumedCapacity']['CapacityUnits'])
+                wcu = rsp['ConsumedCapacity']['CapacityUnits']
+                self._metrics_writes += 1
+                self._metrics_wcu += wcu
+                return int(wcu)
 
             else:
-                self.table.put_item(Item=item,
+                rsp = self.table.put_item(Item=item,
                     ConditionExpression='attribute_not_exists(#N)',
-                    ExpressionAttributeNames={"#N": key_name}
-
+                    ExpressionAttributeNames={"#N": key_name},
+                    ReturnConsumedCapacity='TOTAL'
                 )
+
+                self._metrics_writes += 1
+                if 'ConsumedCapacity' in rsp:
+                    self._metrics_wcu += rsp['ConsumedCapacity'].get('CapacityUnits', 0)
                 return 1
 
         except ClientError as e:
@@ -1836,9 +1892,18 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     Key={key_name: key},
                     ReturnConsumedCapacity='TOTAL')
 
-                return int(rsp['ConsumedCapacity']['CapacityUnits'])
+                self._metrics_deletes += 1
+                wcu = rsp['ConsumedCapacity']['CapacityUnits']
+                self._metrics_wcu += wcu
+                return int(wcu)
             else:
-                rsp = self.table.delete_item(Key={key_name: key})
+                rsp = self.table.delete_item(
+                    Key={key_name: key},
+                    ReturnConsumedCapacity='TOTAL')
+
+                self._metrics_deletes += 1
+                if 'ConsumedCapacity' in rsp:
+                    self._metrics_wcu += rsp['ConsumedCapacity'].get('CapacityUnits', 0)
                 return 1
 
         except ClientError as e:
@@ -1935,9 +2000,14 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                 UpdateExpression="set #L[" + str(index) + "] = :nd",
                 ConditionExpression='attribute_exists(#N)',
                 ExpressionAttributeValues={':nd': True},
-                ExpressionAttributeNames={"#N": "Name", "#L": "ReadyMap"})
+                ExpressionAttributeNames={"#N": "Name", "#L": "ReadyMap"},
+                ReturnConsumedCapacity='TOTAL')
         except Exception as e:
             raise e
+
+        self._metrics_writes += 1
+        if 'ConsumedCapacity' in ret:
+            self._metrics_wcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
 
         return ret['Attributes']['ReadyMap']
 
@@ -1974,11 +2044,15 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     "Count": 0
                 },
                 ConditionExpression='attribute_not_exists(#N)',
-                ExpressionAttributeNames={"#N": "Name"}
-
+                ExpressionAttributeNames={"#N": "Name"},
+                ReturnConsumedCapacity='TOTAL'
             )
+            self._metrics_writes += 1
+            if 'ConsumedCapacity' in ret:
+                self._metrics_wcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
         except ClientError as e:  
             if e.response['Error']['Code']=='ConditionalCheckFailedException':  
+                self._metrics_writes += 1  # Still consumed WCU
                 pass
             else:
                 raise e
@@ -1992,13 +2066,15 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                 ReturnValues='UPDATED_NEW',
                 UpdateExpression='SET #C = #C + :incr',
                 ConditionExpression='attribute_exists(#N)',
-                # ExpressionAttributeNames={
-                #     'string': 'string'
-                # },
                 ExpressionAttributeValues={':incr': 1},
-                ExpressionAttributeNames={"#N": "Name", "#C": 'Count'})
+                ExpressionAttributeNames={"#N": "Name", "#C": 'Count'},
+                ReturnConsumedCapacity='TOTAL')
         except Exception as e:
             raise e
+
+        self._metrics_writes += 1
+        if 'ConsumedCapacity' in ret:
+            self._metrics_wcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
 
         return ret["Attributes"]["Count"]
 

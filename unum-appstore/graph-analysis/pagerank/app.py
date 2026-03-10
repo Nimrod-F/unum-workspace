@@ -3,6 +3,7 @@ PageRank Function - Computes PageRank algorithm on the graph
 
 Inspired by SeBS benchmark 501.graph-pagerank.
 """
+from unum_streaming import StreamingPublisher, set_streaming_output
 import datetime
 
 
@@ -73,12 +74,27 @@ def lambda_handler(event, context):
     Input: Graph data from GraphGenerator
     Output: PageRank results
     """
+
+    # Streaming: Initialize publisher for incremental parameter streaming
+    _streaming_session = (event.get('Session', '') if isinstance(event, dict) else '') or str(id(event))
+    _streaming_publisher = StreamingPublisher(
+        session_id=_streaming_session,
+        source_function="PageRankFunction",
+        field_names=["graph_nodes", "result", "compute_time_us"]
+    )
     start_time = datetime.datetime.now()
     
     # Extract graph data
     graph = event.get("graph", event)
     adj_list = graph.get("adjacency_list", {})
     num_nodes = graph.get("nodes", len(adj_list))
+    _streaming_publisher.publish('graph_nodes', num_nodes)
+    # Streaming: Signal to runtime to invoke next function early with futures
+    if _streaming_publisher.should_invoke_next():
+        _streaming_payload = _streaming_publisher.get_streaming_payload()
+        # Store payload for runtime to pick up and invoke continuation
+        set_streaming_output(_streaming_payload)
+        _streaming_publisher.mark_next_invoked()
     
     # Convert string keys back to integers if needed
     if adj_list and isinstance(list(adj_list.keys())[0], str):
@@ -86,9 +102,11 @@ def lambda_handler(event, context):
     
     # Compute PageRank
     result = compute_pagerank(adj_list, num_nodes)
+    _streaming_publisher.publish('result', result)
     
     end_time = datetime.datetime.now()
     compute_time = (end_time - start_time) / datetime.timedelta(microseconds=1)
+    _streaming_publisher.publish('compute_time_us', compute_time)
     
     return {
         "algorithm": "PageRank",

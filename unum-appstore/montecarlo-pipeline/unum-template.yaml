@@ -1,0 +1,58 @@
+Globals:
+  ApplicationName: montecarlo-pipeline
+  WorkflowType: step-functions
+  WorkflowDefinition: unum-step-functions.json
+  FaaSPlatform: aws
+  UnumIntermediaryDataStoreType: dynamodb
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  Checkpoint: true
+  GC: false
+  Debug: true
+  Eager: true
+
+Functions:
+  DataGenerator:
+    Properties:
+      CodeUri: data_generator/
+      Runtime: python3.11
+      MemorySize: 512
+      Timeout: 120
+      Start: true
+  Transform:
+    Properties:
+      CodeUri: transform/
+      Runtime: python3.11
+      MemorySize: 512
+      Timeout: 120
+  Estimate:
+    Properties:
+      CodeUri: estimate/
+      Runtime: python3.11
+      MemorySize: 512
+      Timeout: 120
+  Validate:
+    Properties:
+      CodeUri: validate/
+      Runtime: python3.11
+      MemorySize: 256
+      Timeout: 60
+  Simulate:
+    Properties:
+      CodeUri: simulate/
+      Runtime: python3.11
+      MemorySize: 512
+      Timeout: 120
+  Aggregator:
+    Properties:
+      CodeUri: aggregator/
+      Runtime: python3.11
+      MemorySize: 256
+      Timeout: 60
+      Environment:
+        UNUM_FUTURE_BASED: "true"
+  Reporter:
+    Properties:
+      CodeUri: reporter/
+      Runtime: python3.11
+      MemorySize: 256
+      Timeout: 30

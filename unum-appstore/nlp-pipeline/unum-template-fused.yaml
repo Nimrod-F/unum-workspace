@@ -1,0 +1,23 @@
+Functions:
+  FusedNLPAnalysis:
+    Properties:
+      CodeUri: fused_build/FusedNLPAnalysis/
+      Handler: main.lambda_handler
+      Policies: []
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  Tokenizer:
+    Properties:
+      CodeUri: fused_build\Tokenizer/
+      Runtime: python3.11
+      Start: true
+Globals:
+  ApplicationName: unum-nlp-pipeline
+  Checkpoint: true
+  Eager: false
+  FaaSPlatform: aws
+  GC: false
+  UnumIntermediaryDataStoreName: unum-nlp-pipeline
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowDefinition: unum-step-functions.json
+  WorkflowType: step-functions

@@ -1,0 +1,10 @@
+{
+  "Name": "Aggregator",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Reporter",
+    "InputType": "Scalar"
+  }
+}

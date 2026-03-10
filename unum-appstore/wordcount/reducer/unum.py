@@ -176,6 +176,29 @@ class Unum(object):
         self.my_outgoing_edges = None
 
 
+    def has_only_scalar_continuations(self) -> bool:
+        '''Check if all continuations are Scalar type (no Fan-in)
+        
+        This is used for the Early Invocation optimization. Scalar continuations
+        receive data in the payload (Source: "http"), so they don't need to
+        wait for our checkpoint to be written to the datastore.
+        
+        Fan-in continuations need the checkpoint to be written first because
+        the aggregator reads data from the datastore.
+        
+        @return True if all continuations are Scalar, False otherwise
+        '''
+        if not self.cont_list:
+            return True  # No continuations, vacuously true
+        
+        for cont in self.cont_list:
+            # UnumContinuationInputType.SCALAR has value 1
+            if cont.input_type.value != 1:
+                return False
+        
+        return True
+
+
 
     def get_checkpoint(self, input_payload):
         '''Return the checkpoint of this instance

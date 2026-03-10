@@ -1,0 +1,15 @@
+{
+  "Name": "Reducer",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Summary",
+    "InputType": {
+      "Fan-in": {
+        "Values": ["Reducer-unumIndex-*"]
+      }
+    }
+  },
+  "Next Payload Modifiers": ["Pop"]
+}

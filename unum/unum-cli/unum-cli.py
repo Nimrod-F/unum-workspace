@@ -295,6 +295,17 @@ def apply_streaming_transform(platform_template):
                 print(f'  [{func_name}] Last function (no Next), skipping streaming')
                 continue
         
+        # Skip fan-in aggregator functions (receive list inputs, not suitable for streaming)
+        with open(app_path, 'r', encoding='utf-8') as f:
+            _src_check = f.read()
+        # Detect list-input patterns: event[0], event[1], "for x in event", etc.
+        import re as _re
+        if _re.search(r'\bevent\s*\[\s*\d+\s*\]', _src_check) or \
+           _re.search(r'for\s+\w+\s+in\s+event\b', _src_check) or \
+           _re.search(r'isinstance\s*\(\s*event\s*,\s*list\s*\)', _src_check):
+            print(f'  [{func_name}] Fan-in aggregator (list input), skipping streaming')
+            continue
+        
         # Analyze the file
         try:
             with open(app_path, 'r', encoding='utf-8') as f:

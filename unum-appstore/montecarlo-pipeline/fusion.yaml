@@ -1,0 +1,18 @@
+# Fusion configuration for montecarlo-pipeline
+#
+# The chain Transform → Estimate → Validate is eligible for fusion:
+# - All scalar input/output (no fan-in/out mid-chain)
+# - Same runtime (python3.13)
+# - Sequential dependency
+# - Memory compatible (512+512+256 → fused at 512)
+#
+# The fan-in terminals (Validate, Simulate) remain separate deployment
+# units as they feed into the Aggregator fan-in point.
+# However, Transform and Estimate can be fused since they are mid-chain.
+
+fusions:
+  - name: FusedAnalysisChain
+    chain:
+      - Transform
+      - Estimate
+      - Validate

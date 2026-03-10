@@ -176,6 +176,29 @@ class Unum(object):
         self.my_outgoing_edges = None
 
 
+    def has_only_scalar_continuations(self) -> bool:
+        '''Check if all continuations are Scalar type (no Fan-in)
+        
+        This is used for the Early Invocation optimization. Scalar continuations
+        receive data in the payload (Source: "http"), so they don't need to
+        wait for our checkpoint to be written to the datastore.
+        
+        Fan-in continuations need the checkpoint to be written first because
+        the aggregator reads data from the datastore.
+        
+        @return True if all continuations are Scalar, False otherwise
+        '''
+        if not self.cont_list:
+            return True  # No continuations, vacuously true
+        
+        for cont in self.cont_list:
+            # UnumContinuationInputType.SCALAR has value 1
+            if cont.input_type.value != 1:
+                return False
+        
+        return True
+
+
 
     def get_checkpoint(self, input_payload):
         '''Return the checkpoint of this instance
@@ -1145,10 +1168,11 @@ class UnumContinuation(object):
                ready in the intermediary data store
             2. In the absence of faults, only one of the branches will invoke
                the aggregation function
+               
+        NOTE: ALL branches must register their readiness, regardless of the conditional.
+        The conditional only controls which branch(es) are allowed to INVOKE the 
+        aggregation function once all inputs are ready.
         '''
-        if self.check_conditional(user_function_output, input_payload, unum_index_list) == False:
-            return
-
         # compute the aggregation function's instance name based on the input payload
         # For fan-in, we should NOT include Fan-out in the aggregation function name
         # because all branches fan into the SAME aggregation function instance
@@ -1178,18 +1202,27 @@ class UnumContinuation(object):
         branch_instance_names = self.expand_all_fan_in_value_names(unum_index_list, input_payload)
         num_branches = len(branch_instance_names)
 
-        # Classic mode: only invoke when all branches are ready
-        if self.datastore.fanin_sync_ready(session, aggregation_function_instance_name, my_index, kwargs['my_curr_instance_name'], num_branches):
+        # ALL branches must register readiness, even if they won't invoke
+        all_ready = self.datastore.fanin_sync_ready(session, aggregation_function_instance_name, my_index, kwargs['my_curr_instance_name'], num_branches)
+
+        # Classic mode FIX: The branch that sees all_ready=True MUST invoke, regardless of conditional
+        # The conditional is just an optimization hint - correctness requires last-to-finish to invoke
+        if all_ready:
             payload['Data'] = {'Source': self.datastore.my_type, 'Value': branch_instance_names}
             payload['Session'] = session
 
             if self.debug:
-                print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC invoking {self.function_name} (all branches ready)')
+                print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC invoking {self.function_name} (all branches ready, this branch triggered invocation)')
 
             self.invoker.invoke(self.function_name, payload)
         else:
+            # Not all branches ready yet - check if we should log that we're waiting
+            conditional_pass = self.check_conditional(user_function_output, input_payload, unum_index_list)
             if self.debug:
-                print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC fan-in not ready yet')
+                if conditional_pass:
+                    print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC fan-in not ready yet (conditional=true but waiting for others)')
+                else:
+                    print(f'[DEBUG] {self.my_node_name}-{unum_index_list} CLASSIC fan-in: conditional false, not invoking')
 
 
     def _run_fan_in_eager(self, user_function_output, session, next_payload_metadata, input_payload, unum_index_list, **kwargs):

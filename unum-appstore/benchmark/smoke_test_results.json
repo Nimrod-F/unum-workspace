@@ -1,0 +1,159 @@
+{
+  "nlp-pipeline": {
+    "workflow": "nlp-pipeline",
+    "description": "Chain topology (4 functions)",
+    "start_time": "2026-03-07T19:00:45.346160+00:00",
+    "status": "PASS",
+    "functions": [
+      "Analyzer",
+      "Classifier",
+      "Summarizer",
+      "Tokenizer"
+    ],
+    "session_id": "048426e5-9a86-42cc-8ffd-00e1778f56ff",
+    "invocation_time": 1772910045349,
+    "timing": {
+      "completed": true,
+      "end_to_end_ms": 1799,
+      "end_function_duration_ms": 542.69,
+      "end_function_billed_ms": 543.0,
+      "end_function_memory_mb": 95,
+      "completion_timestamp": 1772910047148
+    },
+    "functions_executed": {
+      "Analyzer": true,
+      "Classifier": true,
+      "Summarizer": true,
+      "Tokenizer": true
+    },
+    "end_time": "2026-03-07T19:01:00.173307+00:00"
+  },
+  "text-processing": {
+    "workflow": "text-processing",
+    "description": "Parallel + Fan-in topology (5 functions)",
+    "start_time": "2026-03-07T19:01:00.174307+00:00",
+    "status": "PASS",
+    "functions": [
+      "CreatePost",
+      "FindUrl",
+      "Publish",
+      "ShortenUrl",
+      "UserMention"
+    ],
+    "session_id": "143f8844-7779-40a9-b090-8ca59c237911",
+    "invocation_time": 1772910060177,
+    "timing": {
+      "completed": true,
+      "end_to_end_ms": 746,
+      "end_function_duration_ms": 88.61,
+      "end_function_billed_ms": 89.0,
+      "end_function_memory_mb": 95,
+      "completion_timestamp": 1772910060923
+    },
+    "functions_executed": {
+      "CreatePost": true,
+      "FindUrl": true,
+      "Publish": true,
+      "ShortenUrl": true,
+      "UserMention": true
+    },
+    "end_time": "2026-03-07T19:01:15.021860+00:00"
+  },
+  "graph-analysis": {
+    "workflow": "graph-analysis",
+    "description": "3-way Fan-out/Fan-in topology (5 functions)",
+    "start_time": "2026-03-07T19:01:15.022855+00:00",
+    "status": "PASS",
+    "functions": [
+      "Aggregator",
+      "BFS",
+      "GraphGenerator",
+      "MST",
+      "PageRank"
+    ],
+    "session_id": "f66143df-2dbb-4ff3-bb4b-cbb4b8a4c706",
+    "invocation_time": 1772910075025,
+    "timing": {
+      "completed": true,
+      "end_to_end_ms": 1209,
+      "end_function_duration_ms": 405.0,
+      "end_function_billed_ms": 405.0,
+      "end_function_memory_mb": 90,
+      "completion_timestamp": 1772910076234
+    },
+    "functions_executed": {
+      "Aggregator": true,
+      "BFS": true,
+      "GraphGenerator": true,
+      "MST": true,
+      "PageRank": true
+    },
+    "end_time": "2026-03-07T19:01:29.928854+00:00"
+  },
+  "montecarlo-pipeline": {
+    "workflow": "montecarlo-pipeline",
+    "description": "Diamond topology (7 functions)",
+    "start_time": "2026-03-07T19:01:29.928854+00:00",
+    "status": "PASS",
+    "functions": [
+      "Aggregator",
+      "DataGenerator",
+      "Estimate",
+      "Reporter",
+      "Simulate",
+      "Transform",
+      "Validate"
+    ],
+    "session_id": "e99f4cc3-1958-4a88-a208-a2b03ad5090d",
+    "invocation_time": 1772910089932,
+    "timing": {
+      "completed": true,
+      "end_to_end_ms": 2256,
+      "end_function_duration_ms": 79.07,
+      "end_function_billed_ms": 80.0,
+      "end_function_memory_mb": 95,
+      "completion_timestamp": 1772910092188
+    },
+    "functions_executed": {
+      "Aggregator": true,
+      "DataGenerator": true,
+      "Estimate": true,
+      "Reporter": true,
+      "Simulate": true,
+      "Transform": true,
+      "Validate": true
+    },
+    "end_time": "2026-03-07T19:01:49.370250+00:00"
+  },
+  "wordcount": {
+    "workflow": "wordcount",
+    "description": "MapReduce topology (5 functions, 2 fan-in points)",
+    "start_time": "2026-03-07T19:01:49.372260+00:00",
+    "status": "PASS",
+    "functions": [
+      "Mapper",
+      "Partition",
+      "Reducer",
+      "Summary",
+      "UnumMap0"
+    ],
+    "session_id": "4579aaf6-659e-4192-8d1e-2dca01615330",
+    "invocation_time": 1772910109380,
+    "timing": {
+      "completed": true,
+      "end_to_end_ms": 3193,
+      "end_function_duration_ms": 347.97,
+      "end_function_billed_ms": 348.0,
+      "end_function_memory_mb": 94,
+      "completion_timestamp": 1772910112573
+    },
+    "functions_executed": {
+      "Mapper": true,
+      "Partition": true,
+      "Reducer": true,
+      "Summary": true,
+      "UnumMap0": true
+    },
+    "end_time": "2026-03-07T19:02:08.686000+00:00"
+  }
+}

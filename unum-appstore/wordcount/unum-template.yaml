@@ -3,7 +3,7 @@ Globals:
   WorkflowType: step-functions
   WorkflowDefinition: unum-step-functions.json
   UnumIntermediaryDataStoreType: dynamodb
-  UnumIntermediaryDataStoreName: unum-dynamo-test-table
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
   FaaSPlatform: aws
   Checkpoint: true
   GC: false
@@ -13,23 +13,23 @@ Functions:
   Mapper:
     Properties:
       CodeUri: mapper/
-      Runtime: python3.13
+      Runtime: python3.11
   Reducer:
     Properties:
       CodeUri: reducer/
-      Runtime: python3.13
+      Runtime: python3.11
       Environment:
         UNUM_FUTURE_BASED: "true"
   Partition:
     Properties:
       CodeUri: partition/
-      Runtime: python3.13
+      Runtime: python3.11
       Environment:
         UNUM_FUTURE_BASED: "true"
   Summary:
     Properties:
       CodeUri: summary/
-      Runtime: python3.13
+      Runtime: python3.11
       Policies:
         - AmazonSQSFullAccess
       Environment:
@@ -37,5 +37,5 @@ Functions:
   UnumMap0:
     Properties:
       CodeUri: UnumMap0/
-      Runtime: python3.13
+      Runtime: python3.11
       Start: true

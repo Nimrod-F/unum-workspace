@@ -1,0 +1,16 @@
+{
+    "Name": "DataGenerator",
+    "Start": true,
+    "Checkpoint": true,
+    "Debug": true,
+    "Next": [
+        {
+            "Name": "FusedAnalysisChain",
+            "InputType": "Scalar"
+        },
+        {
+            "Name": "Simulate",
+            "InputType": "Scalar"
+        }
+    ]
+}

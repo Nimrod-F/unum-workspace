@@ -1,0 +1,18 @@
+# Fusion configuration for nlp-pipeline
+#
+# The chain Analyzer→Classifier→Summarizer is eligible for fusion:
+# - All scalar input/output (no fan-in/out mid-chain)
+# - Same runtime (python3.11)
+# - Sequential dependency
+#
+# Tokenizer is excluded because it is the entry point (start function)
+# that triggers the workflow.  After fusion, Tokenizer's Next reference
+# is patched from "Analyzer" to "FusedNLPAnalysis" automatically by
+# compile_fusion.
+
+fusions:
+  - name: FusedNLPAnalysis
+    chain:
+      - Analyzer
+      - Classifier
+      - Summarizer

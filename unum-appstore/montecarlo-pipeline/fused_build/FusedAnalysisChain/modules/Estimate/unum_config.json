@@ -1,0 +1,10 @@
+{
+  "Name": "Estimate",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Validate",
+    "InputType": "Scalar"
+  }
+}

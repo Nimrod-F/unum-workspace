@@ -1,0 +1,18 @@
+{
+  "Name": "Validate",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Aggregator",
+    "InputType": {
+      "Fan-in": {
+        "Values": [
+          "Validate-unumIndex-0",
+          "Simulate-unumIndex-1"
+        ]
+      }
+    },
+    "Fan-in-Group": true
+  }
+}

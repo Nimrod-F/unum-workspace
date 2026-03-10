@@ -4,6 +4,39 @@ import asyncio
 from typing import Any, List, Dict, Optional, Tuple
 
 
+def safe_asyncio_run(coro):
+    """Safely run async code in Lambda environment (handles warm containers).
+    
+    AWS Lambda warm containers can have issues with asyncio.run() because
+    it tries to close the event loop after each call. On subsequent invocations
+    in the same container, there may be no current event loop in the thread.
+    
+    This function creates a new event loop, runs the coroutine, and properly
+    cleans up, making it safe for repeated use in Lambda warm containers.
+    """
+    try:
+        # Try to get existing loop (might work in some cases)
+        loop = asyncio.get_event_loop()
+        if loop.is_closed():
+            raise RuntimeError("Event loop is closed")
+        # If we have a running loop, we can't use run() - use run_until_complete
+        if loop.is_running():
+            # This shouldn't happen in Lambda, but handle it anyway
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                future = pool.submit(asyncio.run, coro)
+                return future.result()
+        return loop.run_until_complete(coro)
+    except RuntimeError:
+        # No event loop or loop is closed - create a new one
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(coro)
+        finally:
+            loop.close()
+
+
 if os.environ['FAAS_PLATFORM'] == 'aws':
     import boto3
     from botocore.exceptions import ClientError
@@ -339,6 +372,7 @@ class UnumFuture:
         self._debug = debug
         self._gc_info = None
         
+        # Python 3.10+ doesn't require an event loop to create asyncio.Event()
         self._event = asyncio.Event()
         if is_ready:
             self._event.set()
@@ -434,14 +468,56 @@ class AsyncFutureInputList:
     """A list-like container for Future-Based fan-in inputs (async pattern).
     
     This class supports both sync and async access patterns.
+    
+    OPTIMIZATION: We resolve ALL pending futures in a SINGLE asyncio.run() call
+    instead of calling asyncio.run() for each input access. This avoids the
+    expensive overhead of creating/destroying event loops multiple times.
     """
     
     def __init__(self, futures: List[UnumFuture], debug: bool = False):
         self._futures = futures
         self._debug = debug
+        self._resolved_values = {}  # Cache for resolved values
+        self._all_resolved = False
     
     def __len__(self) -> int:
         return len(self._futures)
+    
+    def _resolve_all_sync(self):
+        """Resolve ALL pending futures in a single asyncio.run() call.
+        
+        This is much more efficient than calling asyncio.run() per input.
+        """
+        if self._all_resolved:
+            return
+        
+        # First, cache any already-resolved values
+        for i, future in enumerate(self._futures):
+            if future.is_ready and i not in self._resolved_values:
+                self._resolved_values[i] = future.get_value_sync()
+        
+        # Find pending futures
+        pending_indices = [i for i, f in enumerate(self._futures) if i not in self._resolved_values]
+        
+        if not pending_indices:
+            self._all_resolved = True
+            return
+        
+        # Resolve ALL pending futures in a SINGLE event loop (Lambda-safe)
+        async def resolve_all_pending():
+            tasks = [self._futures[i].await_value() for i in pending_indices]
+            return await asyncio.gather(*tasks)
+        
+        try:
+            results = safe_asyncio_run(resolve_all_pending())
+            for i, idx in enumerate(pending_indices):
+                self._resolved_values[idx] = results[i]
+        except Exception as e:
+            if self._debug:
+                print(f'[DEBUG] Error resolving futures: {e}')
+            raise
+        
+        self._all_resolved = True
     
     # ASYNC ACCESS
     async def get_async(self, index: int) -> Any:
@@ -454,42 +530,140 @@ class AsyncFutureInputList:
         for future in self._futures:
             yield await future.await_value()
     
-    # SYNC ACCESS (backwards compatibility)
-    def __getitem__(self, index) -> Any:
-        if isinstance(index, slice):
-            return [self._sync_get(i) for i in range(*index.indices(len(self._futures)))]
-        return self._sync_get(index)
+    # SYNC ACCESS - PARALLEL BACKGROUND POLLING
+    # When waiting for index X, also poll ALL other pending futures in parallel.
+    # This way, by the time user code processes inputs[0] and asks for inputs[1],
+    # inputs[1] might already be resolved from background polling.
     
-    def _sync_get(self, index: int) -> Any:
-        future = self._futures[index]
+    def _resolve_with_background_polling(self, target_index: int):
+        """Resolve target_index while polling ALL pending futures in parallel.
         
-        if future.is_ready:
-            return future.get_value_sync()
+        This is the FASTEST approach:
+        - Wait specifically for target_index
+        - But also poll all other pending futures in the background
+        - When target is ready, return immediately (background tasks continue)
+        - Future accesses benefit from background resolution
+        """
+        if target_index in self._resolved_values:
+            return
+        
+        if self._futures[target_index].is_ready:
+            self._resolved_values[target_index] = self._futures[target_index].get_value_sync()
+            return
+        
+        # Find ALL pending indices (including target)
+        pending_indices = [
+            i for i in range(len(self._futures))
+            if i not in self._resolved_values and not self._futures[i].is_ready
+        ]
+        
+        if not pending_indices:
+            # Target must be ready now
+            self._resolved_values[target_index] = self._futures[target_index].get_value_sync()
+            return
+        
+        async def resolve_target_with_background():
+            """Poll all pending futures, return when target is ready."""
+            
+            # Create tasks for ALL pending futures
+            tasks = {
+                i: asyncio.create_task(self._futures[i].await_value())
+                for i in pending_indices
+            }
+            
+            # Wait until our target is done, but let others run in background
+            target_task = tasks[target_index]
+            
+            # Use asyncio.wait to wait for target while others poll in parallel
+            done, pending_tasks = await asyncio.wait(
+                tasks.values(),
+                return_when=asyncio.FIRST_COMPLETED
+            )
+            
+            # Collect results from completed tasks
+            results = {}
+            for i, task in tasks.items():
+                if task.done() and not task.cancelled():
+                    try:
+                        results[i] = task.result()
+                    except Exception:
+                        pass
+            
+            # If target not done yet, keep waiting for it specifically
+            # while other tasks continue in background
+            while not target_task.done():
+                done, pending_tasks = await asyncio.wait(
+                    [t for t in tasks.values() if not t.done()],
+                    return_when=asyncio.FIRST_COMPLETED
+                )
+                # Collect newly completed results
+                for i, task in tasks.items():
+                    if i not in results and task.done() and not task.cancelled():
+                        try:
+                            results[i] = task.result()
+                        except Exception:
+                            pass
+            
+            # Final collection of all completed tasks
+            for i, task in tasks.items():
+                if i not in results and task.done() and not task.cancelled():
+                    try:
+                        results[i] = task.result()
+                    except Exception:
+                        pass
+            
+            return results
         
         try:
-            loop = asyncio.get_running_loop()
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                return pool.submit(asyncio.run, future.await_value()).result()
-        except RuntimeError:
-            return asyncio.run(future.await_value())
+            results = safe_asyncio_run(resolve_target_with_background())
+            # Cache ALL resolved values (not just target)
+            for i, value in results.items():
+                self._resolved_values[i] = value
+        except Exception as e:
+            if self._debug:
+                print(f'[DEBUG] Error resolving future[{target_index}]: {e}')
+            raise
+    
+    def __getitem__(self, index) -> Any:
+        if isinstance(index, slice):
+            # For slices, resolve all indices in parallel
+            indices = list(range(*index.indices(len(self._futures))))
+            if indices:
+                # Use parallel resolution for slice
+                self._resolve_with_background_polling(indices[0])
+            results = []
+            for i in indices:
+                if i not in self._resolved_values:
+                    self._resolve_with_background_polling(i)
+                results.append(self._resolved_values[i])
+            return results
+        
+        # Check if already resolved (cached from background polling)
+        if index in self._resolved_values:
+            return self._resolved_values[index]
+        
+        # Check if the future is ready (no async needed)
+        if self._futures[index].is_ready:
+            self._resolved_values[index] = self._futures[index].get_value_sync()
+            return self._resolved_values[index]
+        
+        # PARALLEL BACKGROUND POLLING: Wait for this index,
+        # but poll ALL pending futures in parallel so future accesses are faster
+        self._resolve_with_background_polling(index)
+        return self._resolved_values[index]
     
     def __iter__(self):
-        for future in self._futures:
-            if future.is_ready:
-                yield future.get_value_sync()
-            else:
-                try:
-                    loop = asyncio.get_running_loop()
-                    import concurrent.futures
-                    with concurrent.futures.ThreadPoolExecutor() as pool:
-                        yield pool.submit(asyncio.run, future.await_value()).result()
-                except RuntimeError:
-                    yield asyncio.run(future.await_value())
+        """Iterate over values - polls ALL in background for speed."""
+        # On first iteration, start polling all in background
+        # Each yield returns as soon as that index is ready
+        for i in range(len(self._futures)):
+            if i not in self._resolved_values:
+                self._resolve_with_background_polling(i)
+            yield self._resolved_values[i]
     
     # Utility methods
     def is_ready(self, index: int) -> bool:
-        return self._futures[index].is_ready
+        return self._futures[index].is_ready or index in self._resolved_values
     
     def all_ready(self) -> bool:
         return all(f.is_ready for f in self._futures)
@@ -498,21 +672,39 @@ class AsyncFutureInputList:
         ready = sum(1 for f in self._futures if f.is_ready)
         return ready, len(self._futures) - ready
     
+    def get_all(self) -> List[Any]:
+        """Get ALL values, resolving any pending in PARALLEL.
+        
+        Use this when you know you need all inputs - it's more efficient
+        to resolve all pending futures in parallel than one-by-one.
+        
+        Example:
+            # If you need all inputs anyway, this is faster:
+            all_data = inputs.get_all()
+            
+            # Than accessing each individually:
+            data0 = inputs[0]  # waits for 0
+            data1 = inputs[1]  # waits for 1
+            data2 = inputs[2]  # waits for 2
+        """
+        self._resolve_all_sync()
+        return [self._resolved_values[i] for i in range(len(self._futures))]
+    
     def try_resolve_all(self) -> Tuple[int, int]:
         resolved = 0
         pending = 0
-        for future in self._futures:
+        for i, future in enumerate(self._futures):
             if future.try_resolve():
+                self._resolved_values[i] = future.get_value_sync()
                 resolved += 1
             else:
                 pending += 1
         return resolved, pending
     
     def get_gc_tasks(self) -> Dict:
+        self._resolve_all_sync()
         gc_tasks = {}
         for future in self._futures:
-            if not future.is_ready:
-                _ = self._sync_get(self._futures.index(future))
             if future.gc_info:
                 gc_tasks.update(future.gc_info)
         return gc_tasks
@@ -1083,6 +1275,27 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
         self.client = boto3.client('dynamodb')
         self.resource = boto3.resource('dynamodb')
         self.table = self.resource.Table(self.name)
+        # Metrics counters for benchmark instrumentation
+        self._metrics_reads = 0
+        self._metrics_writes = 0
+        self._metrics_deletes = 0
+        self._metrics_wcu = 0.0
+        self._metrics_rcu = 0.0
+
+    def reset_metrics(self):
+        """Reset I/O metrics counters (called at start of each invocation)."""
+        self._metrics_reads = 0
+        self._metrics_writes = 0
+        self._metrics_deletes = 0
+        self._metrics_wcu = 0.0
+        self._metrics_rcu = 0.0
+
+    def log_metrics(self):
+        """Emit [METRICS] line for CloudWatch log collection."""
+        print(f"[METRICS] dynamo_reads={self._metrics_reads} "
+              f"dynamo_writes={self._metrics_writes} "
+              f"dynamo_deletes={self._metrics_deletes} "
+              f"wcu={self._metrics_wcu:.1f} rcu={self._metrics_rcu:.1f}")
 
 
     def read_input(self, session, values):
@@ -1189,7 +1402,15 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                         'Keys': this_batch,
                         'ConsistentRead': True,
                     }
-                })
+                },
+                ReturnConsumedCapacity='TOTAL'
+            )
+
+            # Track metrics
+            self._metrics_reads += len(this_batch)
+            if 'ConsumedCapacity' in this_batch_items:
+                for cap in this_batch_items['ConsumedCapacity']:
+                    self._metrics_rcu += cap.get('CapacityUnits', 0)
 
             try:
                 ret = this_batch_items['Responses'][self.name]
@@ -1254,13 +1475,16 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     "Claimed": True
                 },
                 ConditionExpression='attribute_not_exists(#N)',
-                ExpressionAttributeNames={"#N": "Name"}
+                ExpressionAttributeNames={"#N": "Name"},
+                ReturnConsumedCapacity='TOTAL'
             )
+            self._metrics_writes += 1
             if self.debug:
                 print(f'[DEBUG] Successfully claimed eager fan-in for {aggregation_function_instance_name}')
             return True
         except ClientError as e:
             if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                self._metrics_writes += 1  # Still consumed WCU even on condition fail
                 if self.debug:
                     print(f'[DEBUG] Eager fan-in already claimed for {aggregation_function_instance_name}')
                 return False
@@ -1294,7 +1518,14 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                             'ProjectionExpression': '#N',
                             'ExpressionAttributeNames': {'#N': 'Name'}
                         }
-                    })
+                    },
+                    ReturnConsumedCapacity='TOTAL'
+                )
+                
+                self._metrics_reads += len(this_batch)
+                if 'ConsumedCapacity' in response:
+                    for cap in response['ConsumedCapacity']:
+                        self._metrics_rcu += cap.get('CapacityUnits', 0)
                 
                 found_names = {item['Name'] for item in response.get('Responses', {}).get(self.name, [])}
                 
@@ -1482,16 +1713,32 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     'Name': self.checkpoint_name(session, instance_name)
                 },
                 ConsistentRead=True,
-                ProjectionExpression='#Value',
-                ExpressionAttributeNames= {
-                    '#Value': 'Value'
-                })
+                ReturnConsumedCapacity='TOTAL'
+            )
         except Exception as e:
             print(f"[WARN] get_checkpoint() Error Code: {e.response['Error']['Code']}")
             raise e
 
+        self._metrics_reads += 1
+        if 'ConsumedCapacity' in ret:
+            self._metrics_rcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
+
         if "Item" in ret:
-            return ret["Item"]["Value"]
+            item = ret["Item"]
+            # Support both old format (Value) and new format (User)
+            if "Value" in item:
+                value = item["Value"]
+            elif "User" in item:
+                value = item["User"]
+            else:
+                return None
+            # Parse JSON string if needed
+            if isinstance(value, str):
+                try:
+                    return json.loads(value)
+                except json.JSONDecodeError:
+                    return value
+            return value
         else:
             return None
 
@@ -1510,12 +1757,17 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                 Key={
                     'Name': self.checkpoint_name(session, instance_name)
                 },
-                ConsistentRead=True
+                ConsistentRead=True,
+                ReturnConsumedCapacity='TOTAL'
             )
         except Exception as e:
             if self.debug:
                 print(f"[DEBUG] get_checkpoint_full() error: {e}")
             return None
+
+        self._metrics_reads += 1
+        if 'ConsumedCapacity' in ret:
+            self._metrics_rcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
 
         if "Item" not in ret:
             return None
@@ -1553,14 +1805,21 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     ReturnConsumedCapacity='TOTAL'
                 )
 
-                return int(rsp['ConsumedCapacity']['CapacityUnits'])
+                wcu = rsp['ConsumedCapacity']['CapacityUnits']
+                self._metrics_writes += 1
+                self._metrics_wcu += wcu
+                return int(wcu)
 
             else:
-                self.table.put_item(Item=item,
+                rsp = self.table.put_item(Item=item,
                     ConditionExpression='attribute_not_exists(#N)',
-                    ExpressionAttributeNames={"#N": key_name}
-
+                    ExpressionAttributeNames={"#N": key_name},
+                    ReturnConsumedCapacity='TOTAL'
                 )
+
+                self._metrics_writes += 1
+                if 'ConsumedCapacity' in rsp:
+                    self._metrics_wcu += rsp['ConsumedCapacity'].get('CapacityUnits', 0)
                 return 1
 
         except ClientError as e:
@@ -1633,9 +1892,18 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     Key={key_name: key},
                     ReturnConsumedCapacity='TOTAL')
 
-                return int(rsp['ConsumedCapacity']['CapacityUnits'])
+                self._metrics_deletes += 1
+                wcu = rsp['ConsumedCapacity']['CapacityUnits']
+                self._metrics_wcu += wcu
+                return int(wcu)
             else:
-                rsp = self.table.delete_item(Key={key_name: key})
+                rsp = self.table.delete_item(
+                    Key={key_name: key},
+                    ReturnConsumedCapacity='TOTAL')
+
+                self._metrics_deletes += 1
+                if 'ConsumedCapacity' in rsp:
+                    self._metrics_wcu += rsp['ConsumedCapacity'].get('CapacityUnits', 0)
                 return 1
 
         except ClientError as e:
@@ -1732,9 +2000,14 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                 UpdateExpression="set #L[" + str(index) + "] = :nd",
                 ConditionExpression='attribute_exists(#N)',
                 ExpressionAttributeValues={':nd': True},
-                ExpressionAttributeNames={"#N": "Name", "#L": "ReadyMap"})
+                ExpressionAttributeNames={"#N": "Name", "#L": "ReadyMap"},
+                ReturnConsumedCapacity='TOTAL')
         except Exception as e:
             raise e
+
+        self._metrics_writes += 1
+        if 'ConsumedCapacity' in ret:
+            self._metrics_wcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
 
         return ret['Attributes']['ReadyMap']
 
@@ -1771,11 +2044,15 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                     "Count": 0
                 },
                 ConditionExpression='attribute_not_exists(#N)',
-                ExpressionAttributeNames={"#N": "Name"}
-
+                ExpressionAttributeNames={"#N": "Name"},
+                ReturnConsumedCapacity='TOTAL'
             )
+            self._metrics_writes += 1
+            if 'ConsumedCapacity' in ret:
+                self._metrics_wcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
         except ClientError as e:  
             if e.response['Error']['Code']=='ConditionalCheckFailedException':  
+                self._metrics_writes += 1  # Still consumed WCU
                 pass
             else:
                 raise e
@@ -1789,13 +2066,15 @@ class DynamoDBDriver(UnumIntermediaryDataStore):
                 ReturnValues='UPDATED_NEW',
                 UpdateExpression='SET #C = #C + :incr',
                 ConditionExpression='attribute_exists(#N)',
-                # ExpressionAttributeNames={
-                #     'string': 'string'
-                # },
                 ExpressionAttributeValues={':incr': 1},
-                ExpressionAttributeNames={"#N": "Name", "#C": 'Count'})
+                ExpressionAttributeNames={"#N": "Name", "#C": 'Count'},
+                ReturnConsumedCapacity='TOTAL')
         except Exception as e:
             raise e
+
+        self._metrics_writes += 1
+        if 'ConsumedCapacity' in ret:
+            self._metrics_wcu += ret['ConsumedCapacity'].get('CapacityUnits', 0)
 
         return ret["Attributes"]["Count"]
 
@@ -2031,5 +2310,218 @@ class S3Driver(UnumIntermediaryDataStore):
                 ret.append(json.loads(f.read()))
 
         return ret
+
+
+# =============================================================================
+# MODULE-LEVEL STREAMING FUNCTIONS
+# These functions provide a simple interface for the unum_streaming module
+# to read/write streaming field values without needing a full datastore instance.
+# =============================================================================
+
+_streaming_ds_instance = None
+_streaming_ds_initialized = False
+
+def _get_streaming_datastore():
+    """Get or create a datastore instance for streaming operations."""
+    global _streaming_ds_instance, _streaming_ds_initialized
+    
+    if _streaming_ds_initialized:
+        return _streaming_ds_instance
+    
+    _streaming_ds_initialized = True
+    
+    try:
+        ds_type = os.environ.get('UNUM_INTERMEDIARY_DATASTORE_TYPE', 'dynamodb')
+        ds_name = os.environ.get('UNUM_INTERMEDIARY_DATASTORE_NAME', '')
+        
+        if not ds_name:
+            print('[Streaming] No UNUM_INTERMEDIARY_DATASTORE_NAME set, streaming disabled')
+            return None
+        
+        _streaming_ds_instance = UnumIntermediaryDataStore.create(ds_type, ds_name, False)
+    except Exception as e:
+        print(f'[Streaming] Failed to initialize datastore: {e}')
+        _streaming_ds_instance = None
+    
+    return _streaming_ds_instance
+
+
+def write_intermediary(key: str, value: str) -> bool:
+    """
+    Write a value to the intermediary datastore for streaming.
+    
+    This is a module-level convenience function used by unum_streaming.
+    
+    Args:
+        key: The key to write to (format: streaming/{session}/{source}/{field})
+        value: The JSON-serialized value to store
+        
+    Returns:
+        True if successful
+    """
+    ds = _get_streaming_datastore()
+    if ds is None:
+        return False
+    
+    try:
+        if ds.my_type == 'dynamodb':
+            # Use DynamoDB table directly
+            ds.table.put_item(
+                Item={
+                    "Name": key,
+                    "Value": value,
+                    "Timestamp": datetime.datetime.now().isoformat()
+                }
+            )
+        elif ds.my_type == 's3':
+            # Use S3 - write to temp file first
+            local_path = f'/tmp/{key.replace("/", "_")}'
+            with open(local_path, 'w') as f:
+                f.write(value)
+            ds.backend.upload_file(local_path, ds.name, key)
+        else:
+            print(f'[Streaming] Unsupported datastore type: {ds.my_type}')
+            return False
+        return True
+    except Exception as e:
+        print(f'[Streaming] Error writing to datastore: {e}')
+        return False
+
+
+def read_intermediary(key: str) -> Optional[str]:
+    """
+    Read a value from the intermediary datastore for streaming.
+    
+    This is a module-level convenience function used by unum_streaming.
+    
+    Args:
+        key: The key to read from (format: streaming/{session}/{source}/{field})
+        
+    Returns:
+        The value as a string, or None if not found
+    """
+    ds = _get_streaming_datastore()
+    if ds is None:
+        return None
+    
+    try:
+        if ds.my_type == 'dynamodb':
+            response = ds.table.get_item(
+                Key={"Name": key},
+                ConsistentRead=True
+            )
+            item = response.get('Item')
+            if item:
+                return item.get('Value')
+            return None
+        elif ds.my_type == 's3':
+            local_path = f'/tmp/{key.replace("/", "_")}'
+            try:
+                ds.backend.download_file(ds.name, key, local_path)
+                with open(local_path, 'r') as f:
+                    return f.read()
+            except:
+                return None
+        else:
+            print(f'[Streaming] Unsupported datastore type: {ds.my_type}')
+            return None
+    except Exception as e:
+        # Key not found or other error
+        return None
+
+
+def delete_intermediary(key: str) -> bool:
+    """
+    Delete a value from the intermediary datastore.
+    
+    Used for cleanup of streaming keys after workflow completes.
+    
+    Args:
+        key: The key to delete (format: streaming/{session}/{source}/{field})
+        
+    Returns:
+        True if successful
+    """
+    ds = _get_streaming_datastore()
+    if ds is None:
+        return False
+    
+    try:
+        if ds.my_type == 'dynamodb':
+            ds.table.delete_item(Key={"Name": key})
+        elif ds.my_type == 's3':
+            ds.backend.delete_object(Bucket=ds.name, Key=key)
+        else:
+            print(f'[Streaming] Unsupported datastore type: {ds.my_type}')
+            return False
+        return True
+    except Exception as e:
+        print(f'[Streaming] Error deleting from datastore: {e}')
+        return False
+
+
+def list_streaming_keys(session_id: str) -> list:
+    """
+    List all streaming keys for a given session.
+    
+    Used for cleanup after workflow completes.
+    
+    Args:
+        session_id: The session ID to list keys for
+        
+    Returns:
+        List of keys matching the pattern streaming/{session_id}/*
+    """
+    ds = _get_streaming_datastore()
+    if ds is None:
+        return []
+    
+    prefix = f"streaming/{session_id}/"
+    keys = []
+    
+    try:
+        if ds.my_type == 'dynamodb':
+            # Scan for keys with prefix (not ideal but simple)
+            response = ds.table.scan(
+                FilterExpression="begins_with(#n, :prefix)",
+                ExpressionAttributeNames={"#n": "Name"},
+                ExpressionAttributeValues={":prefix": prefix}
+            )
+            for item in response.get('Items', []):
+                keys.append(item.get('Name'))
+        elif ds.my_type == 's3':
+            response = ds.backend.list_objects_v2(Bucket=ds.name, Prefix=prefix)
+            for obj in response.get('Contents', []):
+                keys.append(obj.get('Key'))
+    except Exception as e:
+        print(f'[Streaming] Error listing keys: {e}')
+    
+    return keys
+
+
+def cleanup_session_streaming_keys(session_id: str) -> int:
+    """
+    Clean up all streaming keys for a completed session.
+    
+    Should be called at the end of a workflow to remove
+    temporary streaming data.
+    
+    Args:
+        session_id: The session ID to clean up
+        
+    Returns:
+        Number of keys deleted
+    """
+    keys = list_streaming_keys(session_id)
+    deleted = 0
+    
+    for key in keys:
+        if delete_intermediary(key):
+            deleted += 1
+    
+    if deleted > 0:
+        print(f'[Streaming] Cleaned up {deleted} streaming keys for session {session_id}')
+    
+    return deleted
 
 

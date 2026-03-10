@@ -1,0 +1,15 @@
+{
+  "Name": "Mapper",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Partition",
+    "InputType": {
+      "Fan-in": {
+        "Values": ["Mapper-unumIndex-*"]
+      }
+    }
+  },
+  "Next Payload Modifiers": ["Pop"]
+}

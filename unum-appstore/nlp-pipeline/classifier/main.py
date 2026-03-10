@@ -473,6 +473,10 @@ def lambda_handler(event, context):
 
     unum.cleanup()
 
+    # Reset DynamoDB metrics counters for this invocation
+    if hasattr(unum, 'ds') and unum.ds is not None and hasattr(unum.ds, 'reset_metrics'):
+        unum.ds.reset_metrics()
+
     if os.environ['FAAS_PLATFORM'] == 'gcloud':
         if 'data' in event:
             input_data = base64.b64decode(event['data']).decode('utf-8')
@@ -522,5 +526,9 @@ def lambda_handler(event, context):
             print(f'[DEBUG] User function output from a prior checkpoint: {user_function_output}')
 
     session, next_payload_metadata = egress(user_function_output, input_data)
+
+    # Log DynamoDB metrics for this invocation (parsed by MetricsCollector)
+    if hasattr(unum, 'ds') and unum.ds is not None and hasattr(unum.ds, 'log_metrics'):
+        unum.ds.log_metrics()
 
     return user_function_output, session, next_payload_metadata

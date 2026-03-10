@@ -417,7 +417,7 @@ class StreamingTransformer:
         field_names_str = ", ".join(f'"{f.field_name}"' for f in self.analysis.fields)
         init_code = f'''
     # Streaming: Initialize publisher for incremental parameter streaming
-    _streaming_session = event.get('Session', '') or str(id(event))
+    _streaming_session = (event.get('Session', '') if isinstance(event, dict) else '') or str(id(event))
     _streaming_publisher = StreamingPublisher(
         session_id=_streaming_session,
         source_function="{self.function_name}",
