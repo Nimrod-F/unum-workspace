@@ -16,7 +16,6 @@ import json
 import time
 import math
 import re
-from unum_streaming import StreamingPublisher, set_streaming_output
 from collections import Counter
 
 
@@ -542,14 +541,6 @@ def build_classification(readability_data):
 
 def lambda_handler(event, context):
     """Stage 3: Classify text — sentiment, TF-IDF, topics, features, classification."""
-
-    # Streaming: Initialize publisher for incremental parameter streaming
-    _streaming_session = (event.get('Session', '') if isinstance(event, dict) else '') or str(id(event))
-    _streaming_publisher = StreamingPublisher(
-        session_id=_streaming_session,
-        source_function="ClassifierFunction",
-        field_names=["sentiment", "tfidf_vectors", "topics", "text_features", "classification"]
-    )
     start_time = time.time()
     doc_id = event.get('entities', {}).get('doc_id', 'unknown')
     print(f'[Classifier] Starting on doc {doc_id}')
@@ -560,13 +551,6 @@ def lambda_handler(event, context):
     field_1_time = int((time.time() - t0) * 1000)
     print(f'[Classifier] sentiment: subjectivity={sentiment["subjectivity"]} in {field_1_time}ms')
     sentiment_out = {**sentiment, 'compute_ms': field_1_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('sentiment', sentiment_out)
-    # Streaming: Signal to runtime to invoke next function early with futures
-    if _streaming_publisher.should_invoke_next():
-        _streaming_payload = _streaming_publisher.get_streaming_payload()
-        # Store payload for runtime to pick up and invoke continuation
-        set_streaming_output(_streaming_payload)
-        _streaming_publisher.mark_next_invoked()
 
     # ── Field 2: tfidf_vectors ← freq_dist
     t0 = time.time()
@@ -574,7 +558,6 @@ def lambda_handler(event, context):
     field_2_time = int((time.time() - t0) * 1000)
     print(f'[Classifier] tfidf: dim={tfidf["vector_dim"]}, {len(tfidf["term_similarities"])} sim-pairs in {field_2_time}ms')
     tfidf_vectors = {**tfidf, 'compute_ms': field_2_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('tfidf_vectors', tfidf_vectors)
 
     # ── Field 3: topics ← dep_features
     t0 = time.time()
@@ -582,7 +565,6 @@ def lambda_handler(event, context):
     field_3_time = int((time.time() - t0) * 1000)
     print(f'[Classifier] topics: primary={topics["primary_topic"]}, pr_nodes={topics["n_graph_nodes"]} in {field_3_time}ms')
     topics_out = {**topics, 'compute_ms': field_3_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('topics', topics_out)
 
     # ── Field 4: text_features ← collocations
     t0 = time.time()
@@ -590,7 +572,6 @@ def lambda_handler(event, context):
     field_4_time = int((time.time() - t0) * 1000)
     print(f'[Classifier] text_features: genre={text_features["estimated_genre"]} in {field_4_time}ms')
     text_features_out = {**text_features, 'compute_ms': field_4_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('text_features', text_features_out)
 
     # ── Field 5: classification ← readability
     t0 = time.time()
@@ -598,7 +579,6 @@ def lambda_handler(event, context):
     field_5_time = int((time.time() - t0) * 1000)
     print(f'[Classifier] classification: level={classification["reading_level"]}, clusters={classification["n_clusters"]} in {field_5_time}ms')
     classification_out = {**classification, 'compute_ms': field_5_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('classification', classification_out)
 
     total_time = int((time.time() - start_time) * 1000)
     print(f'[Classifier] COMPLETE in {total_time}ms')

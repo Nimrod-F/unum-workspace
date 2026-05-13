@@ -1,0 +1,12 @@
+@workflow("unum-wordcount-dagl")
+@checkpoint(true)
+@eager(true)
+
+let counts = map chunk in input {
+    return Mapper(chunk)
+}
+let partitions = Partition(counts)
+let reduced = map p in partitions {
+    return Reducer(p)
+}
+return Summary(reduced)

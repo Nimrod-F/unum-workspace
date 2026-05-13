@@ -1,0 +1,5 @@
+@workflow("unum-hello-world-dagl")
+@checkpoint(true)
+
+let greeting = Hello()
+return World(greeting)

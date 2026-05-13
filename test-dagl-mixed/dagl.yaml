@@ -1,0 +1,13 @@
+functions:
+  Tokenize: nodejs-tokenize
+  Analyze:
+    name: gcp-analyze
+    platform: gcp
+  Report: nodejs-report
+
+datastore:
+  type: redis
+  url: rediss://default:gQAAAAAAAZJcAAIgcDFlNWNkN2RiNzkwMzM0NDY1OGMxOWZkZWVkNmM2MWNiMg@meet-jackal-103004.upstash.io:6379
+
+registry:
+  url: redis://localhost:6379/0

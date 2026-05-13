@@ -71,6 +71,10 @@ def generate_sam_template(unum_template):
         if "Policies" in unum_template["Functions"][f]["Properties"]:
             unum_function_policies = unum_template["Functions"][f]["Properties"]["Policies"]
 
+        # Remote functions (proxies) need AWSLambdaRole to invoke the original Lambda
+        if unum_template["Functions"][f].get("Remote", False):
+            unum_function_policies.append("AWSLambdaRole")
+
         sam_resource = {
                 "Type":"AWS::Serverless::Function",
                 "Properties": {
@@ -93,6 +97,92 @@ def generate_sam_template(unum_template):
         # fields of the SAM template
         arn = f"!GetAtt {f}Function.Arn"
         sam_template["Outputs"][f'{f}Function'] = {"Value": f"!GetAtt {f}Function.Arn"}
+
+    # ── EventBridge integration ─────────────────────────────────────────────
+    event_config = unum_template["Globals"].get("Event")
+    if event_config:
+        event_source = event_config.get("source", "custom")
+        event_detail_type = event_config.get("detailType")
+
+        # Find start function
+        start_func = None
+        for fname, fdef in unum_template["Functions"].items():
+            if fdef.get("Properties", {}).get("Start", False):
+                start_func = fname
+                break
+
+        if start_func:
+            start_resource = f"{start_func}Function"
+            # Add EventBridge event trigger directly on the start function
+            if "Events" not in sam_template["Resources"][start_resource]["Properties"]:
+                sam_template["Resources"][start_resource]["Properties"]["Events"] = {}
+
+            event_pattern = {"source": [event_source]}
+            if event_detail_type:
+                event_pattern["detail-type"] = [event_detail_type]
+
+            sam_template["Resources"][start_resource]["Properties"]["Events"]["EventBridgeTrigger"] = {
+                "Type": "EventBridgeRule",
+                "Properties": {
+                    "Pattern": event_pattern
+                }
+            }
+
+    # ── API Gateway integration ─────────────────────────────────────────────
+    api_config = unum_template["Globals"].get("Api")
+    if api_config:
+        api_path = api_config.get("path", "/")
+        api_method = api_config.get("method", "POST").lower()
+        app_name = unum_template["Globals"].get("ApplicationName", "workflow")
+        ds_name = unum_template["Globals"]["UnumIntermediaryDataStoreName"]
+
+        # Find start function and end function(s)
+        start_func = None
+        for fname, fdef in unum_template["Functions"].items():
+            if fdef.get("Properties", {}).get("Start", False):
+                start_func = fname
+                break
+
+        # Add API handler Lambda that invokes start function and polls for result
+        sam_template["Resources"]["UnumApiHandler"] = {
+            "Type": "AWS::Serverless::Function",
+            "Properties": {
+                "Handler": "api_handler.lambda_handler",
+                "Runtime": "python3.11",
+                "CodeUri": "UnumApiHandler/",
+                "Timeout": 29,  # API Gateway has 30s limit
+                "MemorySize": 256,
+                "Policies": [
+                    "AWSLambdaRole",
+                    "AmazonDynamoDBFullAccess",
+                    "AWSLambdaBasicExecutionRole",
+                ],
+                "Environment": {
+                    "Variables": {
+                        "WORKFLOW_NAME": app_name,
+                        "START_FUNCTION_ARN": {"Fn::GetAtt": [f"{start_func}Function", "Arn"]} if start_func else "",
+                        "DS_TABLE_NAME": ds_name,
+                        "END_FUNCTIONS": json.dumps(api_config.get("endFunctions", [])),
+                    }
+                },
+                "Events": {
+                    "ApiEvent": {
+                        "Type": "HttpApi",
+                        "Properties": {
+                            "Path": api_path,
+                            "Method": api_method,
+                        }
+                    }
+                }
+            }
+        }
+
+        sam_template["Outputs"]["ApiEndpoint"] = {
+            "Value": {"Fn::Sub": "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com"}
+        }
+        sam_template["Outputs"]["UnumApiHandler"] = {
+            "Value": {"Fn::GetAtt": ["UnumApiHandler", "Arn"]}
+        }
 
     return sam_template
 
@@ -403,6 +493,9 @@ def sam_build(platform_template, args):
 
     # copy files from common to each functions directory
     for f in platform_template["Resources"]:
+        # Skip the API handler — it's not a unum-managed function
+        if f == 'UnumApiHandler':
+            continue
         app_dir = platform_template["Resources"][f]["Properties"]["CodeUri"]
         # Use cross-platform file operations
         common_dir = 'common'
@@ -1069,6 +1162,25 @@ def deploy(args):
     else:
         raise OSError(f'Other deployment not supported yet')
 
+    # ─── Register type signatures in Redis ──────────────────────────────────────
+    redis_url = getattr(args, 'redis_url', None)
+    if redis_url:
+        try:
+            from type_registry import extract_all_signatures, SignatureRegistry
+            signatures = extract_all_signatures(unum_template)
+            if signatures:
+                registry = SignatureRegistry(redis_url=redis_url)
+                count = registry.register_all(signatures)
+                print(f'\033[32m\nRegistered {count} function signature(s) in Redis\033[0m')
+                for name, sig in signatures.items():
+                    print(f'  \033[36m{sig}\033[0m')
+                print()
+        except ImportError:
+            print(f'\033[33m\nSkipping Redis registration: redis package not installed\033[0m')
+            print(f'  Install with: pip install redis\n')
+        except Exception as e:
+            print(f'\033[33m\nSkipping Redis registration: {e}\033[0m\n')
+
 def template(args):
 
     # unum-cli template -c/--clean
@@ -1337,13 +1449,367 @@ def compile_step_functions_workflow(workflow, unum_template, functions_info):
     return configs
 
 
+def _generate_api_handler(template, configs, api_config):
+    """Generate the UnumApiHandler Lambda for API Gateway integration.
+
+    This handler:
+    1. Receives HTTP request from API Gateway
+    2. Wraps the body in a unum event envelope
+    3. Invokes the start function
+    4. Polls DynamoDB for the end function's checkpoint
+    5. Returns the final result as an HTTP response
+    """
+    handler_dir = 'UnumApiHandler'
+    os.makedirs(handler_dir, exist_ok=True)
+
+    # Find end functions (functions with no Next)
+    end_functions = [name for name, cfg in configs.items() if 'Next' not in cfg]
+
+    api_handler_code = '''import boto3
+import json
+import os
+import time
+import uuid
+
+lambda_client = boto3.client('lambda')
+dynamodb = boto3.resource('dynamodb')
+
+WORKFLOW_NAME = os.environ.get('WORKFLOW_NAME', 'workflow')
+START_FUNCTION_ARN = os.environ.get('START_FUNCTION_ARN', '')
+DS_TABLE_NAME = os.environ.get('DS_TABLE_NAME', 'unum-intermediate-datastore')
+END_FUNCTIONS = json.loads(os.environ.get('END_FUNCTIONS', '[]'))
+TIMEOUT = int(os.environ.get('API_TIMEOUT', '25'))
+
+
+def lambda_handler(event, context):
+    """API Gateway handler: invokes workflow and returns final result."""
+    # Parse HTTP body
+    body = event.get('body', '{}')
+    if event.get('isBase64Encoded', False):
+        import base64
+        body = base64.b64decode(body).decode('utf-8')
+
+    try:
+        input_data = json.loads(body) if isinstance(body, str) else body
+    except (json.JSONDecodeError, TypeError):
+        return {
+            'statusCode': 400,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': 'Invalid JSON in request body'})
+        }
+
+    # Create session ID for this request
+    session_id = str(uuid.uuid4())
+
+    # Build unum payload envelope
+    payload = {
+        'Data': {
+            'Source': 'http',
+            'Value': input_data
+        },
+        'Session': session_id
+    }
+
+    # Invoke the start function (async Event type to trigger the chain)
+    try:
+        lambda_client.invoke(
+            FunctionName=START_FUNCTION_ARN,
+            InvocationType='Event',
+            Payload=json.dumps(payload).encode('utf-8')
+        )
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({'error': f'Failed to invoke workflow: {str(e)}'})
+        }
+
+    # Poll DynamoDB for the end function's checkpoint
+    table = dynamodb.Table(DS_TABLE_NAME)
+    end_keys = [f'{session_id}/{fn}-output' for fn in END_FUNCTIONS]
+
+    start_time = time.time()
+    results = {}
+
+    while time.time() - start_time < TIMEOUT:
+        for end_key in end_keys:
+            if end_key in results:
+                continue
+            try:
+                item = table.get_item(Key={'Name': end_key})
+                if 'Item' in item:
+                    raw = item['Item'].get('User', item['Item'].get('Value', None))
+                    results[end_key] = raw
+            except Exception:
+                pass
+
+        if len(results) == len(end_keys):
+            break
+
+        time.sleep(0.3)
+
+    if not results:
+        return {
+            'statusCode': 504,
+            'headers': {'Content-Type': 'application/json'},
+            'body': json.dumps({
+                'error': 'Workflow timeout',
+                'session': session_id,
+                'message': f'No result after {TIMEOUT}s. Workflow may still be running.'
+            })
+        }
+
+    # Return the final result
+    final_output = {}
+    for fn in END_FUNCTIONS:
+        key = f'{session_id}/{fn}-output'
+        if key in results:
+            raw = results[key]
+            try:
+                final_output[fn] = json.loads(raw) if isinstance(raw, str) else raw
+            except (json.JSONDecodeError, TypeError):
+                final_output[fn] = raw
+
+    # If single end function, return its result directly
+    if len(END_FUNCTIONS) == 1 and END_FUNCTIONS[0] in final_output:
+        response_body = final_output[END_FUNCTIONS[0]]
+    else:
+        response_body = final_output
+
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps(response_body)
+    }
+'''
+
+    handler_path = os.path.join(handler_dir, 'api_handler.py')
+    with open(handler_path, 'w') as f:
+        f.write(api_handler_code)
+
+    # Write requirements.txt (boto3 is included in Lambda runtime, but just in case)
+    req_path = os.path.join(handler_dir, 'requirements.txt')
+    if not os.path.exists(req_path):
+        with open(req_path, 'w') as f:
+            f.write('# boto3 is included in AWS Lambda runtime\n')
+
+    api_path = api_config.get('path', '/')
+    api_method = api_config.get('method', 'POST')
+    print(f'\033[36m  \u2713 {handler_path} (API Gateway: {api_method} {api_path})\033[0m')
+
+
+def compile_dagl_workflow(args):
+    """Compile a DAGL-U workflow (.dag file) to unum_config.json files.
+    
+    This is the DAGL-U compilation path, alternative to Step Functions.
+    """
+    from dagl_to_unum_ir import compile_dagl_to_unum_ir
+
+    print(f'\n\033[33m\033[1mCompiling DAGL-U workflow...\033[0m\n')
+
+    try:
+        with open(args.workflow, 'r') as f:
+            source = f.read()
+        print(f'\033[32mLoaded DAGL-U source: {args.workflow}\033[0m')
+    except Exception as e:
+        print(f'\033[31mFailed to load DAGL-U file: {args.workflow}\033[0m')
+        raise e
+
+    configs, template = compile_dagl_to_unum_ir(source)
+
+    # If a template was provided, merge directives from .dag over the loaded template
+    if hasattr(args, 'template') and args.template:
+        try:
+            with open(args.template, 'r') as f:
+                user_template = yaml.load(f.read(), Loader=Loader)
+            # Merge: dag directives override, user template provides defaults
+            for key in user_template.get('Globals', {}):
+                if key not in template['Globals'] or template['Globals'][key] is None:
+                    template['Globals'][key] = user_template['Globals'][key]
+            # Merge function properties from user template
+            for fname, fprops in user_template.get('Functions', {}).items():
+                if fname in template['Functions']:
+                    template['Functions'][fname].update(fprops)
+                else:
+                    template['Functions'][fname] = fprops
+        except FileNotFoundError:
+            pass  # No template file is fine for DAGL-U
+
+    # Write unum_config.json files
+    print(f'\n\033[33mGenerating unum_config.json files...\033[0m\n')
+
+    remote_functions = {}  # name → ARN (for remote/imported functions)
+
+    for func_name, config in configs.items():
+        # Check if this function is a remote import
+        func_def = template.get('Functions', {}).get(func_name, {})
+        is_remote = func_def.get('Remote', False)
+
+        if is_remote:
+            arn = func_def.get('Arn', '')
+            remote_functions[func_name] = arn
+
+        # Determine output directory
+        code_uri = func_def.get('Properties', {}).get('CodeUri', f'{func_name}/')
+        code_dir = code_uri.rstrip('/')
+
+        if not os.path.exists(code_dir):
+            os.makedirs(code_dir, exist_ok=True)
+
+        config_path = os.path.join(code_dir, 'unum_config.json')
+        try:
+            with open(config_path, 'w') as f:
+                f.write(json.dumps(config, indent=2))
+            print(f'\033[32m  \u2713 {config_path}\033[0m')
+        except Exception as e:
+            print(f'\033[31m  \u2717 Failed to write {config_path}: {e}\033[0m')
+            raise e
+
+        app_path = os.path.join(code_dir, 'app.py')
+
+        if is_remote:
+            # Generate a proxy app.py that invokes the remote Lambda by ARN.
+            # The unum runtime wrapper will handle checkpoints and continuations
+            # around this proxy — the original remote function is never modified.
+            arn = func_def.get('Arn', '')
+            proxy_code = (
+                "import boto3\n"
+                "import json\n"
+                "import os\n"
+                "\n"
+                "_client = boto3.client('lambda')\n"
+                f"_REMOTE_ARN = os.environ.get('REMOTE_FUNCTION_ARN', {repr(arn)})\n"
+                "\n"
+                "\n"
+                "def lambda_handler(event, context):\n"
+                "    \"\"\"Proxy: invokes the remote function and returns its result.\"\"\"\n"
+                "    response = _client.invoke(\n"
+                "        FunctionName=_REMOTE_ARN,\n"
+                "        InvocationType='RequestResponse',\n"
+                "        Payload=json.dumps(event),\n"
+                "    )\n"
+                "    payload = response['Payload'].read()\n"
+                "    return json.loads(payload)\n"
+            )
+            with open(app_path, 'w') as f:
+                f.write(proxy_code)
+
+            # Generate requirements.txt for the proxy (cfn-flip is needed by unum runtime)
+            req_path = os.path.join(code_dir, 'requirements.txt')
+            if not os.path.exists(req_path):
+                with open(req_path, 'w') as f:
+                    f.write('cfn-flip\n')
+
+            if arn:
+                print(f'\033[36m  \u2713 {app_path} (proxy \u2192 {arn})\033[0m')
+            else:
+                print(f'\033[36m  \u2713 {app_path} (proxy \u2192 resolve from registry)\033[0m')
+
+            # Add REMOTE_FUNCTION_ARN as environment variable in the template
+            if arn:
+                func_def.setdefault('Properties', {})['Environment'] = {'REMOTE_FUNCTION_ARN': arn}
+
+        elif func_name.startswith('UnumMap') and not os.path.exists(app_path):
+            # Auto-generate app.py for synthetic entry functions (UnumMapN)
+            with open(app_path, 'w') as f:
+                f.write('def lambda_handler(event, context):\n    return event\n')
+            print(f'\033[32m  \u2713 {app_path} (auto-generated pass-through)\033[0m')
+
+    # Write generated unum-template.yaml
+    template_path = 'unum-template.yaml'
+    try:
+        with open(template_path, 'w') as f:
+            yaml.dump(template, f, Dumper=Dumper, default_flow_style=False)
+        print(f'\033[32m  \u2713 {template_path}\033[0m')
+    except Exception as e:
+        print(f'\033[31m  \u2717 Failed to write {template_path}: {e}\033[0m')
+
+    # ─── API Gateway handler generation ─────────────────────────────────────
+    api_config = template.get('Globals', {}).get('Api')
+    if api_config:
+        # Compute end functions and store in Api config for SAM template generation
+        end_funcs = [name for name, cfg in configs.items() if 'Next' not in cfg]
+        api_config['endFunctions'] = end_funcs
+        # Re-write template with updated Api config
+        with open(template_path, 'w') as f:
+            yaml.dump(template, f, Dumper=Dumper, default_flow_style=False)
+        _generate_api_handler(template, configs, api_config)
+
+    local_count = len(configs) - len(remote_functions)
+    print(f'\n\033[32m\033[1mDAGL-U compilation succeeded! Generated {local_count} unum_config.json files.\033[0m\n')
+
+    # Summary
+    print(f'\033[36mWorkflow Summary:\033[0m')
+    start_functions = [name for name, cfg in configs.items() if cfg.get('Start', False)]
+    end_functions = [name for name, cfg in configs.items() if 'Next' not in cfg]
+    print(f'  Start functions: {", ".join(start_functions)}')
+    print(f'  End functions: {", ".join(end_functions)}')
+    print(f'  Total functions: {len(configs)} ({local_count} local, {len(remote_functions)} remote)')
+    if remote_functions:
+        print(f'  Remote functions: {", ".join(remote_functions.keys())}')
+    if api_config:
+        print(f'  API Gateway: {api_config.get("method", "POST")} {api_config.get("path", "/")}')
+    event_config = template.get('Globals', {}).get('Event')
+    if event_config:
+        evt_src = event_config.get('source', '')
+        evt_dt = event_config.get('detailType', '*')
+        print(f'  EventBridge: source={evt_src}, detail-type={evt_dt}')
+    print()
+
+    # ─── Type validation ────────────────────────────────────────────────────────
+    if not getattr(args, 'skip_type_check', False):
+        from type_registry import extract_all_signatures, validate_workflow, format_validation_report, SignatureRegistry
+
+        signatures = extract_all_signatures(template)
+
+        # For remote functions, try to get types from --registry (Redis)
+        registry_url = getattr(args, 'registry', None)
+        if registry_url:
+            try:
+                missing = [name for name in configs if name not in signatures]
+                if missing:
+                    registry = SignatureRegistry(redis_url=registry_url)
+                    remote_sigs = registry.lookup_all(missing)
+                    if remote_sigs:
+                        print(f'\033[36mLoaded {len(remote_sigs)} signature(s) from registry (profile: {registry.profile}):\033[0m')
+                        for name, sig in remote_sigs.items():
+                            print(f'  \033[36m{sig}\033[0m')
+                        print()
+                    signatures.update(remote_sigs)
+            except ImportError:
+                print(f'\033[33mSkipping registry lookup: redis package not installed\033[0m\n')
+            except Exception as e:
+                print(f'\033[33mSkipping registry lookup: {e}\033[0m\n')
+        elif remote_functions:
+            # Remote functions exist but no --registry specified
+            print(f'\033[33mNote: {len(remote_functions)} remote function(s) imported but --registry not set.\033[0m')
+            print(f'\033[33m  Use --registry redis://... to validate remote function types.\033[0m\n')
+
+        errors = validate_workflow(configs, signatures)
+        report = format_validation_report(errors, signatures, configs)
+        print(report)
+
+        # In strict mode, fail on type errors
+        if getattr(args, 'strict_types', False):
+            actual_errors = [e for e in errors if not e.is_warning]
+            if actual_errors:
+                print(f'\033[31m\033[1mCompilation failed due to {len(actual_errors)} type error(s) (--strict-types enabled)\033[0m\n')
+                sys.exit(1)
+
+
 def compile_workflow(args):
     """
     Compile workflow definitions to unum_config.json files for each function.
     
     Supported platforms:
     - step-functions: AWS Step Functions workflow definition
+    - dagl: DAGL-U functional workflow DSL
     """
+    # DAGL-U has its own pipeline (handles template generation internally)
+    if args.platform == 'dagl':
+        compile_dagl_workflow(args)
+        return
+
     print(f'\n\033[33m\033[1mCompiling workflow...\033[0m\n')
     
     # Load workflow definition
@@ -1355,6 +1821,9 @@ def compile_workflow(args):
         print(f'\033[31mFailed to load workflow file: {args.workflow}\033[0m')
         raise e
     
+    if not args.template:
+        raise ValueError("--template is required for step-functions compilation")
+
     # Load unum template
     try:
         with open(args.template, 'r') as f:
@@ -1367,10 +1836,7 @@ def compile_workflow(args):
     # Extract function info from template
     functions_info = unum_template.get('Functions', {})
     
-    if args.platform == 'step-functions':
-        configs = compile_step_functions_workflow(workflow, unum_template, functions_info)
-    else:
-        raise ValueError(f'Unsupported workflow platform: {args.platform}')
+    configs = compile_step_functions_workflow(workflow, unum_template, functions_info)
     
     # Write unum_config.json files
     print(f'\n\033[33mGenerating unum_config.json files...\033[0m\n')
@@ -2051,6 +2517,162 @@ def ai_fuse(args):
     print()
 
 
+def invoke_workflow(args):
+    """Invoke a deployed unum workflow by calling its start function."""
+    import uuid
+    import boto3
+
+    # Load unum template to find the start function
+    try:
+        with open(args.template, 'r') as f:
+            unum_template = yaml.safe_load(f)
+    except Exception as e:
+        print(f'\033[31mFailed to load unum template: {args.template}\033[0m')
+        raise e
+
+    # Load function ARN mapping
+    try:
+        with open(args.arns, 'r') as f:
+            arn_mapping = yaml.safe_load(f)
+    except Exception as e:
+        print(f'\033[31mFailed to load function ARN mapping: {args.arns}\033[0m')
+        print(f'\033[33mMake sure you have deployed the workflow first (unum-cli deploy)\033[0m')
+        raise e
+
+    # Find the start function and end function(s) from unum_config.json
+    start_func = None
+    end_funcs = []
+    for fname, fdef in unum_template.get('Functions', {}).items():
+        props = fdef if isinstance(fdef, dict) else {}
+        if props.get('Properties', {}).get('Start', False):
+            start_func = fname
+
+        # Check if this function is terminal (no Next)
+        code_uri = props.get('Properties', {}).get('CodeUri', f'{fname}/')
+        config_path = os.path.join(code_uri.rstrip('/'), 'unum_config.json')
+        if os.path.exists(config_path):
+            with open(config_path, 'r') as f:
+                cfg = json.loads(f.read())
+            if cfg.get('Start', False) and not start_func:
+                start_func = fname
+            if 'Next' not in cfg:
+                end_funcs.append(fname)
+
+    if not start_func:
+        print(f'\033[31mCould not find the start function in the workflow.\033[0m')
+        return
+
+    if start_func not in arn_mapping:
+        print(f'\033[31mStart function "{start_func}" not found in {args.arns}\033[0m')
+        return
+
+    start_arn = arn_mapping[start_func]
+
+    # Build the input data
+    if args.file:
+        with open(args.file, 'r') as f:
+            input_data = json.loads(f.read())
+    else:
+        input_data = json.loads(args.data)
+
+    # Build Unum payload
+    session_id = args.session if args.session else str(uuid.uuid4())
+    payload = {
+        "Data": {
+            "Source": "http",
+            "Value": input_data
+        },
+        "Session": session_id
+    }
+
+    invocation_type = 'Event' if args.async_invoke else 'RequestResponse'
+    app_name = unum_template.get('Globals', {}).get('ApplicationName', 'workflow')
+    ds_name = unum_template.get('Globals', {}).get('UnumIntermediaryDataStoreName', 'unum-intermediate-datastore')
+
+    print(f'\n\033[36mWorkflow:\033[0m  {app_name}')
+    print(f'\033[36mStart:\033[0m     {start_func}')
+    if end_funcs:
+        print(f'\033[36mEnd:\033[0m       {", ".join(end_funcs)}')
+    print(f'\033[36mSession:\033[0m   {session_id}')
+    print(f'\033[36mMode:\033[0m      {"async" if args.async_invoke else "sync"}{" + wait" if args.wait else ""}')
+    print()
+
+    # Invoke
+    client = boto3.client('lambda')
+    response = client.invoke(
+        FunctionName=start_arn,
+        InvocationType=invocation_type,
+        Payload=json.dumps(payload).encode('utf-8')
+    )
+
+    status = response['StatusCode']
+    if invocation_type == 'RequestResponse':
+        result = response['Payload'].read().decode('utf-8')
+        print(f'\033[32mStart function returned:\033[0m {status}')
+    else:
+        print(f'\033[32mTriggered:\033[0m {status} (async)')
+
+    # If --wait, poll DynamoDB for the terminal function's checkpoint
+    if args.wait and end_funcs:
+        dynamo = boto3.resource('dynamodb')
+        table = dynamo.Table(ds_name)
+        timeout = args.timeout if args.timeout else 60
+        poll_interval = 1
+
+        # Build checkpoint key(s) to look for
+        # Format: {session}/{function_name}-output
+        end_keys = [f'{session_id}/{fn}-output' for fn in end_funcs]
+
+        print(f'\033[33mWaiting for workflow to complete (timeout: {timeout}s)...\033[0m')
+        elapsed = 0
+        final_results = {}
+
+        while elapsed < timeout:
+            time.sleep(poll_interval)
+            elapsed += poll_interval
+
+            for end_key in end_keys:
+                if end_key in final_results:
+                    continue
+                try:
+                    item = table.get_item(Key={'Name': end_key})
+                    if 'Item' in item:
+                        # Checkpoint stores result in 'User' field as JSON string
+                        raw = item['Item'].get('User', item['Item'].get('Value', None))
+                        final_results[end_key] = raw
+                except Exception:
+                    pass
+
+            if len(final_results) == len(end_keys):
+                break
+
+            # Print progress dot every 2 seconds
+            if elapsed % 2 == 0:
+                sys.stdout.write('.')
+                sys.stdout.flush()
+
+        if final_results:
+            print(f'\n\n\033[32m\033[1mWorkflow completed in ~{elapsed}s\033[0m\n')
+            for end_func in end_funcs:
+                key = f'{session_id}/{end_func}-output'
+                if key in final_results:
+                    raw = final_results[key]
+                    print(f'\033[36m{end_func} result:\033[0m')
+                    try:
+                        parsed = json.loads(raw) if isinstance(raw, str) else raw
+                        print(json.dumps(parsed, indent=2))
+                    except (json.JSONDecodeError, ValueError, TypeError):
+                        print(raw)
+                    print()
+        else:
+            print(f'\n\n\033[33mTimeout after {timeout}s — workflow may still be running.\033[0m')
+            print(f'\033[33mCheck manually: unum-cli invoke --session {session_id} (not implemented yet)\033[0m')
+    elif not args.wait and invocation_type == 'RequestResponse':
+        print(f'\n\033[2mTip: use --wait to poll for the final workflow result\033[0m')
+
+    print()
+
+
 def main():
     parser = argparse.ArgumentParser(description='unum CLI utility for creating, building and deploying unum applications',
         # usage = "unum-cli [options] <command> <subcommand> [<subcommand> ...] [parameters]",
@@ -2096,14 +2718,39 @@ def main():
         help="unum template file", required=False)
     deploy_parser.add_argument('-s', '--platform_template',
         help="platform template file", required=False)
+    deploy_parser.add_argument('--redis-url', dest='redis_url', default=None,
+        help="Redis URL for type signature registration (e.g. redis://localhost:6379)")
 
     # compile commmand parser
     compile_parser = subparsers.add_parser("compile", description="compile workflow definitions to unum functions")
-    compile_parser.add_argument('-p', '--platform', choices=['step-functions'],
+    compile_parser.add_argument('-p', '--platform', choices=['step-functions', 'dagl'],
         help='workflow definition type', required=True)
-    compile_parser.add_argument('-w', '--workflow', required=True, help="workflow file")
-    compile_parser.add_argument('-t', '--template', required=True, help="unum template file")
+    compile_parser.add_argument('-w', '--workflow', required=True, help="workflow file (.json for step-functions, .dag for dagl)")
+    compile_parser.add_argument('-t', '--template', required=False, help="unum template file (optional for dagl, directives in .dag file override)")
     compile_parser.add_argument('-o', '--optimize', required=False, choices=['trim'], help="optimizations")
+    compile_parser.add_argument('--strict-types', action='store_true', dest='strict_types', help="fail compilation if type errors are detected")
+    compile_parser.add_argument('--skip-type-check', action='store_true', dest='skip_type_check', help="skip type validation entirely")
+    compile_parser.add_argument('--registry', default=None, help="Redis URL to look up deployed function signatures (e.g. redis://localhost:6379)")
+
+    # fuse command parser
+    # invoke command parser
+    invoke_parser = subparsers.add_parser("invoke", description="invoke a deployed unum workflow")
+    invoke_parser.add_argument('-d', '--data', default='{}',
+        help='input data as JSON string (default: {})')
+    invoke_parser.add_argument('-f', '--file',
+        help='input data from a JSON file (overrides --data)')
+    invoke_parser.add_argument('-t', '--template', default='unum-template.yaml',
+        help='unum template file (default: unum-template.yaml)')
+    invoke_parser.add_argument('-a', '--arns', default='function-arn.yaml',
+        help='function ARN mapping file (default: function-arn.yaml)')
+    invoke_parser.add_argument('--session',
+        help='session ID (default: auto-generated UUID)')
+    invoke_parser.add_argument('--async', dest='async_invoke', action='store_true',
+        help='invoke asynchronously (Event type, no response)')
+    invoke_parser.add_argument('-w', '--wait', action='store_true',
+        help='wait for the final workflow result (polls DynamoDB checkpoints)')
+    invoke_parser.add_argument('--timeout', type=int, default=60,
+        help='max seconds to wait for final result (default: 60, used with --wait)')
 
     # fuse command parser
     fuse_parser = subparsers.add_parser("fuse", description="fuse multiple functions into single lambdas (use --ai for LLM-powered analysis)")
@@ -2126,6 +2773,8 @@ def main():
         init(args)
     elif args.command == 'compile':
         compile_workflow(args)
+    elif args.command == 'invoke':
+        invoke_workflow(args)
     elif args.command == 'fuse':
         if args.ai:
             ai_fuse(args)

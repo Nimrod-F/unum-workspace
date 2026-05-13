@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: false
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  AnalyzeFunction:
+    Value: !GetAtt AnalyzeFunction.Arn
+  ApiEndpoint:
+    Value:
+      Fn::Sub: https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com
+  ReportFunction:
+    Value: !GetAtt ReportFunction.Arn
+  TokenizeFunction:
+    Value: !GetAtt TokenizeFunction.Arn
+  UnumApiHandler:
+    Value:
+      Fn::GetAtt:
+        - UnumApiHandler
+        - Arn
+Resources:
+  AnalyzeFunction:
+    Properties:
+      CodeUri: Analyze/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  ReportFunction:
+    Properties:
+      CodeUri: Report/
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  TokenizeFunction:
+    Properties:
+      CodeUri: Tokenize/
+      Events:
+        EventBridgeTrigger:
+          Properties:
+            Pattern:
+              detail-type:
+                - TextSubmitted
+              source:
+                - text.processor
+          Type: EventBridgeRule
+      Handler: main.lambda_handler
+      Policies:
+        - AWSLambdaRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  UnumApiHandler:
+    Properties:
+      CodeUri: UnumApiHandler/
+      Environment:
+        Variables:
+          DS_TABLE_NAME: unum-intermediate-datastore
+          END_FUNCTIONS: '["Report"]'
+          START_FUNCTION_ARN:
+            Fn::GetAtt:
+              - TokenizeFunction
+              - Arn
+          WORKFLOW_NAME: unum-text-processor-dagl
+      Events:
+        ApiEvent:
+          Properties:
+            Method: post
+            Path: /process
+          Type: HttpApi
+      Handler: api_handler.lambda_handler
+      MemorySize: 256
+      Policies:
+        - AWSLambdaRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+      Timeout: 29
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

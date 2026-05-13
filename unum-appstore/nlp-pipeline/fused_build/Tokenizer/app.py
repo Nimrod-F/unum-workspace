@@ -13,7 +13,6 @@ import json
 import time
 import re
 import math
-from unum_streaming import StreamingPublisher, set_streaming_output
 from collections import Counter
 
 
@@ -93,14 +92,6 @@ def lambda_handler(event, context):
     Input: { "text": "...", "doc_id": "..." }
     Output: { "sentences", "pos_tags", "ngrams", "vocab_stats", "token_matrix" }
     """
-
-    # Streaming: Initialize publisher for incremental parameter streaming
-    _streaming_session = (event.get('Session', '') if isinstance(event, dict) else '') or str(id(event))
-    _streaming_publisher = StreamingPublisher(
-        session_id=_streaming_session,
-        source_function="TokenizerFunction",
-        field_names=["sentences", "pos_tags", "ngrams", "vocab_stats", "token_matrix"]
-    )
     start_time = time.time()
 
     text = event.get('text', '')
@@ -128,13 +119,6 @@ def lambda_handler(event, context):
         'compute_ms': field_1_time,
         'doc_id': doc_id
     }
-    _streaming_publisher.publish('sentences', sentences)
-    # Streaming: Signal to runtime to invoke next function early with futures
-    if _streaming_publisher.should_invoke_next():
-        _streaming_payload = _streaming_publisher.get_streaming_payload()
-        # Store payload for runtime to pick up and invoke continuation
-        set_streaming_output(_streaming_payload)
-        _streaming_publisher.mark_next_invoked()
 
     # ── Field 2: pos_tags ──────────────────────────────────────────────
     t0 = time.time()
@@ -157,7 +141,6 @@ def lambda_handler(event, context):
         'compute_ms': field_2_time,
         'doc_id': doc_id
     }
-    _streaming_publisher.publish('pos_tags', pos_tags)
 
     # ── Field 3: ngrams ────────────────────────────────────────────────
     t0 = time.time()
@@ -179,7 +162,6 @@ def lambda_handler(event, context):
         'compute_ms': field_3_time,
         'doc_id': doc_id
     }
-    _streaming_publisher.publish('ngrams', ngrams)
 
     # ── Field 4: vocab_stats ───────────────────────────────────────────
     t0 = time.time()
@@ -221,7 +203,6 @@ def lambda_handler(event, context):
         'compute_ms': field_4_time,
         'doc_id': doc_id
     }
-    _streaming_publisher.publish('vocab_stats', vocab_stats)
 
     # ── Field 5: token_matrix ──────────────────────────────────────────
     t0 = time.time()
@@ -265,7 +246,6 @@ def lambda_handler(event, context):
         'compute_ms': field_5_time,
         'doc_id': doc_id
     }
-    _streaming_publisher.publish('token_matrix', token_matrix)
 
     total_time = int((time.time() - start_time) * 1000)
     print(f'[Tokenizer] COMPLETE in {total_time}ms')

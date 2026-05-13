@@ -1,0 +1,69 @@
+{
+  "configs": {
+    "Tokenize": {
+      "Name": "Tokenize",
+      "Start": true,
+      "Checkpoint": true,
+      "Debug": true,
+      "Next": {
+        "Name": "Analyze",
+        "InputType": "Scalar"
+      }
+    },
+    "Analyze": {
+      "Name": "Analyze",
+      "Start": false,
+      "Checkpoint": true,
+      "Debug": true,
+      "Next": {
+        "Name": "Report",
+        "InputType": "Scalar"
+      }
+    },
+    "Report": {
+      "Name": "Report",
+      "Start": false,
+      "Checkpoint": true,
+      "Debug": true
+    }
+  },
+  "template": {
+    "Globals": {
+      "ApplicationName": "standalone-text-pipeline",
+      "WorkflowType": "dagl",
+      "UnumIntermediaryDataStoreType": "dynamodb",
+      "UnumIntermediaryDataStoreName": "unum-intermediate-datastore",
+      "FaaSPlatform": "aws",
+      "Checkpoint": true,
+      "GC": false,
+      "Debug": false,
+      "Eager": false
+    },
+    "Functions": {
+      "Tokenize": {
+        "Properties": {
+          "CodeUri": "Tokenize/",
+          "Runtime": "python3.11",
+          "Start": true
+        }
+      },
+      "Analyze": {
+        "Properties": {
+          "CodeUri": "Analyze/",
+          "Runtime": "python3.11"
+        }
+      },
+      "Report": {
+        "Properties": {
+          "CodeUri": "Report/",
+          "Runtime": "python3.11"
+        }
+      }
+    }
+  },
+  "functions_map": {
+    "Tokenize": "standalone-tokenize",
+    "Analyze": "standalone-analyze",
+    "Report": "standalone-report"
+  }
+}

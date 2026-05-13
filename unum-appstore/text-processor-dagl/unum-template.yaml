@@ -1,0 +1,32 @@
+Functions:
+  Analyze:
+    Properties:
+      CodeUri: Analyze/
+      Runtime: python3.11
+  Report:
+    Properties:
+      CodeUri: Report/
+      Runtime: python3.11
+  Tokenize:
+    Properties:
+      CodeUri: Tokenize/
+      Runtime: python3.11
+      Start: true
+Globals:
+  Api:
+    endFunctions:
+    - Report
+    method: POST
+    path: /process
+  ApplicationName: unum-text-processor-dagl
+  Checkpoint: true
+  Debug: false
+  Eager: false
+  Event:
+    detailType: TextSubmitted
+    source: text.processor
+  FaaSPlatform: aws
+  GC: false
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowType: dagl

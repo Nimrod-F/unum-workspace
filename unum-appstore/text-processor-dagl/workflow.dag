@@ -1,0 +1,8 @@
+@workflow("unum-text-processor-dagl")
+@checkpoint(true)
+@api("/process", "POST")
+@event("text.processor", "TextSubmitted")
+
+let tokens = Tokenize(input)
+let analysis = Analyze(tokens)
+return Report(analysis)

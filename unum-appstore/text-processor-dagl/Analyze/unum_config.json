@@ -1,0 +1,10 @@
+{
+  "Name": "Analyze",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Report",
+    "InputType": "Scalar"
+  }
+}

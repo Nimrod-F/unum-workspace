@@ -1,0 +1,24 @@
+Functions:
+  Hello:
+    Arn: arn:aws:lambda:us-east-1:123456789:function:HelloFunction
+    Properties:
+      CodeUri: Hello/
+      Environment:
+        REMOTE_FUNCTION_ARN: arn:aws:lambda:us-east-1:123456789:function:HelloFunction
+      Runtime: python3.11
+      Start: true
+    Remote: true
+  World:
+    Properties:
+      CodeUri: World/
+      Runtime: python3.11
+Globals:
+  ApplicationName: unum-hello-remote-test
+  Checkpoint: true
+  Debug: false
+  Eager: false
+  FaaSPlatform: aws
+  GC: false
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowType: dagl

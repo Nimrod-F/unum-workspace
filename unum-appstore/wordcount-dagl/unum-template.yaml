@@ -1,0 +1,32 @@
+Functions:
+  Mapper:
+    Properties:
+      CodeUri: Mapper/
+      Runtime: python3.11
+  Partition:
+    Properties:
+      CodeUri: Partition/
+      Runtime: python3.11
+  Reducer:
+    Properties:
+      CodeUri: Reducer/
+      Runtime: python3.11
+  Summary:
+    Properties:
+      CodeUri: Summary/
+      Runtime: python3.11
+  UnumMap0:
+    Properties:
+      CodeUri: UnumMap0/
+      Runtime: python3.11
+      Start: true
+Globals:
+  ApplicationName: unum-wordcount-dagl
+  Checkpoint: true
+  Debug: false
+  Eager: true
+  FaaSPlatform: aws
+  GC: false
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowType: dagl

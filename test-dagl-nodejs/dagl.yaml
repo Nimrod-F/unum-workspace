@@ -1,0 +1,6 @@
+functions:
+  Tokenize: nodejs-tokenize
+  Analyze: nodejs-analyze
+  Report: nodejs-report
+registry:
+  url: redis://localhost:6379/0

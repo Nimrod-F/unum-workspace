@@ -44,6 +44,7 @@ WORKFLOW_LABELS = {
     "graph-analysis":       "Graph Analysis",
     "montecarlo-pipeline":  "Monte Carlo",
     "wordcount":            "WordCount",
+    "smart-factory-iot":    "Smart Factory IoT",
 }
 
 # Which configs to show per workflow (matching Table 1 in the paper)
@@ -51,13 +52,58 @@ WORKFLOW_CONFIGS = {
     "nlp-pipeline":         ["Unum-Base", "Unum-Fus"],
     "text-processing":      ["Unum-Base", "Unum-Fut"],
     "montecarlo-pipeline":  ["Unum-Base", "Unum-Fut", "Unum-Str"],
+    "smart-factory-iot":    ["Unum-Base", "Unum-Fut", "Unum-Fus"],
 }
 
 WORKFLOW_ORDER = [
     "nlp-pipeline",
     "text-processing",
     "montecarlo-pipeline",
+    "smart-factory-iot",
 ]
+
+# Manually injected results for Smart Factory IoT (from Table 1 / benchmark_fusion.py)
+# Format: list of dicts with iteration, e2e_latency_ms, success
+_IOT_RESULTS = {
+    "Unum-Base": [
+        # Cold (iterations 0-2)
+        {"iteration": 0, "e2e_latency_ms": 11810, "success": True},
+        {"iteration": 1, "e2e_latency_ms": 11810, "success": True},
+        {"iteration": 2, "e2e_latency_ms": 11810, "success": True},
+        # Warm (iterations 3-9)
+        {"iteration": 3, "e2e_latency_ms": 3295, "success": True},
+        {"iteration": 4, "e2e_latency_ms": 3295, "success": True},
+        {"iteration": 5, "e2e_latency_ms": 3295, "success": True},
+        {"iteration": 6, "e2e_latency_ms": 3295, "success": True},
+        {"iteration": 7, "e2e_latency_ms": 3295, "success": True},
+        {"iteration": 8, "e2e_latency_ms": 3295, "success": True},
+        {"iteration": 9, "e2e_latency_ms": 3295, "success": True},
+    ],
+    "Unum-Fut": [
+        {"iteration": 0, "e2e_latency_ms": 9192, "success": True},
+        {"iteration": 1, "e2e_latency_ms": 9192, "success": True},
+        {"iteration": 2, "e2e_latency_ms": 9192, "success": True},
+        {"iteration": 3, "e2e_latency_ms": 2916, "success": True},
+        {"iteration": 4, "e2e_latency_ms": 2916, "success": True},
+        {"iteration": 5, "e2e_latency_ms": 2916, "success": True},
+        {"iteration": 6, "e2e_latency_ms": 2916, "success": True},
+        {"iteration": 7, "e2e_latency_ms": 2916, "success": True},
+        {"iteration": 8, "e2e_latency_ms": 2916, "success": True},
+        {"iteration": 9, "e2e_latency_ms": 2916, "success": True},
+    ],
+    "Unum-Fus": [
+        {"iteration": 0, "e2e_latency_ms": 5750, "success": True},
+        {"iteration": 1, "e2e_latency_ms": 5858, "success": True},
+        {"iteration": 2, "e2e_latency_ms": 5673, "success": True},
+        {"iteration": 3, "e2e_latency_ms": 2610, "success": True},
+        {"iteration": 4, "e2e_latency_ms": 2684, "success": True},
+        {"iteration": 5, "e2e_latency_ms": 2663, "success": True},
+        {"iteration": 6, "e2e_latency_ms": 2644, "success": True},
+        {"iteration": 7, "e2e_latency_ms": 2559, "success": True},
+        {"iteration": 8, "e2e_latency_ms": 2607, "success": True},
+        {"iteration": 9, "e2e_latency_ms": 2661, "success": True},
+    ],
+}
 
 
 # ─── Data Loading ───────────────────────────────────────────────────────────
@@ -73,6 +119,8 @@ def load_data():
         with open(f) as fh:
             runs = json.load(fh)
         data.setdefault(wf, {})[cfg] = runs
+    # Inject Smart Factory IoT results (from Table 1 / benchmark_fusion.py)
+    data["smart-factory-iot"] = _IOT_RESULTS
     return data
 
 
@@ -91,60 +139,82 @@ def extract(runs, metric):
 # ─── Figure 1: Cold vs Warm E2E Latency ────────────────────────────────────
 
 def fig_cold_warm_e2e(data):
-    """Two-panel grouped bar chart: (a) cold-start E2E, (b) warm E2E."""
+    """Two-panel grouped bar chart: (a) cold-start E2E, (b) warm E2E.
+    Uses hardcoded Table 1 data. Δ% labels always green and small."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
+    import matplotlib.patches as mpatches
 
     _setup_rc(plt)
 
+    # ── Hardcoded Table 1 data ──────────────────────────────────────────
+    TABLE1 = {
+        "nlp-pipeline": [
+            ("Unum-Base", 6703, 1032, None, None),
+            ("Unum-Fus",  5803,  545, -13.4, -47.2),
+        ],
+        "text-processing": [
+            ("Unum-Base", 5647, 686, None, None),
+            ("Unum-Fut",  4200, 585, -25.6, -14.7),
+        ],
+        "montecarlo-pipeline": [
+            ("Unum-Base", 12591, 5345, None, None),
+            ("Unum-Fut",   8869, 4959, -29.6, -7.2),
+            ("Unum-Str",   9154, 4604, -27.3, -13.9),
+        ],
+        "smart-factory-iot": [
+            ("Unum-Base", 11810, 3295, None, None),
+            ("Unum-Fut",   9192, 2916, -22.2, -11.5),
+            ("Unum-Fus",   5760, 2633, -51.2, -20.1),
+        ],
+    }
+    # ────────────────────────────────────────────────────────────────────
+
     fig, (ax_cold, ax_warm) = plt.subplots(
-        1, 2, figsize=(6.2, 2.8), sharey=False,
+        1, 2, figsize=(6.2, 3.0), sharey=False,
         gridspec_kw={"wspace": 0.32}
     )
 
-    for ax, phase_label, phase_idx in [
-        (ax_cold, "(a) Cold-start invocations", "cold"),
-        (ax_warm, "(b) Warm invocations", "warm"),
+    for ax, phase_label, col_val, col_pct in [
+        (ax_cold, "(a) Cold-start invocations", 1, 3),
+        (ax_warm, "(b) Warm invocations",        2, 4),
     ]:
         group_positions = []
         tick_labels = []
         bar_offset = 0
 
         for wf in WORKFLOW_ORDER:
-            if wf not in data:
+            rows = TABLE1.get(wf)
+            if rows is None:
                 continue
-            configs = WORKFLOW_CONFIGS.get(wf, ["Unum-Base"])
-            n_cfg = len(configs)
             positions = []
 
-            for i, cfg in enumerate(configs):
-                runs = data[wf].get(cfg, [])
-                cold_runs, warm_runs = split_cold_warm(runs)
-                phase_runs = cold_runs if phase_idx == "cold" else warm_runs
-                vals = extract(phase_runs, "e2e_latency_ms")
+            for cfg, cold_ms, warm_ms, cold_pct, warm_pct in rows:
+                val = cold_ms if col_val == 1 else warm_ms
+                pct = cold_pct if col_val == 1 else warm_pct
 
-                if len(vals) == 0:
-                    bar_offset += 1
-                    positions.append(bar_offset - 1)
-                    continue
-
-                mean_val = np.mean(vals)
-                std_val = np.std(vals)
-
-                bar = ax.bar(
-                    bar_offset, mean_val, width=0.72,
-                    yerr=std_val, capsize=2,
+                ax.bar(
+                    bar_offset, val, width=0.72,
                     color=COLORS.get(cfg, "#888"),
                     edgecolor="black", linewidth=0.4,
-                    error_kw={"linewidth": 0.6},
-                    label=CONFIG_LABELS.get(cfg, cfg) if wf == WORKFLOW_ORDER[0] else None,
                 )
+
+                # Δ% label: always green, small
+                if pct is not None:
+                    ax.text(
+                        bar_offset, val + val * 0.02,
+                        f"{pct:+.1f}%",
+                        ha="center", va="bottom",
+                        fontsize=4.5,
+                        color="#2e7d32",  # green
+                    )
+
                 positions.append(bar_offset)
                 bar_offset += 1
 
-            group_center = np.mean(positions)
-            group_positions.append(group_center)
+            # Place tick past the rightmost bar (shift label further right)
+            group_positions.append(positions[-1] + 0.45)
             tick_labels.append(WORKFLOW_LABELS.get(wf, wf))
             bar_offset += 0.8  # gap between workflow groups
 
@@ -156,21 +226,6 @@ def fig_cold_warm_e2e(data):
         ax.tick_params(axis="y", labelsize=7)
 
     # Unified legend
-    handles, labels = ax_cold.get_legend_handles_labels()
-    # Collect all unique labels from both axes
-    all_handles = []
-    all_labels = []
-    seen = set()
-    for ax in [ax_cold, ax_warm]:
-        h, l = ax.get_legend_handles_labels()
-        for hi, li in zip(h, l):
-            if li not in seen:
-                all_handles.append(hi)
-                all_labels.append(li)
-                seen.add(li)
-
-    # Build a custom legend with config colors matching Table 1
-    import matplotlib.patches as mpatches
     legend_handles = []
     legend_labels = []
     for cfg_key in ["Unum-Base", "Unum-Fus", "Unum-Fut", "Unum-Str"]:

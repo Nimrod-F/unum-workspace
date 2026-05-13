@@ -1,0 +1,6 @@
+@workflow("nodejs-text-pipeline")
+@checkpoint(true)
+
+let tokens = Tokenize(input)
+let analysis = Analyze(tokens)
+return Report(analysis)

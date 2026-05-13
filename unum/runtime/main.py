@@ -485,6 +485,34 @@ def lambda_handler(event, context):
     elif os.environ['FAAS_PLATFORM'] == 'aws':
         input_data = event
 
+        # Auto-wrap non-unum events for entry functions.
+        # If this is the start function and the event doesn't have the unum
+        # envelope format (no "Data"/"Session" fields), wrap it automatically.
+        # This enables EventBridge, SNS, or any raw JSON trigger to work.
+        if unum.entry_function and 'Data' not in input_data:
+            import uuid
+
+            # EventBridge events have "detail" and "source" fields
+            if 'detail' in input_data and 'source' in input_data:
+                user_payload = input_data['detail']
+                session_id = input_data.get('id', str(uuid.uuid4()))
+                if unum.debug:
+                    print(f'[AUTO-WRAP] EventBridge event from {input_data.get("source")} / {input_data.get("detail-type")}')
+            else:
+                # Generic raw JSON — use the entire event as input
+                user_payload = input_data
+                session_id = str(uuid.uuid4())
+                if unum.debug:
+                    print(f'[AUTO-WRAP] Raw JSON event')
+
+            input_data = {
+                'Data': {
+                    'Source': 'http',
+                    'Value': user_payload
+                },
+                'Session': session_id
+            }
+
     if unum.debug:
         print(f'[DEBUG] My instance name: {unum.get_my_instance_name(input_data)}. Invocation payload: {input_data}')
 

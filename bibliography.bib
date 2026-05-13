@@ -1,3 +1,11 @@
+﻿@inproceedings{foldvari2025closer,
+  author    = {Foldvari, Harold-Nimrod and Malancioiu, Daniel-George and Craciun, Mihai-Florin-Gabriel},
+  title     = {Advancing Serverless Workflow Efficiency: Integrating Functional Programming Constructs and {DAG}-Based Execution},
+  booktitle = {Proceedings of the 15th International Conference on Cloud Computing and Services Science (CLOSER 2025)},
+  year      = {2025},
+  publisher = {SciTePress}
+}
+
 @inproceedings {285113,
 author = {Minchen Yu and Tingjia Cao and Wei Wang and Ruichuan Chen},
 title = {Following the Data, Not the Function: Rethinking Function Orchestration in Serverless Computing},
@@ -6,9 +14,30 @@ year = {2023},
 isbn = {978-1-939133-33-5},
 address = {Boston, MA},
 pages = {1489--1504},
-url = {https://www.usenix.org/conference/nsdi23/presentation/yu},
 publisher = {USENIX Association},
 month = apr
+}
+
+@inproceedings {shahrad2020serverless,
+author = {Mohammad Shahrad and Rodrigo Fonseca and Inigo Goiri and Gohar Chaudhry and Paul Batum and Jason Cooke and Eduardo Laureano and Colby Tresness and Mark Russinovich and Ricardo Bianchini},
+title = {Serverless in the Wild: Characterizing and Optimizing the Serverless Workload at a Large Cloud Provider},
+booktitle = {2020 USENIX Annual Technical Conference (USENIX ATC 20)},
+year = {2020},
+isbn = {978-1-939133-14-4},
+pages = {205--218},
+publisher = {USENIX Association},
+month = jul
+}
+
+@article{wurz2020migrating,
+author = {Würz, Hendrik and Krämer, Michel and Kaster, Marvin and Kuijper, Arjan},
+year = {2023},
+month = {09},
+pages = {149-167},
+title = {Migrating monolithic applications to function as a service},
+volume = {54},
+journal = {Software: Practice and Experience},
+doi = {10.1002/spe.3263}
 }
 
 @misc{lin2019mitigatingcoldstartsserverless,
@@ -17,8 +46,7 @@ month = apr
       year={2019},
       eprint={1903.12221},
       archivePrefix={arXiv},
-      primaryClass={cs.DC},
-      url={https://arxiv.org/abs/1903.12221}, 
+      primaryClass={cs.DC}, 
 }
 
 @misc{li2023dataflowerexploitingdataflowparadigm,
@@ -27,8 +55,7 @@ month = apr
       year={2023},
       eprint={2304.14629},
       archivePrefix={arXiv},
-      primaryClass={cs.DC},
-      url={https://arxiv.org/abs/2304.14629}, 
+      primaryClass={cs.DC}, 
 }
 
 @misc{shi2023dflowefficientdataflowbasedinvocation,
@@ -38,7 +65,6 @@ month = apr
       eprint={2306.11043},
       archivePrefix={arXiv},
       primaryClass={cs.DC},
-      url={https://arxiv.org/abs/2306.11043}, 
 }
 
 @misc{wen2022riseplanetserverlesscomputing,
@@ -48,7 +74,6 @@ month = apr
       eprint={2206.12275},
       archivePrefix={arXiv},
       primaryClass={cs.SE},
-      url={https://arxiv.org/abs/2206.12275}, 
 }
 
 @misc{PrecedenceResearch2025,
@@ -63,7 +88,6 @@ month = apr
    title={Triggerflow: Trigger-based orchestration of serverless workflows},
    volume={124},
    ISSN={0167-739X},
-   url={http://dx.doi.org/10.1016/j.future.2021.06.004},
    DOI={10.1016/j.future.2021.06.004},
    journal={Future Generation Computer Systems},
    publisher={Elsevier BV},
@@ -80,48 +104,512 @@ year = {2023},
 isbn = {978-1-939133-33-5},
 address = {Boston, MA},
 pages = {1505--1519},
-url = {https://www.usenix.org/conference/nsdi23/presentation/liu-david},
 publisher = {USENIX Association},
 month = apr
 }
 
-@article{wurz2020migrating,
-  author    = {Hendrik M. W\"{u}rz and Michel Kr\"{a}mer and Marvin Kaster and Arjan Kuijper},
-  title     = {Migrating monolithic applications to function as a service},
-  journal   = {Software: Practice and Experience},
-  volume    = {54},
-  number    = {2},
-  pages     = {149--167},
-  year      = {2024},
-  doi       = {10.1002/spe.3268}
+@misc{copik2021sebs,
+      title={SeBS: A Serverless Benchmark Suite for Function-as-a-Service Computing}, 
+      author={Marcin Copik and Grzegorz Kwasniewski and Maciej Besta and Michal Podstawski and Torsten Hoefler},
+      year={2021},
+      eprint={2012.14132},
+      archivePrefix={arXiv},
+      primaryClass={cs.DC}, 
 }
 
-@inproceedings{kotni2021faastlane,
-  author    = {Deepak Nathani and Kshiteej Mahajan and Alok Kumbhare and Aditya Akella},
-  title     = {Faastlane: Accelerating Function-as-a-Service Workflows},
-  booktitle = {2021 USENIX Annual Technical Conference (USENIX ATC 21)},
-  year      = {2021},
-  pages     = {805--820},
-  publisher = {USENIX Association},
-  url       = {https://www.usenix.org/conference/atc21/presentation/kotni}
+@article{malawski2020serverless,
+title = {Serverless execution of scientific workflows: Experiments with HyperFlow, AWS Lambda and Google Cloud Functions},
+journal = {Future Generation Computer Systems},
+volume = {110},
+pages = {502-514},
+year = {2020},
+issn = {0167-739X},
+doi = {https://doi.org/10.1016/j.future.2017.10.029},
+author = {Maciej Malawski and Adam Gajek and Adam Zima and Bartosz Balis and Kamil Figiela},
+keywords = {Scientific workflows, Cloud functions, Serverless architectures, FaaS},
+abstract = {Scientific workflows consisting of a high number of interdependent tasks represent an important class of complex scientific applications. Recently, a new type of serverless infrastructures has emerged, represented by such services as Google Cloud Functions and AWS Lambda, also referred to as the Function-as-a-Service model. In this paper we take a look at such serverless infrastructures, which are designed mainly for processing background tasks of Web and Internet of Things applications, or event-driven stream processing. We evaluate their applicability to more compute- and data-intensive scientific workflows and discuss possible ways to repurpose serverless architectures for execution of scientific workflows. We have developed prototype workflow executor functions using AWS Lambda and Google Cloud Functions, coupled with the HyperFlow workflow engine. These functions can run workflow tasks in AWS and Google infrastructures, and feature such capabilities as data staging to/from S3 or Google Cloud Storage and execution of custom application binaries. We have successfully deployed and executed the Montage astronomy workflow, often used as a benchmark, and we report on initial results of its performance evaluation. Our findings indicate that the simple mode of operation makes this approach easy to use, although there are costs involved in preparing portable application binaries for execution in a remote environment. While our solution is an early prototype, we find the presented approach highly promising. We also discuss possible future steps related to execution of scientific workflows in serverless infrastructures. Finally, we perform a cost analysis and discuss implications with regard to resource management for scientific applications in general.}
 }
 
-@inproceedings{shahrad2020serverless,
-  author    = {Mohammad Shahrad and Rodrigo Fonseca and {\'I}{\~n}igo Goiri and Gohar Chaudhry and Paul Batum and Jason Cooke and Eduardo Laureano and Colby Tresness and Mark Russinovich and Ricardo Bianchini},
-  title     = {Serverless in the Wild: Characterizing and Optimizing the Serverless Workload at a Large Cloud Provider},
-  booktitle = {2020 USENIX Annual Technical Conference (USENIX ATC 20)},
-  year      = {2020},
-  pages     = {205--218},
-  publisher = {USENIX Association},
-  url       = {https://www.usenix.org/conference/atc20/presentation/shahrad}
+@inproceedings {agache2020firecracker,
+author = {Alexandru Agache and Marc Brooker and Alexandra Iordache and Anthony Liguori and Rolf Neugebauer and Phil Piwonka and Diana-Maria Popa},
+title = {Firecracker: Lightweight Virtualization for Serverless Applications },
+booktitle = {17th USENIX Symposium on Networked Systems Design and Implementation (NSDI 20)},
+year = {2020},
+isbn = {978-1-939133-13-7},
+address = {Santa Clara, CA},
+pages = {419--434},
+publisher = {USENIX Association},
+month = feb
 }
 
-@inproceedings{oakes2018sock,
-  author    = {Edward Oakes and Leon Yang and Dennis Zhou and Kevin Houck and Tyler Harter and Andrea Arpaci-Dusseau and Remzi Arpaci-Dusseau},
-  title     = {{SOCK}: Rapid Task Provisioning with Serverless-Optimized Containers},
-  booktitle = {2018 USENIX Annual Technical Conference (USENIX ATC 18)},
-  year      = {2018},
-  pages     = {57--70},
-  publisher = {USENIX Association},
-  url       = {https://www.usenix.org/conference/atc18/presentation/oakes}
+@inproceedings{du2020catalyzer,
+author = {Du, Dong and Yu, Tianyi and Xia, Yubin and Zang, Binyu and Yan, Guanglu and Qin, Chenggang and Wu, Qixuan and Chen, Haibo},
+title = {Catalyzer: Sub-millisecond Startup for Serverless Computing with Initialization-less Booting},
+year = {2020},
+isbn = {9781450371025},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+doi = {10.1145/3373376.3378512},
+abstract = {Serverless computing promises cost-efficiency and elasticity for high-productive software development. To achieve this, the serverless sandbox system must address two challenges: strong isolation between function instances, and low startup latency to ensure user experience. While strong isolation can be provided by virtualization-based sandboxes, the initialization of sandbox and application causes non-negligible startup overhead. Conventional sandbox systems fall short in low-latency startup due to their application-agnostic nature: they can only reduce the latency of sandbox initialization through hypervisor and guest kernel customization, which is inadequate and does not mitigate the majority of startup overhead.This paper proposes Catalyzer, a serverless sandbox system design providing both strong isolation and extremely fast function startup. Instead of booting from scratch, Catalyzer restores a virtualization-based function instance from a well-formed checkpoint image and thereby skips the initialization on the critical path (init-less). Catalyzer boosts the restore performance by on-demand recovering both user-level memory state and system state. We also propose a new OS primitive, sfork (sandbox fork), to further reduce the startup latency by directly reusing the state of a running sandbox instance. Fundamentally, Catalyzer removes the initialization cost by reusing state, which enables general optimizations for diverse serverless functions. The evaluation shows that Catalyzer reduces startup latency by orders of magnitude, achieves < 1ms latency in the best case, and significantly reduces the end-to-end latency for real-world workloads. Catalyzer has been adopted by Ant Financial, and we also present lessons learned from industrial development.},
+booktitle = {Proceedings of the Twenty-Fifth International Conference on Architectural Support for Programming Languages and Operating Systems},
+pages = {467–481},
+numpages = {15},
+keywords = {startup latency, serverless computing, operating system, checkpoint and restore},
+location = {Lausanne, Switzerland},
+series = {ASPLOS '20}
+}
+
+@inproceedings{cadden2020seuss,
+author = {Cadden, James and Unger, Thomas and Awad, Yara and Dong, Han and Krieger, Orran and Appavoo, Jonathan},
+title = {SEUSS: skip redundant paths to make serverless fast},
+year = {2020},
+isbn = {9781450368827},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+doi = {10.1145/3342195.3392698},
+abstract = {This paper presents a system-level method for achieving the rapid deployment and high-density caching of serverless functions in a FaaS environment. For reduced start times, functions are deployed from unikernel snapshots, bypassing expensive initialization steps. To reduce the memory footprint of snapshots we apply page-level sharing across the entire software stack that is required to run a function. We demonstrate the effects of our techniques by replacing Linux on the compute node of a FaaS platform architecture. With our prototype OS, the deployment time of a function drops from 100s of milliseconds to under 10 ms. Platform throughput improves by 51x on workload composed entirely of new functions. We are able to cache over 50,000 function instances in memory as opposed to 3,000 using standard OS techniques. In combination, these improvements give the FaaS platform a new ability to handle large-scale bursts of requests.},
+booktitle = {Proceedings of the Fifteenth European Conference on Computer Systems},
+articleno = {32},
+numpages = {15},
+location = {Heraklion, Greece},
+series = {EuroSys '20}
+}
+
+@article{ebrahimi2024coldstart,
+title = {Cold start latency mitigation mechanisms in serverless computing: Taxonomy, review, and future directions},
+journal = {Journal of Systems Architecture},
+volume = {151},
+pages = {103115},
+year = {2024},
+issn = {1383-7621},
+doi = {https://doi.org/10.1016/j.sysarc.2024.103115},
+author = {Ana Ebrahimi and Mostafa Ghobaei-Arani and Hadi Saboohi},
+keywords = {Serverless computing, Cold start, Function-as-a-Service, Performance, Benchmarking, Latency, Survey},
+abstract = {Today, Function-as-a-Service (FaaS), as an emerging path to implementing serverless computing paradigm, seems quite promising in responding to the growing increase in requests for microservices. However, the serverless computing model also brings new challenges. Although the execution time of the functions is very short in FaaS, the initialization of containers and cold start is time-consuming and leads to a decrease in system performance. Cold start latency reduces the attractiveness of FaaS with the cost it imposes on the system. This is the most serious challenge in the majority of serverless computing platforms. Despite the importance of the subject, to the best of our knowledge, there is no comprehensive systematic review of cold start latency mitigation mechanisms in serverless computing platforms. This study aims to provide a systematic literature review on cold start latency mitigation mechanisms in serverless computing environment. In our proposed taxonomy, the mechanisms are classified into four categories: application-based, checkpoint-based, invocation time prediction-based, and cache-based; then, every category is introduced and reviewed. Finally, we propose open issues and conclude.}
+}
+
+@article{golec2023coldstart,
+   title={Cold Start Latency in Serverless Computing: A Systematic Review, Taxonomy, and Future Directions},
+   volume={57},
+   ISSN={1557-7341},
+   DOI={10.1145/3700875},
+   number={3},
+   journal={ACM Computing Surveys},
+   publisher={Association for Computing Machinery (ACM)},
+   author={Golec, Muhammed and Walia, Guneet Kaur and Kumar, Mohit and Cuadrado, Felix and Gill, Sukhpal Singh and Uhlig, Steve},
+   year={2024},
+   month=nov, pages={1–36} }
+
+@article{ghorbian2024coldstart,
+author = {Ghorbian, Mohsen and Ghobaei-Arani, Mostafa},
+title = {A survey on the cold start latency approaches in serverless computing: an optimization-based perspective},
+year = {2024},
+issue_date = {Nov 2024},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+volume = {106},
+number = {11},
+issn = {0010-485X},
+doi = {10.1007/s00607-024-01335-5},
+abstract = {Serverless computing is one of the latest technologies that has received much attention from researchers and companies in recent years since it provides dynamic scalability and a clear economic model. Serverless computing enables users to pay only for the time they use resources. This approach has several benefits, including optimizing costs and resource utilization; however, cold starts are a concern and challenge. Various studies have been conducted in the academic and industrial sectors to deal with this problem, which poses a significant research challenge. This paper comprehensively reviews recent cold start research in serverless computing. Hence, this paper presents a detailed taxonomy of several serverless computing strategies for dealing with cold start latency. We have considered two main approaches in the proposed classification: Optimizing Loading Times (OLT) and Optimizing Resource Usage (ORU), each including several subsets. The subsets of the primary approach OLT are divided into container-based and checkpoint-based. Also, the primary approach ORU is divided into machine learning (ML)-based, optimization-based, and heuristic-based approaches. After analyzing current methods, we have categorized and investigated them according to their characteristics and commonalities. Additionally, we examine potential challenges and directions for future research.},
+journal = {Computing},
+month = aug,
+pages = {3755–3809},
+numpages = {55},
+keywords = {Cold start, Serverless computing, Function-as-a-service, Optimizing loading time, Optimizing resource usage, 68M14, 68M20, 68N01, 68W10, 68W20, 68Q85, 68Q87, 68U20, 68W40, 68T01, 90C29, 90C31, 90C40, 90C59, 90B35, 90B22, 90C90, 68T05, 68N30, 68N19}
+}
+
+@ARTICLE{vahidinia2023rl,
+  author={Vahidinia, Parichehr and Farahani, Bahar and Aliee, Fereidoon Shams},
+  journal={IEEE Internet of Things Journal}, 
+  title={Mitigating Cold Start Problem in Serverless Computing: A Reinforcement Learning Approach}, 
+  year={2023},
+  volume={10},
+  number={5},
+  pages={3917-3927},
+  keywords={Containers;Delays;Cloud computing;Serverless computing;Computational modeling;Internet of Things;Costs;Cold start delay;Function as a Service (FaaS);memory consumption;openwhisk;reinforcement learning;serverless computing;serverless platforms},
+  doi={10.1109/JIOT.2022.3165127}}
+
+@article{hu2024predictive,
+author = {Hu, Qingmiao and Li, Hongwei and Nikougoftar, Elaheh},
+title = {Mitigating cold start problem in serverless computing using predictive pre-warming with machine learning: Mitigating cold start problem in serverless...},
+year = {2024},
+issue_date = {Jan 2025},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+volume = {107},
+number = {1},
+issn = {0010-485X},
+doi = {10.1007/s00607-024-01382-y},
+abstract = {The cold start problem in serverless computing leads to increased latency when functions are invoked after being idle. This paper proposes a predictive pre-warming strategy that leverages machine learning and historical data analysis to mitigate the cold start problem. By using a Recurrent Neural Network (RNN) to predict future invocations and a pre-warming scheduler to determine the number of instances to pre-warm, our approach aims to optimize resource utilization and reduce latency. Results show that the proposed method adapts idle-container times efficiently, reducing cold starts and idle periods. The proposed method outperforms OpenWhisk by executing more invocations, demonstrating a 49.52\% improvement and enhancing container resource allocation optimization.},
+journal = {Computing},
+month = dec,
+numpages = {24},
+keywords = {Serverless computing, Cold start, Machine learning, Predictive pre-warming, Recurrent neural network, 68M10}
+}
+
+@article{kumar2025deeplearning,
+author = {Saravana Kumar, N. and Selvakumara Samy, S.},
+title = {Cold Start Prediction and Provisioning Optimization in Serverless Computing Using Deep Learning},
+journal = {Concurrency and Computation: Practice and Experience},
+volume = {37},
+number = {4-5},
+pages = {e8392},
+keywords = {AWS lambdas, cold starts, deep learning, function warmer, serverless computing},
+doi = {https://doi.org/10.1002/cpe.8392},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/cpe.8392},
+abstract = {ABSTRACT Serverless computing has emerged as a significant framework for application development, offering benefits such as simplified deployment and enhanced developer productivity. Serverless designs accelerate app development, but user experience and performance are put at risk through the delay during a cold start. In this paper, an optimized concurrent provisioning methodology for the AWS Lambda environment has been proposed along with a cold start prediction technique based on deep learning. Employing historical data and real-time features like timestamp, invoke frequency, cold start indicator, duration, previous cold starts, event type, historical cold starts, time since the last cold start, and consecutive cold starts, an attention-based bi-directional gated recurrent unit (ABiGRU) is used to predict the cold start occurrences with high precision. In the AWS Lambda environment, the proposed DL model was able to predict the cold start likelihood for incoming Lambda invocations very accurately. In addition, the performance of the ABiGRU model is enhanced by hyperparameter tuning using the RMSProp optimizer. The findings of the experiments establish the proposed DL model to perform in the reduction of cold starts compared to the existing approach. Further, the ODL-CSP technique achieves an accuracy of 90.36\%, a precision of 91.87\%, a recall of 90.42\%, an F1\_score of 90.28\%, and an MCC of 82.28\% when applied to the testing dataset. Additionally, the proposed paradigm optimizes Lambdas using provisioned concurrency, similar to a function warmer. The proposed DL paradigm will eliminate cold start times by early deployment of Lambdas so that the ice age of the serverless architecture is eliminated.},
+year = {2025}
+}
+
+@article{nguyen2023tcn,
+   title={Holistic cold-start management in serverless computing cloud with deep learning for time series},
+   volume={153},
+   ISSN={0167-739X},
+   DOI={10.1016/j.future.2023.12.011},
+   journal={Future Generation Computer Systems},
+   publisher={Elsevier BV},
+   author={Nguyen, Tam n.},
+   year={2024},
+   month=apr, pages={312–325} }
+
+@inproceedings{fuerst2021faascache,
+author = {Fuerst, Alexander and Sharma, Prateek},
+title = {FaasCache: keeping serverless computing alive with greedy-dual caching},
+year = {2021},
+isbn = {9781450383172},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+doi = {10.1145/3445814.3446757},
+abstract = {Functions as a Service (also called serverless computing) promises to revolutionize how applications use cloud resources. However, functions suffer from cold-start problems due to the overhead of initializing their code and data dependencies before they can start executing. Keeping functions alive and warm after they have finished execution can alleviate the cold-start overhead. Keep-alive policies must keep functions alive based on their resource and usage characteristics, which is challenging due to the diversity in FaaS workloads. Our insight is that keep-alive is analogous to caching. Our caching-inspired Greedy-Dual keep-alive policy can be effective in reducing the cold-start overhead by more than 3\texttimes{} compared to current approaches. Caching concepts such as reuse distances and hit-ratio curves can also be used for auto-scaled server resource provisioning, which can reduce the resource requirement of FaaS providers by 30\% for real-world dynamic workloads. We implement caching-based keep-alive and resource provisioning policies in our FaasCache system, which is based on OpenWhisk. We hope that our caching analogy opens the door to more principled and optimized keep-alive and resource provisioning techniques for future FaaS workloads and platforms.},
+booktitle = {Proceedings of the 26th ACM International Conference on Architectural Support for Programming Languages and Operating Systems},
+pages = {386–400},
+numpages = {15},
+keywords = {Caching, Cloud Computing, Functions as a Service, Serverless Computing},
+location = {Virtual, USA},
+series = {ASPLOS '21}
+}
+
+@inproceedings{yu2024rainbowcake,
+author = {Yu, Hanfei and Basu Roy, Rohan and Fontenot, Christian and Tiwari, Devesh and Li, Jian and Zhang, Hong and Wang, Hao and Park, Seung-Jong},
+title = {RainbowCake: Mitigating Cold-starts in Serverless with Layer-wise Container Caching and Sharing},
+year = {2024},
+isbn = {9798400703720},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+doi = {10.1145/3617232.3624871},
+abstract = {Serverless computing has grown rapidly as a new cloud computing paradigm that promises ease-of-management, cost-efficiency, and auto-scaling by shipping functions via self-contained virtualized containers. Unfortunately, serverless computing suffers from severe cold-start problems---starting containers incurs non-trivial latency. Full container caching is widely applied to mitigate cold-starts, yet has recently been outperformed by two lines of research: partial container caching and container sharing. However, either partial container caching or container sharing techniques exhibit their drawbacks. Partial container caching effectively deals with burstiness while leaving cold-start mitigation halfway; container sharing reduces cold-starts by enabling containers to serve multiple functions while suffering from excessive memory waste due to over-packed containers.This paper proposes RainbowCake, a layer-wise container pre-warming and keep-alive technique that effectively mitigates cold-starts with sharing awareness at minimal waste of memory. With structured container layers and sharing-aware modeling, RainbowCake is robust and tolerant to invocation bursts. We seize the opportunity of container sharing behind the startup process of standard container techniques. RainbowCake breaks the container startup process of a container into three stages and manages different container layers individually. We develop a sharing-aware algorithm that makes event-driven layer-wise caching decisions in real-time. Experiments on OpenWhisk clusters with real-world workloads show that RainbowCake reduces 68\% function startup latency and 77\% memory waste compared to state-of-the-art solutions.},
+booktitle = {Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems, Volume 1},
+pages = {335–350},
+numpages = {16},
+keywords = {serverless computing, container caching, container sharing, cold-start},
+location = {La Jolla, CA, USA},
+series = {ASPLOS '24}
+}
+
+@INPROCEEDINGS{zhou2024multilevel,
+  author={Zhou, Amelie Chi and Huang, Rongzheng and Ke, Zhoubin and Li, Yusen and Wang, Yi and Mao, Rui},
+  booktitle={2024 IEEE International Parallel and Distributed Processing Symposium (IPDPS)}, 
+  title={Tackling Cold Start in Serverless Computing with Multi-Level Container Reuse}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={89-99},
+  keywords={Distributed processing;Operating systems;Serverless computing;Containers;Benchmark testing;Deep reinforcement learning;Complexity theory;serverless computing;cold-start problem;warm container reuse},
+  doi={10.1109/IPDPS57955.2024.00017}}
+
+@misc{liu2022faaslight,
+      title={FaaSLight: General Application-Level Cold-Start Latency Optimization for Function-as-a-Service in Serverless Computing}, 
+      author={Xuanzhe Liu and Jinfeng Wen and Zhenpeng Chen and Ding Li and Junkai Chen and Yi Liu and Haoyu Wang and Xin Jin},
+      year={2023},
+      eprint={2207.08175},
+      archivePrefix={arXiv},
+      primaryClass={cs.DC}, 
+}
+
+@article{wen2022lambdalite,
+  title={LambdaLite: Application-Level Optimization for Cold Start Latency in Serverless Computing},
+  author={Jinfeng Wen and Zhenpeng Chen and Ding Li and Junkai Chen and Yi Liu and Haoyu Wang and Xin Jin and Xuanzhe Liu},
+  journal={ArXiv},
+  year={2022},
+  volume={abs/2207.08175},
+}
+
+
+@Article{lee2021fusion,
+AUTHOR = {Lee, Seungjun and Yoon, Daegun and Yeo, Sangho and Oh, Sangyoon},
+TITLE = {Mitigating Cold Start Problem in Serverless Computing with Function Fusion},
+JOURNAL = {Sensors},
+VOLUME = {21},
+YEAR = {2021},
+NUMBER = {24},
+ARTICLE-NUMBER = {8416},
+PubMedID = {34960506},
+ISSN = {1424-8220},
+ABSTRACT = {As Artificial Intelligence (AI) is becoming ubiquitous in many applications, serverless computing is also emerging as a building block for developing cloud-based AI services. Serverless computing has received much interest because of its simplicity, scalability, and resource efficiency. However, due to the trade-off with resource efficiency, serverless computing suffers from the cold start problem, that is, a latency between a request arrival and function execution. The cold start problem significantly influences the overall response time of workflow that consists of functions because the cold start may occur in every function within the workflow. Function fusion can be one of the solutions to mitigate the cold start latency of a workflow. If two functions are fused into a single function, the cold start of the second function is removed; however, if parallel functions are fused, the workflow response time can be increased because the parallel functions run sequentially even if the cold start latency is reduced. This study presents an approach to mitigate the cold start latency of a workflow using function fusion while considering a parallel run. First, we identify three latencies that affect response time, present a workflow response time model considering the latency, and efficiently find a fusion solution that can optimize the response time on the cold start. Our method shows a response time of 28–86% of the response time of the original workflow in five workflows.},
+DOI = {10.3390/s21248416}
+}
+
+@ARTICLE{pan2024sustainable,
+  author={Pan, Shanxing and Zhao, Hongyu and Cai, Zinuo and Li, Dongmei and Ma, Ruhui and Guan, Haibing},
+  journal={IEEE Transactions on Sustainable Computing}, 
+  title={Sustainable Serverless Computing With Cold-Start Optimization and Automatic Workflow Resource Scheduling}, 
+  year={2024},
+  volume={9},
+  number={3},
+  pages={329-340},
+  keywords={Containers;Optimization;Serverless computing;Processor scheduling;Costs;Computational modeling;Source coding;Cold start;resource scheduling;serverless computing;serverless workflow},
+  doi={10.1109/TSUSC.2023.3311197}}
+
+@inproceedings{mohan2019agile,
+author = {Mohan, Anup and Sane, Harshad and Doshi, Kshitij and Edupuganti, Saikrishna and Nayak, Naren and Sukhomlinov, Vadim},
+title = {Agile cold starts for scalable serverless},
+year = {2019},
+publisher = {USENIX Association},
+address = {USA},
+abstract = {The Serverless or Function-as-a-Service (FaaS) model capitalizes on lightweight execution by packaging code and dependencies together for just-in-time dispatch. Often a container environment has to be set up afresh--a condition called "cold start", and in such cases, performance suffers and overheads mount, both deteriorating rapidly under high concurrency. Caching and reusing previously employed containers ties up memory and risks information leakage. Latency for cold starts is frequently due to work and wait-times in setting up various dependencies - such as in initializing networking elements. This paper proposes a solution that pre-crafts such resources and then dynamically reassociates them with baseline containers. Applied to networking, this approach demonstrates an order of magnitude gain in cold starts, negligible memory consumption, and flat startup time under rising concurrency.},
+booktitle = {Proceedings of the 11th USENIX Conference on Hot Topics in Cloud Computing},
+pages = {21},
+numpages = {1},
+location = {Renton, WA, USA},
+series = {HotCloud'19}
+}
+
+@inproceedings{elshamy2023orchestration,
+author = {Elshamy, Abdallah and Alquraan, Ahmed and Al-Kiswany, Samer},
+title = {A Study of Orchestration Approaches for Scientific Workflows in Serverless Computing},
+year = {2023},
+isbn = {9798400701856},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+doi = {10.1145/3592533.3592809},
+abstract = {Scientific workflows are typically data- and compute-intensive. They consist of many stages, each of which may contain hundreds to even thousands of tasks. Traditionally, scientific workflows have been executed using the serverful computing model. Serverless computing presents an attractive alternative to the serverful computing model as it frees developers from managing and provisioning resources and offers a fine-grained pay-as-you-go pricing model. In this paper, we investigate the viability of using serverless computing to execute scientific workflows. Specifically, we discuss, implement, and evaluate three orchestration approaches for executing scientific workflows: serverful-centralized, serverless-centralized, and serverless-decentralized. This work is the first to implement and evaluate a purely serverless orchestration approach that does not require deploying a dedicated workflow manager. Our evaluation shows that serverless orchestration approaches cause a noticeable performance overhead for some workflow patterns (e.g., reduce stages) due to accessing a large amount of remote data. We propose two optimizations (i.e., prefetching file privileges and container placement) that exploit data locality to mitigate that impact. Our evaluation with the Montage application shows that a fully decentralized approach achieves a comparable performance to a serverful approach. Also, our results show that prefetching file privileges and container placement optimizations improve the performance by 26\% and 44\% respectively when compared to an unoptimized version.},
+booktitle = {Proceedings of the 1st Workshop on SErverless Systems, Applications and MEthodologies},
+pages = {34–40},
+numpages = {7},
+keywords = {serverless, scientific workflows, workflow orchestration},
+location = {Rome, Italy},
+series = {SESAME '23}
+}
+
+@misc{liu2025jointlambda,
+      title={Joint$\lambda$: Orchestrating Serverless Workflows on Jointcloud FaaS Systems}, 
+      author={Jianfei Liu and Rui Li and Zhilin Yang and Peichang Shi and Guodong Yi and Huaimin Wang},
+      year={2025},
+      eprint={2505.21899},
+      archivePrefix={arXiv},
+      primaryClass={cs.DC},
+}
+
+@inproceedings{quinn2021implications,
+author = {Quinn, Sterling and Cordingly, Robert and Lloyd, Wes},
+title = {Implications of Alternative Serverless Application Control Flow Methods},
+year = {2021},
+isbn = {9781450391726},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+doi = {10.1145/3493651.3493668},
+abstract = {Function-as-a-Service or FaaS is a popular delivery model of serverless computing where developers upload code to be executed in the cloud as short running stateless functions. Using smaller functions to decompose processing of larger tasks or workflows introduces the question of how to instrument application control flow to orchestrate an overall task or workflow. In this paper, we examine implications of using different methods to orchestrate the control flow of a serverless data processing pipeline composed as a set of independent FaaS functions. We performed experiments on the AWS Lambda FaaS platform and compared how four different patterns of control flow impact the cost and performance of the pipeline. We investigate control flow using client orchestration, microservice controllers, event-based triggers, and state-machines. Overall, we found that asynchronous methods led to lower orchestration costs, and that event-based orchestration incurred a performance penalty.},
+booktitle = {Proceedings of the Seventh International Workshop on Serverless Computing (WoSC7) 2021},
+pages = {17–22},
+numpages = {6},
+keywords = {Serverless Computing, Programming Languages, Performance Evaluation, Function-as-a-Service, Frameworks},
+location = {Virtual Event, Canada},
+series = {WoSC '21}
+}
+
+@inproceedings{zhang2025federated,
+author = {Zhang, Yuqiu and Jacobsen, Hans-Arno},
+title = {Decentralized and Policy-Aware Serverless Orchestration for the Federated Web},
+year = {2025},
+isbn = {9798400713316},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+doi = {10.1145/3701716.3715573},
+abstract = {As Web services and Web-of-Things (WoT) applications increasingly span multiple administrative domains such as clouds, edges, and community-run platforms, centralized serverless orchestration frameworks struggle to handle heterogeneous policies, data governance constraints, and dynamic workloads. This situation prompts a new design space: federated and decentralized scheduling models for serverless computing that do not rely on a single global coordinator. In this paper, we explore an approach in which each administrative domain autonomously manages its own resources and complies with local regulations, while lightweight decentralized protocols enable these domains to cooperatively share load information, offer resource availability hints, and negotiate function placements. We illustrate how a small set of core mechanisms such as metadata exchange protocols, compliance-driven constraints, and trust-aware placement negotiations, could enable serverless functions to be flexibly placed and migrated across a federated ecosystem. Our experimental analysis suggests that decentralized coordination can maintain service-level objectives (SLOs) under diverse conditions, especially under load spikes, and align better with the policy and compliance requirements that characterize a heterogeneous Web environment. This paper charts a path forward for research on federated serverless orchestration, aiming to foster more flexible, scalable, and policy-aware infrastructure at global scale.},
+booktitle = {Companion Proceedings of the ACM on Web Conference 2025},
+pages = {1539–1543},
+numpages = {5},
+keywords = {decentralized orchestration, federated serverless computing, web-of-things infrastructure},
+location = {Sydney NSW, Australia},
+series = {WWW '25}
+}
+
+@article{filinis2024intent,
+author = {Filinis, Nikos and Tzanettis, Ioannis and Spatharakis, Dimitrios and Fotopoulou, Eleni and Dimolitsas, Ioannis and Zafeiropoulos, Anastasios and Vassilakis, Constantinos and Papavassiliou, Symeon},
+title = {Intent-driven orchestration of serverless applications in the computing continuum},
+year = {2024},
+issue_date = {May 2024},
+publisher = {Elsevier Science Publishers B. V.},
+address = {NLD},
+volume = {154},
+number = {C},
+issn = {0167-739X},
+doi = {10.1016/j.future.2023.12.032},
+journal = {Future Gener. Comput. Syst.},
+month = may,
+pages = {72–86},
+numpages = {15},
+keywords = {Serverless computing, Computing continuum, Intent-driven orchestration, Reinforcement Learning, Service Level Objective, Multi-cluster scheduling}
+}
+
+@ARTICLE{yu2025pheromone,
+  author={Yu, Minchen and Cao, Tingjia and Wang, Wei and Chen, Ruichuan},
+  journal={IEEE Transactions on Networking}, 
+  title={Pheromone: Restructuring Serverless Computing With Data-Centric Function Orchestration}, 
+  year={2025},
+  volume={33},
+  number={1},
+  pages={226-240},
+  keywords={Serverless computing;Usability;Low latency communication;Delays;Costs;Logic;Synchronization;Schedules;Scalability;Runtime;Serverless computing;function workflow;data sharing},
+  doi={10.1109/TNET.2024.3480031}}
+
+@INPROCEEDINGS{wang2025octopus,
+  author={Wang, Keming and Feng, Liaoliao and He, Ligang and Huang, Chenlin and Yu, Fengyuan and Xie, Tao},
+  booktitle={2025 IEEE 45th International Conference on Distributed Computing Systems (ICDCS)}, 
+  title={Octopus: Decentralized Workflow-granular Scheduling for Serverless Workflow}, 
+  year={2025},
+  volume={},
+  number={},
+  pages={637-647},
+  keywords={Concurrent computing;Costs;Processor scheduling;Scalability;Decentralized control;Serverless computing;Computer architecture;Distributed computing;Workflow management software;Serverless Computing;Serverless Workflow;Scheduling;Decentralized},
+  doi={10.1109/ICDCS63083.2025.00068}}
+
+@article{li2021serverless,
+author = {Li, Zijun and Guo, Linsong and Cheng, Jiagan and Chen, Quan and He, Bingsheng and Guo, Minyi},
+title = {The Serverless Computing Survey: A Technical Primer for Design Architecture},
+year = {2022},
+issue_date = {January 2022},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {54},
+number = {10s},
+issn = {0360-0300},
+doi = {10.1145/3508360},
+abstract = {The development of cloud infrastructures inspires the emergence of cloud-native computing. As the most promising architecture for deploying microservices, serverless computing has recently attracted more and more attention in both industry and academia. Due to its inherent scalability and flexibility, serverless computing becomes attractive and more pervasive for ever-growing Internet services. Despite the momentum in the cloud-native community, the existing challenges and compromises still wait for more advanced research and solutions to further explore the potential of the serverless computing model. As a contribution to this knowledge, this article surveys and elaborates the research domains in the serverless context by decoupling the architecture into four stack layers: Virtualization, Encapsule, System Orchestration, and System Coordination. Inspired by the security model, we highlight the key implications and limitations of these works in each layer, and make suggestions for potential challenges to the field of future serverless computing.},
+journal = {ACM Comput. Surv.},
+month = sep,
+articleno = {220},
+numpages = {34},
+keywords = {Serverless computing, architecture design, FaaS, Lambda paradigm}
+}
+
+@article{ristov2020afcl,
+title = {AFCL: An Abstract Function Choreography Language for serverless workflow specification},
+journal = {Future Generation Computer Systems},
+volume = {114},
+pages = {368-382},
+year = {2021},
+issn = {0167-739X},
+doi = {https://doi.org/10.1016/j.future.2020.08.012},
+author = {Sasko Ristov and Stefan Pedratscher and Thomas Fahringer},
+keywords = {AWS Step Functions, Cost, FaaS, IBM Composer, Performance},
+abstract = {Serverless workflow applications or function choreographies (FCs), which connect serverless functions by data- and control-flow, have gained considerable momentum recently to create more sophisticated applications as part of Function-as-a-Service (FaaS) platforms. Initial experimental analysis of the current support for FCs uncovered important weaknesses, including provider lock-in, and limited support for important data-flow and control-flow constructs. To overcome some of these weaknesses, we introduce the Abstract Function Choreography Language (AFCL) for describing FCs at a high-level of abstraction, which abstracts the function implementations from the developer. AFCL is a YAML-based language that supports a rich set of constructs to express advanced control-flow (e.g. parallelFor loops, parallel sections, dynamic loop iterations counts) and data-flow (e.g multiple input and output parameters of functions, DAG-based data-flow). We introduce data collections which can be distributed to loop iterations and parallel sections that may substantially reduce the delays for function invocations due to reduced data transfers between functions. We also support asynchronous functions to avoid delays due to blocking functions. AFCL supports properties (e.g. expected size of function input data) and constraints (e.g. minimize execution time) for the user to optionally provide hints about the behavior of functions and FCs and to control the optimization by the underlying execution environment. We implemented a prototype AFCL environment that supports AFCL as input language with multiple backends (AWS Lambda and IBM Cloud Functions) thus avoiding provider lock-in which is a common problem in serverless computing. We created two realistic FCs from two different domains and encoded them with AWS Step Functions, IBM Composer and AFCL. Experimental results demonstrate that our current implementation of the AFCL environment substantially outperforms AWS Step Functions and IBM Composer in terms of development effort, economic costs, and makespan.}
+}
+
+@inproceedings {oakes2018sock,
+author = {Edward Oakes and Leon Yang and Dennis Zhou and Kevin Houck and Tyler Harter and Andrea Arpaci-Dusseau and Remzi Arpaci-Dusseau},
+title = {{SOCK}: Rapid Task Provisioning with {Serverless-Optimized} Containers},
+booktitle = {2018 USENIX Annual Technical Conference (USENIX ATC 18)},
+year = {2018},
+isbn = {978-1-931971-44-7},
+address = {Boston, MA},
+pages = {57--70},
+publisher = {USENIX Association},
+month = jul
+}
+
+@inproceedings{baker1977incremental,
+  author    = {Henry C. Baker and Carl Hewitt},
+  title     = {The Incremental Garbage Collection of Processes},
+  booktitle = {Proceedings of the 1977 Symposium on Artificial Intelligence and Programming Languages},
+  pages     = {55--59},
+  year      = {1977},
+  publisher = {ACM},
+  doi       = {10.1145/800228.806932}
+}
+
+@article{halstead1985multilisp,
+  author  = {Robert H. Halstead},
+  title   = {Multilisp: A Language for Concurrent Symbolic Computation},
+  journal = {ACM Transactions on Programming Languages and Systems},
+  volume  = {7},
+  number  = {4},
+  pages   = {501--538},
+  year    = {1985},
+  doi     = {10.1145/4472.4478}
+}
+
+@article{liskov1988promises,
+  author  = {Barbara Liskov and Liuba Shrira},
+  title   = {Promises: Linguistic Support for Efficient Asynchronous Procedure Calls in Distributed Systems},
+  journal = {ACM SIGPLAN Notices},
+  volume  = {23},
+  number  = {7},
+  pages   = {260--267},
+  year    = {1988},
+  doi     = {10.1145/960116.54016}
+}
+
+@article{hughes1989why,
+  author  = {John Hughes},
+  title   = {Why Functional Programming Matters},
+  journal = {The Computer Journal},
+  volume  = {32},
+  number  = {2},
+  pages   = {98--107},
+  year    = {1989},
+  doi     = {10.1093/comjnl/32.2.98}
+}
+
+@article{mankala2025nlp,
+  author  = {Mankala, Chandrasekhar and Silva, Rodrigues},
+  title   = {Sustainable Real-Time {NLP} with Serverless Parallel Processing on {AWS}},
+  journal = {Information},
+  volume  = {16},
+  number  = {10},
+  pages   = {903},
+  year    = {2025},
+  doi     = {10.3390/info16100903}
+}
+
+@inproceedings{hautz2023afcl,
+  author    = {Hautz, Mika and Ristov, Sasko and Felderer, Michael},
+  title     = {Characterizing {AFCL} Serverless Scientific Workflows in Federated {FaaS}},
+  booktitle = {Proceedings of the 9th International Workshop on Serverless Computing},
+  year      = {2023},
+  publisher = {ACM},
+  doi       = {10.1145/3631295.3631397}
+}
+
+@article{barcelona2022crucial,
+  author  = {Barcelona-Pons, Daniel and Sutra, Pierre and Artigas, Marc and Par\'{\i}s, Gerard and L\'{o}pez, Pedro},
+  title   = {Stateful Serverless Computing with {Crucial}},
+  journal = {ACM Transactions on Software Engineering and Methodology},
+  volume  = {31},
+  number  = {3},
+  pages   = {1--38},
+  year    = {2022},
+  doi     = {10.1145/3490386}
+}
+
+@article{poojara2021iot,
+  author  = {Poojara, Sirel and Dehury, Chinmaya Kumar and Jakovits, Pelle and Srirama, Satish Narayana},
+  title   = {Serverless data pipeline approaches for {IoT} data in fog and cloud computing},
+  journal = {Future Generation Computer Systems},
+  volume  = {130},
+  pages   = {91--105},
+  year    = {2022},
+  doi     = {10.1016/j.future.2021.12.012}
+}
+
+@article{eismann2021serverless,
+  author  = {Eismann, Simon and Scheuner, Joel and Van Eyk, Erwin and Schwinger, Maximilian and Grohmann, Johannes and Herbst, Nikolas and Abad, Cristina and Iosup, Alexandru},
+  title   = {The State of Serverless Applications: Collection, Characterization, and Community Consensus},
+  journal = {IEEE Transactions on Software Engineering},
+  volume  = {48},
+  number  = {10},
+  pages   = {4152--4166},
+  year    = {2022},
+  doi     = {10.1109/tse.2021.3113940}
 }

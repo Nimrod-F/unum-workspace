@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: false
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  ByeFunction:
+    Value: !GetAtt ByeFunction.Arn
+  HelloFunction:
+    Value: !GetAtt HelloFunction.Arn
+  StartFunction:
+    Value: !GetAtt StartFunction.Arn
+  WorldFunction:
+    Value: !GetAtt WorldFunction.Arn
+Resources:
+  ByeFunction:
+    Properties:
+      CodeUri: Bye/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  HelloFunction:
+    Properties:
+      CodeUri: Hello/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  StartFunction:
+    Properties:
+      CodeUri: Start/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  WorldFunction:
+    Properties:
+      CodeUri: World/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+        - AWSLambdaRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

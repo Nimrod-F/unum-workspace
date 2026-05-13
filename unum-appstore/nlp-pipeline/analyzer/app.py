@@ -16,7 +16,6 @@ import json
 import time
 import re
 import math
-from unum_streaming import StreamingPublisher, set_streaming_output
 from collections import Counter
 
 
@@ -456,14 +455,6 @@ def compute_readability(matrix_data):
 
 def lambda_handler(event, context):
     """Stage 2: Analyze tokenized text — NER, frequency, dependencies, readability."""
-
-    # Streaming: Initialize publisher for incremental parameter streaming
-    _streaming_session = (event.get('Session', '') if isinstance(event, dict) else '') or str(id(event))
-    _streaming_publisher = StreamingPublisher(
-        session_id=_streaming_session,
-        source_function="AnalyzerFunction",
-        field_names=["entities", "freq_dist", "dep_features", "collocations", "readability"]
-    )
     start_time = time.time()
     doc_id = event.get('sentences', {}).get('doc_id', 'unknown')
     print(f'[Analyzer] Starting on doc {doc_id}')
@@ -498,13 +489,6 @@ def lambda_handler(event, context):
         'compute_ms': field_1_time,
         'doc_id': doc_id
     }
-    _streaming_publisher.publish('entities', entities_out)
-    # Streaming: Signal to runtime to invoke next function early with futures
-    if _streaming_publisher.should_invoke_next():
-        _streaming_payload = _streaming_publisher.get_streaming_payload()
-        # Store payload for runtime to pick up and invoke continuation
-        set_streaming_output(_streaming_payload)
-        _streaming_publisher.mark_next_invoked()
 
     # ── Field 2: freq_dist ← pos_tags
     t0 = time.time()
@@ -512,7 +496,6 @@ def lambda_handler(event, context):
     field_2_time = int((time.time() - t0) * 1000)
     print(f'[Analyzer] freq_dist: density={freq_dist["lexical_density"]} in {field_2_time}ms')
     freq_dist_out = {**freq_dist, 'compute_ms': field_2_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('freq_dist', freq_dist_out)
 
     # ── Field 3: dep_features ← ngrams
     t0 = time.time()
@@ -520,7 +503,6 @@ def lambda_handler(event, context):
     field_3_time = int((time.time() - t0) * 1000)
     print(f'[Analyzer] dep_features: {dep_features["pattern_count"]} patterns, {dep_features["n_graph_nodes"]} nodes in {field_3_time}ms')
     dep_features_out = {**dep_features, 'compute_ms': field_3_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('dep_features', dep_features_out)
 
     # ── Field 4: collocations ← vocab_stats
     t0 = time.time()
@@ -528,7 +510,6 @@ def lambda_handler(event, context):
     field_4_time = int((time.time() - t0) * 1000)
     print(f'[Analyzer] collocations: diversity={collocations["simpsons_diversity"]} in {field_4_time}ms')
     collocations_out = {**collocations, 'compute_ms': field_4_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('collocations', collocations_out)
 
     # ── Field 5: readability ← token_matrix
     t0 = time.time()
@@ -536,7 +517,6 @@ def lambda_handler(event, context):
     field_5_time = int((time.time() - t0) * 1000)
     print(f'[Analyzer] readability: Flesch={readability["flesch_reading_ease"]}, cohesion={readability["cohesion_score"]} in {field_5_time}ms')
     readability_out = {**readability, 'compute_ms': field_5_time, 'doc_id': doc_id}
-    _streaming_publisher.publish('readability', readability_out)
 
     total_time = int((time.time() - start_time) * 1000)
     print(f'[Analyzer] COMPLETE in {total_time}ms')

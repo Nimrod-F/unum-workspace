@@ -1,0 +1,712 @@
+[
+  {
+    "run_id": 1,
+    "type": "cold",
+    "e2e_ms": 5749.60009765625,
+    "trigger_ms": 1348.0548858642578,
+    "total_billed_ms": 10983.0,
+    "cold_starts": 6,
+    "cost_usd": 2.40812957625e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 589.81,
+        "billed_ms": 1171.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 580.57,
+        "cold_start": true,
+        "invocation_ms": 1773351140151,
+        "report_ts": 1773351140741
+      },
+      "SafetyCheck": {
+        "duration_ms": 769.57,
+        "billed_ms": 1329.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 559.43,
+        "cold_start": true,
+        "invocation_ms": 1773351141364,
+        "report_ts": 1773351142134
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 1011.07,
+        "billed_ms": 1583.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 571.1,
+        "cold_start": true,
+        "invocation_ms": 1773351141441,
+        "report_ts": 1773351142453
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1496.56,
+        "billed_ms": 2070.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 573.16,
+        "cold_start": true,
+        "invocation_ms": 1773351141473,
+        "report_ts": 1773351142970
+      },
+      "FailureModel": {
+        "duration_ms": 1431.33,
+        "billed_ms": 1934.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 502.56,
+        "cold_start": true,
+        "invocation_ms": 1773351143610,
+        "report_ts": 1773351145042
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2382.6,
+        "billed_ms": 2896.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 512.74,
+        "cold_start": true,
+        "invocation_ms": 1773351142836,
+        "report_ts": 1773351145219
+      }
+    }
+  },
+  {
+    "run_id": 2,
+    "type": "cold",
+    "e2e_ms": 5858.18994140625,
+    "trigger_ms": 1313.3585453033447,
+    "total_billed_ms": 11270.0,
+    "cold_starts": 6,
+    "cost_usd": 2.4679213625e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 611.08,
+        "billed_ms": 1172.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 560.32,
+        "cold_start": true,
+        "invocation_ms": 1773351179406,
+        "report_ts": 1773351180018
+      },
+      "SafetyCheck": {
+        "duration_ms": 790.99,
+        "billed_ms": 1355.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 563.96,
+        "cold_start": true,
+        "invocation_ms": 1773351180709,
+        "report_ts": 1773351181500
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 993.73,
+        "billed_ms": 1544.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 549.46,
+        "cold_start": true,
+        "invocation_ms": 1773351180702,
+        "report_ts": 1773351181696
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1478.54,
+        "billed_ms": 2014.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 534.99,
+        "cold_start": true,
+        "invocation_ms": 1773351180681,
+        "report_ts": 1773351182160
+      },
+      "FailureModel": {
+        "duration_ms": 1488.73,
+        "billed_ms": 2103.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 613.42,
+        "cold_start": true,
+        "invocation_ms": 1773351182986,
+        "report_ts": 1773351184475
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2559.19,
+        "billed_ms": 3082.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 522.22,
+        "cold_start": true,
+        "invocation_ms": 1773351182073,
+        "report_ts": 1773351184633
+      }
+    }
+  },
+  {
+    "run_id": 3,
+    "type": "cold",
+    "e2e_ms": 5672.580078125,
+    "trigger_ms": 1311.856746673584,
+    "total_billed_ms": 11067.0,
+    "cold_starts": 6,
+    "cost_usd": 2.42562961125e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 597.7,
+        "billed_ms": 1144.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 545.63,
+        "cold_start": true,
+        "invocation_ms": 1773351219464,
+        "report_ts": 1773351220062
+      },
+      "SafetyCheck": {
+        "duration_ms": 791.52,
+        "billed_ms": 1355.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 562.62,
+        "cold_start": true,
+        "invocation_ms": 1773351220704,
+        "report_ts": 1773351221496
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 991.51,
+        "billed_ms": 1547.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 555.13,
+        "cold_start": true,
+        "invocation_ms": 1773351220731,
+        "report_ts": 1773351221723
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1464.85,
+        "billed_ms": 2011.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 546.13,
+        "cold_start": true,
+        "invocation_ms": 1773351220760,
+        "report_ts": 1773351222225
+      },
+      "FailureModel": {
+        "duration_ms": 1445.37,
+        "billed_ms": 2028.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 582.18,
+        "cold_start": true,
+        "invocation_ms": 1773351222955,
+        "report_ts": 1773351224401
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2471.58,
+        "billed_ms": 2982.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 509.98,
+        "cold_start": true,
+        "invocation_ms": 1773351222042,
+        "report_ts": 1773351224514
+      }
+    }
+  },
+  {
+    "run_id": 1,
+    "type": "warm",
+    "e2e_ms": 2610.300048828125,
+    "trigger_ms": 227.13375091552734,
+    "total_billed_ms": 5689.0,
+    "cold_starts": 0,
+    "cost_usd": 1.3052107037500001e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 189.75,
+        "billed_ms": 190.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351251291,
+        "report_ts": 1773351251481
+      },
+      "SafetyCheck": {
+        "duration_ms": 340.58,
+        "billed_ms": 341.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351251435,
+        "report_ts": 1773351251776
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 698.42,
+        "billed_ms": 699.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351251464,
+        "report_ts": 1773351252163
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1100.11,
+        "billed_ms": 1101.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351251483,
+        "report_ts": 1773351252584
+      },
+      "FailureModel": {
+        "duration_ms": 1144.18,
+        "billed_ms": 1145.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351252656,
+        "report_ts": 1773351253801
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2212.3,
+        "billed_ms": 2213.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351251723,
+        "report_ts": 1773351253936
+      }
+    }
+  },
+  {
+    "run_id": 2,
+    "type": "warm",
+    "e2e_ms": 2683.610107421875,
+    "trigger_ms": 276.96967124938965,
+    "total_billed_ms": 5621.0,
+    "cold_starts": 0,
+    "cost_usd": 1.2910440087500001e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 224.34,
+        "billed_ms": 225.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351272774,
+        "report_ts": 1773351272999
+      },
+      "SafetyCheck": {
+        "duration_ms": 417.64,
+        "billed_ms": 418.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351272939,
+        "report_ts": 1773351273357
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 643.85,
+        "billed_ms": 644.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351272919,
+        "report_ts": 1773351273563
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1065.1,
+        "billed_ms": 1066.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351273040,
+        "report_ts": 1773351274106
+      },
+      "FailureModel": {
+        "duration_ms": 1138.44,
+        "billed_ms": 1139.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351274143,
+        "report_ts": 1773351275282
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2128.61,
+        "billed_ms": 2129.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351273365,
+        "report_ts": 1773351275494
+      }
+    }
+  },
+  {
+    "run_id": 3,
+    "type": "warm",
+    "e2e_ms": 2662.81005859375,
+    "trigger_ms": 239.03727531433105,
+    "total_billed_ms": 5597.0,
+    "cold_starts": 0,
+    "cost_usd": 1.2860439987500002e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 183.12,
+        "billed_ms": 184.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351294339,
+        "report_ts": 1773351294523
+      },
+      "SafetyCheck": {
+        "duration_ms": 336.79,
+        "billed_ms": 337.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351294560,
+        "report_ts": 1773351294897
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 679.9,
+        "billed_ms": 680.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351294523,
+        "report_ts": 1773351295203
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1092.46,
+        "billed_ms": 1093.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351294553,
+        "report_ts": 1773351295646
+      },
+      "FailureModel": {
+        "duration_ms": 1158.86,
+        "billed_ms": 1159.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351295683,
+        "report_ts": 1773351296842
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2143.81,
+        "billed_ms": 2144.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351294890,
+        "report_ts": 1773351297034
+      }
+    }
+  },
+  {
+    "run_id": 4,
+    "type": "warm",
+    "e2e_ms": 2643.840087890625,
+    "trigger_ms": 197.33643531799316,
+    "total_billed_ms": 5629.0,
+    "cold_starts": 0,
+    "cost_usd": 1.29271067875e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 174.01,
+        "billed_ms": 175.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351315466,
+        "report_ts": 1773351315641
+      },
+      "SafetyCheck": {
+        "duration_ms": 329.18,
+        "billed_ms": 330.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351315626,
+        "report_ts": 1773351315956
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 654.72,
+        "billed_ms": 655.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351315628,
+        "report_ts": 1773351316283
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1072.39,
+        "billed_ms": 1073.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351315651,
+        "report_ts": 1773351316724
+      },
+      "FailureModel": {
+        "duration_ms": 1137.47,
+        "billed_ms": 1138.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351316764,
+        "report_ts": 1773351317902
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2257.84,
+        "billed_ms": 2258.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351315896,
+        "report_ts": 1773351318154
+      }
+    }
+  },
+  {
+    "run_id": 5,
+    "type": "warm",
+    "e2e_ms": 2559.139892578125,
+    "trigger_ms": 213.87124061584473,
+    "total_billed_ms": 5575.0,
+    "cold_starts": 0,
+    "cost_usd": 1.2814606562500004e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 177.08,
+        "billed_ms": 178.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351336644,
+        "report_ts": 1773351336822
+      },
+      "SafetyCheck": {
+        "duration_ms": 310.88,
+        "billed_ms": 311.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351336765,
+        "report_ts": 1773351337076
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 654.73,
+        "billed_ms": 655.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351336808,
+        "report_ts": 1773351337463
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1077.03,
+        "billed_ms": 1078.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351336868,
+        "report_ts": 1773351337946
+      },
+      "FailureModel": {
+        "duration_ms": 1123.79,
+        "billed_ms": 1124.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351337957,
+        "report_ts": 1773351339081
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2228.14,
+        "billed_ms": 2229.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351337005,
+        "report_ts": 1773351339234
+      }
+    }
+  },
+  {
+    "run_id": 6,
+    "type": "warm",
+    "e2e_ms": 2606.840087890625,
+    "trigger_ms": 261.0588073730469,
+    "total_billed_ms": 5667.0,
+    "cold_starts": 0,
+    "cost_usd": 1.3006273612500001e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 216.75,
+        "billed_ms": 217.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351357786,
+        "report_ts": 1773351358003
+      },
+      "SafetyCheck": {
+        "duration_ms": 359.09,
+        "billed_ms": 360.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351357957,
+        "report_ts": 1773351358317
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 666.59,
+        "billed_ms": 667.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351357976,
+        "report_ts": 1773351358643
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1095.91,
+        "billed_ms": 1096.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351358030,
+        "report_ts": 1773351359126
+      },
+      "FailureModel": {
+        "duration_ms": 1163.53,
+        "billed_ms": 1164.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351359137,
+        "report_ts": 1773351360301
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2162.84,
+        "billed_ms": 2163.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351358271,
+        "report_ts": 1773351360434
+      }
+    }
+  },
+  {
+    "run_id": 7,
+    "type": "warm",
+    "e2e_ms": 2661.030029296875,
+    "trigger_ms": 215.75641632080078,
+    "total_billed_ms": 5652.0,
+    "cold_starts": 0,
+    "cost_usd": 1.2975023550000002e-05,
+    "per_function": {
+      "SensorIngest": {
+        "duration_ms": 191.77,
+        "billed_ms": 192.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 93,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351378910,
+        "report_ts": 1773351379102
+      },
+      "SafetyCheck": {
+        "duration_ms": 327.21,
+        "billed_ms": 328.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 94,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351379068,
+        "report_ts": 1773351379396
+      },
+      "MachineStateShiftCheck": {
+        "duration_ms": 651.72,
+        "billed_ms": 652.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351379131,
+        "report_ts": 1773351379783
+      },
+      "WindowingComputeFFT": {
+        "duration_ms": 1077.66,
+        "billed_ms": 1078.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351379128,
+        "report_ts": 1773351380206
+      },
+      "FailureModel": {
+        "duration_ms": 1160.35,
+        "billed_ms": 1161.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 92,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351380220,
+        "report_ts": 1773351381381
+      },
+      "ActionDispatcher": {
+        "duration_ms": 2240.03,
+        "billed_ms": 2241.0,
+        "mem_size_mb": 128,
+        "mem_used_mb": 91,
+        "init_ms": 0.0,
+        "cold_start": false,
+        "invocation_ms": 1773351379373,
+        "report_ts": 1773351381614
+      }
+    }
+  }
+]

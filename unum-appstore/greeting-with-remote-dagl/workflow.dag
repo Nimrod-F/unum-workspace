@@ -1,0 +1,8 @@
+@workflow("unum-greeting-with-remote")
+@checkpoint(true)
+@import("Greeter", "arn:aws:lambda:eu-central-1:683003725669:function:standalone-greeter-GreeterFunction-glMvED1OQi7O")
+@api("/greet", "POST")
+@event("greeting.app", "GreetRequest")
+
+let greeting = Greeter(input)
+return Formatter(greeting)

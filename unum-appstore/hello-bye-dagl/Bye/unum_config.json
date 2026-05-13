@@ -1,0 +1,21 @@
+{
+  "Name": "Bye",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "World",
+    "InputType": {
+      "Fan-in": {
+        "Values": [
+          "Hello-unumIndex-0",
+          "Bye-unumIndex-1"
+        ]
+      }
+    },
+    "Fan-in-Group": true
+  },
+  "Next Payload Modifiers": [
+    "Pop"
+  ]
+}

@@ -1,0 +1,114 @@
+# Type Checking in Unum Workflows
+
+## Overview
+
+Unum provides compile-time type validation for workflow edges. Types are declared
+via `@input` / `@output` annotations in function docstrings (Python) or JSDoc
+(JavaScript). During compilation, the CLI extracts these annotations from source
+code and validates that connected functions have compatible types.
+
+Optionally, during deployment, signatures are registered in Redis so they can be
+queried across workflows.
+
+## Declaring Types
+
+### Python
+
+`python
+def lambda_handler(event, context):
+    """Process incoming data.
+
+    @input {bucket: string, key: string}
+    @output {url: string, size: integer}
+    """
+    # ...
+`
+
+### JavaScript
+
+`javascript
+/**
+ * @input {name: string, age: integer}
+ * @output {greeting: string, processed: boolean}
+ */
+function main(params) {
+    return { greeting: "Hello " + params.name, processed: true };
+}
+`
+
+## Supported Types
+
+| Type      | Aliases          |
+|-----------|------------------|
+| string    | str              |
+| integer   | int              |
+| number    | float, double    |
+| boolean   | bool             |
+| object    | dict, map        |
+| array     | list             |
+| any       | —                |
+
+## Validation Rules
+
+**Scalar edges** (A -> B): Every field in B's `@input` must be present in A's
+`@output` with a compatible type.
+
+**Map edges**: Relaxed — source output is fanned out element-wise to target.
+
+**Fan-in edges**: Relaxed — target receives an array aggregation.
+
+**Type compatibility**:
+- Same type is always compatible
+- `integer` is compatible with `number` (both directions)
+- `any` is compatible with everything
+
+## CLI Usage
+
+### Compile with type checking (default)
+
+`ash
+unum-cli compile -p dagl -w workflow.dag
+`
+
+Type validation runs automatically after compilation and prints a report.
+
+### Strict mode (fail on type errors)
+
+`ash
+unum-cli compile -p dagl -w workflow.dag --strict-types
+`
+
+Compilation fails with exit code 1 if type errors are found.
+
+### Skip type checking
+
+`ash
+unum-cli compile -p dagl -w workflow.dag --skip-type-check
+`
+
+### Deploy with Redis registration
+
+`ash
+unum-cli deploy --redis-url redis://localhost:6379
+`
+
+After successful deployment, function signatures are registered in Redis under
+keys `unum:signature:<function_name>`. This enables cross-workflow type queries.
+
+## Architecture
+
+`
+Source code (app.py / handler.js)
+    |
+    | extract_signature_from_directory()
+    v
+FunctionSignature {name, input_params, output_params}
+    |
+    |--- compile: validate_workflow(configs, signatures)
+    |
+    |--- deploy: SignatureRegistry.register_all(signatures)  [Redis]
+    v
+TypeCheckError[] -> format_validation_report()
+`
+
+Core module: `unum-cli/type_registry.py`

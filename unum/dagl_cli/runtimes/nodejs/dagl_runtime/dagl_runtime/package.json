@@ -1,0 +1,7 @@
+{
+  "name": "dagl_runtime",
+  "version": "0.1.0",
+  "description": "DAGL Runtime Layer for Node.js Lambda functions",
+  "main": "main.js",
+  "license": "MIT"
+}

@@ -1,6 +1,55 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "dagl"
+version = "0.1.0"
+description = "DAGL — Directed Acyclic Graph Language for serverless workflow composition across AWS Lambda and GCP Cloud Functions"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+authors = [
+    {name = "David H. Liu", email = "hao.liu@princeton.edu"},
+]
+keywords = ["serverless", "workflow", "faas", "lambda", "cloud-functions", "orchestration"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: System :: Distributed Computing",
+]
+dependencies = [
+    "boto3>=1.28",
+    "pyyaml>=6.0",
+    "redis>=4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "moto",
+]
+
+[project.scripts]
+dagl = "dagl_cli.dagl:main"
+
+[project.urls]
+Homepage = "https://github.com/LedgeDash/unum"
+Repository = "https://github.com/LedgeDash/unum"
+
+[tool.setuptools.packages.find]
+include = ["dagl_cli*"]
+
+[tool.setuptools.package-data]
+"dagl_cli" = [
+    "runtimes/python/dagl_runtime/**/*",
+    "runtimes/nodejs/dagl_runtime/**/*",
+    "runtimes/*.py",
+]

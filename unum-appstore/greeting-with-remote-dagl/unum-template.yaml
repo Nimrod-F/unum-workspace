@@ -1,0 +1,32 @@
+Functions:
+  Formatter:
+    Properties:
+      CodeUri: Formatter/
+      Runtime: python3.11
+  Greeter:
+    Arn: arn:aws:lambda:eu-central-1:683003725669:function:standalone-greeter-GreeterFunction-glMvED1OQi7O
+    Properties:
+      CodeUri: Greeter/
+      Environment:
+        REMOTE_FUNCTION_ARN: arn:aws:lambda:eu-central-1:683003725669:function:standalone-greeter-GreeterFunction-glMvED1OQi7O
+      Runtime: python3.11
+      Start: true
+    Remote: true
+Globals:
+  Api:
+    endFunctions:
+    - Formatter
+    method: POST
+    path: /greet
+  ApplicationName: unum-greeting-with-remote
+  Checkpoint: true
+  Debug: false
+  Eager: false
+  Event:
+    detailType: GreetRequest
+    source: greeting.app
+  FaaSPlatform: aws
+  GC: false
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowType: dagl

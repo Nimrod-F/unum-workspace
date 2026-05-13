@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: false
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  ApiEndpoint:
+    Value:
+      Fn::Sub: https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com
+  FormatterFunction:
+    Value: !GetAtt FormatterFunction.Arn
+  GreeterFunction:
+    Value: !GetAtt GreeterFunction.Arn
+  UnumApiHandler:
+    Value:
+      Fn::GetAtt:
+        - UnumApiHandler
+        - Arn
+Resources:
+  FormatterFunction:
+    Properties:
+      CodeUri: Formatter/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonS3FullAccess
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  GreeterFunction:
+    Properties:
+      CodeUri: Greeter/
+      Environment:
+        Variables:
+          REMOTE_FUNCTION_ARN: arn:aws:lambda:eu-central-1:683003725669:function:standalone-greeter-GreeterFunction-glMvED1OQi7O
+      Events:
+        EventBridgeTrigger:
+          Properties:
+            Pattern:
+              detail-type:
+                - GreetRequest
+              source:
+                - greeting.app
+          Type: EventBridgeRule
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AWSLambdaBasicExecutionRole
+        - AmazonS3FullAccess
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+  UnumApiHandler:
+    Properties:
+      CodeUri: UnumApiHandler/
+      Environment:
+        Variables:
+          DS_TABLE_NAME: unum-intermediate-datastore
+          END_FUNCTIONS: '["Formatter"]'
+          START_FUNCTION_ARN:
+            Fn::GetAtt:
+              - GreeterFunction
+              - Arn
+          WORKFLOW_NAME: unum-greeting-with-remote
+      Events:
+        ApiEvent:
+          Properties:
+            Method: post
+            Path: /greet
+          Type: HttpApi
+      Handler: api_handler.lambda_handler
+      MemorySize: 256
+      Policies:
+        - AWSLambdaRole
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+      Timeout: 29
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

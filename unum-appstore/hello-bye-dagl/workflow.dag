@@ -1,0 +1,11 @@
+@workflow("unum-hello-bye-dagl")
+@checkpoint(true)
+
+// Start receives input and fans out to both Hello and Bye in parallel.
+// World collects results from both branches (fan-in).
+let input = Start()
+let greetings = parallel {
+    Hello(input)
+    Bye(input)
+}
+collect greetings into World()

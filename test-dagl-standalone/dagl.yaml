@@ -1,0 +1,11 @@
+platform: aws
+region: eu-central-1
+
+functions:
+  Tokenize: standalone-tokenize
+  Analyze: standalone-analyze
+  Report: standalone-report
+
+checkpoint: true
+datastore_name: unum-intermediate-datastore
+datastore_type: dynamodb

@@ -1,0 +1,28 @@
+Functions:
+  Bye:
+    Properties:
+      CodeUri: Bye/
+      Runtime: python3.11
+  Hello:
+    Properties:
+      CodeUri: Hello/
+      Runtime: python3.11
+  Start:
+    Properties:
+      CodeUri: Start/
+      Runtime: python3.11
+      Start: true
+  World:
+    Properties:
+      CodeUri: World/
+      Runtime: python3.11
+Globals:
+  ApplicationName: unum-hello-bye-dagl
+  Checkpoint: true
+  Debug: false
+  Eager: false
+  FaaSPlatform: aws
+  GC: false
+  UnumIntermediaryDataStoreName: unum-intermediate-datastore
+  UnumIntermediaryDataStoreType: dynamodb
+  WorkflowType: dagl

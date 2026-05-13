@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: true
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore-iot
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  ActionDispatcherFunction:
+    Value:
+      Fn::GetAtt:
+      - ActionDispatcherFunction
+      - Arn
+  FailureModelFunction:
+    Value:
+      Fn::GetAtt:
+      - FailureModelFunction
+      - Arn
+  MachineStateShiftCheckFunction:
+    Value:
+      Fn::GetAtt:
+      - MachineStateShiftCheckFunction
+      - Arn
+  SafetyCheckFunction:
+    Value:
+      Fn::GetAtt:
+      - SafetyCheckFunction
+      - Arn
+  SensorIngestFunction:
+    Value:
+      Fn::GetAtt:
+      - SensorIngestFunction
+      - Arn
+  WindowingComputeFFTFunction:
+    Value:
+      Fn::GetAtt:
+      - WindowingComputeFFTFunction
+      - Arn
+Resources:
+  ActionDispatcherFunction:
+    Properties:
+      CodeUri: s3://unum-sam-deploy-eu-central-1/9d823a512aef1844e40d7f0393317af4
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: 'true'
+      Handler: main.lambda_handler
+      Policies:
+      - AmazonS3FullAccess
+      - AmazonDynamoDBFullAccess
+      - AWSLambdaRole
+      - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+    Metadata:
+      SamResourceId: ActionDispatcherFunction
+  FailureModelFunction:
+    Properties:
+      CodeUri: s3://unum-sam-deploy-eu-central-1/0a0cbc1ea32296fd88a6c0e8ab548615
+      Handler: main.lambda_handler
+      Policies:
+      - AmazonS3FullAccess
+      - AmazonDynamoDBFullAccess
+      - AWSLambdaRole
+      - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+    Metadata:
+      SamResourceId: FailureModelFunction
+  MachineStateShiftCheckFunction:
+    Properties:
+      CodeUri: s3://unum-sam-deploy-eu-central-1/4f1d55d316e85e80cf36b454e1bac90b
+      Handler: main.lambda_handler
+      Policies:
+      - AmazonS3FullAccess
+      - AmazonDynamoDBFullAccess
+      - AWSLambdaRole
+      - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+    Metadata:
+      SamResourceId: MachineStateShiftCheckFunction
+  SafetyCheckFunction:
+    Properties:
+      CodeUri: s3://unum-sam-deploy-eu-central-1/f302e4dd917b975171486076f61f40d3
+      Handler: main.lambda_handler
+      Policies:
+      - AmazonS3FullAccess
+      - AmazonDynamoDBFullAccess
+      - AWSLambdaRole
+      - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+    Metadata:
+      SamResourceId: SafetyCheckFunction
+  SensorIngestFunction:
+    Properties:
+      CodeUri: s3://unum-sam-deploy-eu-central-1/06fbbe74c2e0f4e4258273f3a8854ca5
+      Handler: main.lambda_handler
+      Policies:
+      - AmazonS3FullAccess
+      - AmazonDynamoDBFullAccess
+      - AWSLambdaRole
+      - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+    Metadata:
+      SamResourceId: SensorIngestFunction
+  WindowingComputeFFTFunction:
+    Properties:
+      CodeUri: s3://unum-sam-deploy-eu-central-1/371aa305f4e5799182948c7229c28116
+      Handler: main.lambda_handler
+      Policies:
+      - AmazonS3FullAccess
+      - AmazonDynamoDBFullAccess
+      - AWSLambdaRole
+      - AWSLambdaBasicExecutionRole
+      Runtime: python3.11
+    Type: AWS::Serverless::Function
+    Metadata:
+      SamResourceId: WindowingComputeFFTFunction
+Transform: AWS::Serverless-2016-10-31

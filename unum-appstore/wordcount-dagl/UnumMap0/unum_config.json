@@ -1,0 +1,10 @@
+{
+  "Name": "UnumMap0",
+  "Start": true,
+  "Checkpoint": true,
+  "Debug": true,
+  "Next": {
+    "Name": "Mapper",
+    "InputType": "Map"
+  }
+}

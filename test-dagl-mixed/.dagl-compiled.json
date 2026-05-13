@@ -1,0 +1,90 @@
+{
+  "configs": {
+    "Tokenize": {
+      "Name": "Tokenize",
+      "Start": true,
+      "Checkpoint": true,
+      "Debug": true,
+      "Next": {
+        "Name": "Analyze",
+        "InputType": "Scalar"
+      }
+    },
+    "Analyze": {
+      "Name": "Analyze",
+      "Start": false,
+      "Checkpoint": true,
+      "Debug": true,
+      "Next": {
+        "Name": "Report",
+        "InputType": "Scalar"
+      }
+    },
+    "Report": {
+      "Name": "Report",
+      "Start": false,
+      "Checkpoint": true,
+      "Debug": true
+    }
+  },
+  "template": {
+    "Globals": {
+      "ApplicationName": "mixed-text-pipeline",
+      "WorkflowType": "dagl",
+      "UnumIntermediaryDataStoreType": "dynamodb",
+      "UnumIntermediaryDataStoreName": "unum-intermediate-datastore",
+      "FaaSPlatform": "aws",
+      "Checkpoint": true,
+      "GC": false,
+      "Debug": false,
+      "Eager": false
+    },
+    "Functions": {
+      "Tokenize": {
+        "Properties": {
+          "CodeUri": "Tokenize/",
+          "Runtime": "nodejs20.x",
+          "Start": true
+        }
+      },
+      "Analyze": {
+        "Properties": {
+          "CodeUri": "Analyze/",
+          "Runtime": "python3.11"
+        }
+      },
+      "Report": {
+        "Properties": {
+          "CodeUri": "Report/",
+          "Runtime": "nodejs20.x"
+        }
+      }
+    }
+  },
+  "functions_map": {
+    "Tokenize": "nodejs-tokenize",
+    "Analyze": "gcp-analyze",
+    "Report": "nodejs-report"
+  },
+  "functions_full": {
+    "Tokenize": {
+      "name": "nodejs-tokenize",
+      "platform": "aws",
+      "region": "eu-central-1"
+    },
+    "Analyze": {
+      "name": "gcp-analyze",
+      "platform": "gcp",
+      "region": "europe-west1",
+      "handler": "main.handler",
+      "project": "research-496118",
+      "runtime": "python312",
+      "url": "https://europe-west1-research-496118.cloudfunctions.net/gcp-analyze"
+    },
+    "Report": {
+      "name": "nodejs-report",
+      "platform": "aws",
+      "region": "eu-central-1"
+    }
+  }
+}

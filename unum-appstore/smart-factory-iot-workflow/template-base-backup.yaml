@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Globals:
+  Function:
+    Environment:
+      Variables:
+        CHECKPOINT: true
+        EAGER: true
+        FAAS_PLATFORM: aws
+        GC: false
+        UNUM_INTERMEDIARY_DATASTORE_NAME: unum-intermediate-datastore-iot
+        UNUM_INTERMEDIARY_DATASTORE_TYPE: dynamodb
+    Timeout: 900
+Outputs:
+  ActionDispatcherFunction:
+    Value: !GetAtt ActionDispatcherFunction.Arn
+  ComputeFFTFunction:
+    Value: !GetAtt ComputeFFTFunction.Arn
+  FailureModelFunction:
+    Value: !GetAtt FailureModelFunction.Arn
+  MachineStateFunction:
+    Value: !GetAtt MachineStateFunction.Arn
+  SafetyCheckFunction:
+    Value: !GetAtt SafetyCheckFunction.Arn
+  SensorIngestFunction:
+    Value: !GetAtt SensorIngestFunction.Arn
+  ShiftCheckFunction:
+    Value: !GetAtt ShiftCheckFunction.Arn
+  WindowingFunction:
+    Value: !GetAtt WindowingFunction.Arn
+Resources:
+  ActionDispatcherFunction:
+    Properties:
+      CodeUri: action-dispatcher/
+      Environment:
+        Variables:
+          UNUM_FUTURE_BASED: 'true'
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  ComputeFFTFunction:
+    Properties:
+      CodeUri: compute-fft/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  FailureModelFunction:
+    Properties:
+      CodeUri: failure-model/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  MachineStateFunction:
+    Properties:
+      CodeUri: machine-state/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  SafetyCheckFunction:
+    Properties:
+      CodeUri: safety-check/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  SensorIngestFunction:
+    Properties:
+      CodeUri: sensor-ingest/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  ShiftCheckFunction:
+    Properties:
+      CodeUri: shift-check/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+  WindowingFunction:
+    Properties:
+      CodeUri: windowing/
+      Handler: main.lambda_handler
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AWSLambdaRole
+        - AmazonS3FullAccess
+        - AWSLambdaBasicExecutionRole
+      Runtime: python3.13
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31

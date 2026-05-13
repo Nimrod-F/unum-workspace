@@ -1,0 +1,4 @@
+functions:
+  Tokenize: standalone-tokenize
+  Analyze: standalone-analyze
+  Report: standalone-report

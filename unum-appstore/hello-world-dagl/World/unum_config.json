@@ -1,0 +1,6 @@
+{
+  "Name": "World",
+  "Start": false,
+  "Checkpoint": true,
+  "Debug": true
+}
