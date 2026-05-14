@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tessera-flow"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tessera — Type-safe serverless choreography via direct function invocation across AWS Lambda and GCP Cloud Functions"
 readme = "README.md"
 license = {text = "MIT"}
