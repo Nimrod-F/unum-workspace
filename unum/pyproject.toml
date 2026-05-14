@@ -39,6 +39,7 @@ dev = [
 
 [project.scripts]
 dagl = "dagl_cli.dagl:main"
+tessera = "dagl_cli.dagl:main"
 
 [project.urls]
 Homepage = "https://github.com/LedgeDash/unum"

@@ -25,7 +25,10 @@ jobs:
         run: pip install build
 
       - name: Patch package name for QA
-        run: sed -i 's/name = "tessera-flow"/name = "tessera-flow-qa"/' unum/pyproject.toml
+        run: |
+          sed -i 's/name = "tessera-flow"/name = "tessera-flow-qa"/' unum/pyproject.toml
+          sed -i 's/tessera = "dagl_cli.dagl:main"/tessera-qa = "dagl_cli.dagl:main"/' unum/pyproject.toml
+          sed -i '/^dagl = "dagl_cli.dagl:main"/d' unum/pyproject.toml
 
       - name: Build sdist and wheel
         run: python -m build
@@ -51,6 +54,9 @@ jobs:
 
       - name: Install build tools
         run: pip install build
+
+      - name: Remove local-only entry point
+        run: sed -i '/^dagl = \"dagl_cli.dagl:main\"/d' unum/pyproject.toml
 
       - name: Build sdist and wheel
         run: python -m build
@@ -106,7 +112,7 @@ jobs:
             tessera-flow-qa
 
       - name: Verify CLI works
-        run: dagl --help
+        run: tessera-qa --help
 
       - name: Verify package imports
         run: python -c "import dagl_cli; print(f'tessera-flow-qa {dagl_cli.__version__} installed successfully')"
