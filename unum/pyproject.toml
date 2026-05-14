@@ -3,16 +3,16 @@ requires = ["setuptools>=64", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dagl"
+name = "tessera-flow"
 version = "0.1.0"
-description = "DAGL — Directed Acyclic Graph Language for serverless workflow composition across AWS Lambda and GCP Cloud Functions"
+description = "Tessera — Type-safe serverless choreography via direct function invocation across AWS Lambda and GCP Cloud Functions"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 authors = [
     {name = "David H. Liu", email = "hao.liu@princeton.edu"},
 ]
-keywords = ["serverless", "workflow", "faas", "lambda", "cloud-functions", "orchestration"]
+keywords = ["serverless", "workflow", "faas", "lambda", "cloud-functions", "orchestration", "choreography", "tessera"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",

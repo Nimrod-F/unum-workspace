@@ -10,9 +10,37 @@ permissions:
   contents: read
 
 jobs:
-  # ── Step 1: Build the package ──────────────────────────────────────────────
+  # ── Step 1: Build for TestPyPI (tessera-flow-qa) ───────────────────────────
+  build-test:
+    name: Build for TestPyPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Patch package name for QA
+        run: sed -i 's/name = "tessera-flow"/name = "tessera-flow-qa"/' unum/pyproject.toml
+
+      - name: Build sdist and wheel
+        run: python -m build
+        working-directory: unum/
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-test
+          path: unum/dist/
+          if-no-files-found: error
+
+  # ── Step 2: Build for PyPI (tessera-flow) ──────────────────────────────────
   build:
-    name: Build distribution
+    name: Build for PyPI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,21 +63,21 @@ jobs:
           path: unum/dist/
           if-no-files-found: error
 
-  # ── Step 2: Publish to TestPyPI (automatic) ───────────────────────────────
+  # ── Step 3: Publish to TestPyPI (automatic) ───────────────────────────────
   publish-testpypi:
     name: Publish to TestPyPI
-    needs: build
+    needs: build-test
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/dagl
+      url: https://test.pypi.org/p/tessera-flow-qa
     permissions:
       id-token: write   # Required for OIDC trusted publishing
     steps:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: dist
+          name: dist-test
           path: dist/
 
       - name: Publish to TestPyPI
@@ -57,7 +85,7 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
-  # ── Step 3: Verify TestPyPI install works ──────────────────────────────────
+  # ── Step 4: Verify TestPyPI install works ──────────────────────────────────
   verify-testpypi:
     name: Verify TestPyPI install
     needs: publish-testpypi
@@ -75,22 +103,22 @@ jobs:
           pip install \
             --index-url https://test.pypi.org/simple/ \
             --extra-index-url https://pypi.org/simple/ \
-            dagl
+            tessera-flow-qa
 
       - name: Verify CLI works
         run: dagl --help
 
       - name: Verify package imports
-        run: python -c "import dagl_cli; print(f'dagl {dagl_cli.__version__} installed successfully')"
+        run: python -c "import dagl_cli; print(f'tessera-flow-qa {dagl_cli.__version__} installed successfully')"
 
-  # ── Step 4: Publish to PyPI (manual approval required) ─────────────────────
+  # ── Step 5: Publish to PyPI (manual approval required) ─────────────────────
   publish-pypi:
     name: Publish to PyPI
-    needs: verify-testpypi
+    needs: [build, verify-testpypi]
     runs-on: ubuntu-latest
     environment:
       name: pypi               # Requires manual approval in GitHub settings
-      url: https://pypi.org/p/dagl
+      url: https://pypi.org/p/tessera-flow
     permissions:
       id-token: write
     steps:
